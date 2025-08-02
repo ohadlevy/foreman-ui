@@ -322,11 +322,11 @@ export class ForemanPluginRegistry implements PluginRegistry {
    */
   private createPluginContext(plugin: ForemanPlugin): PluginContext {
     return {
-      // TODO: Inject actual dependencies
-      apiClient: null,
-      user: null,
+      // Optional dependencies - plugins should handle undefined gracefully
+      apiClient: undefined,
+      user: undefined,
       pluginRegistry: this,
-      notifications: null,
+      notifications: undefined,
       i18n: {
         t: (key: string, options?: Record<string, unknown>) => {
           const namespace = this.getPluginTranslationNamespace(plugin.name);

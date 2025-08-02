@@ -42,6 +42,24 @@ import {
   useStatuses
 } from '@foreman/shared';
 
+// Health calculation constants
+const HEALTH_WEIGHTS = {
+  PLUGINS: 0.6,
+  API: 0.3,
+  AUTH: 0.1,
+} as const;
+
+const HEALTH_THRESHOLDS = {
+  HEALTHY: 90,
+  WARNING: 70,
+} as const;
+
+const DEFAULT_HEALTH_VALUES = {
+  API_WITH_USER: 100,
+  API_WITHOUT_USER: 85,
+  AUTH_AUTHENTICATED: 100,
+} as const;
+
 export const SystemStatus: React.FC = () => {
   const plugins = usePlugins();
   const loadState = usePluginLoadState();
@@ -61,32 +79,40 @@ export const SystemStatus: React.FC = () => {
     const pluginHealth = totalPlugins > 0 ? (workingPlugins / totalPlugins) * 100 : 100;
     
     // API health - if we can fetch detailed user data, API is working well
-    const apiHealth = currentUser ? 100 : 85;
+    const apiHealth = currentUser ? DEFAULT_HEALTH_VALUES.API_WITH_USER : DEFAULT_HEALTH_VALUES.API_WITHOUT_USER;
     
     // Since user can only see this page when authenticated, auth is always healthy
-    const authHealth = 100;
+    const authHealth = DEFAULT_HEALTH_VALUES.AUTH_AUTHENTICATED;
     
     // Overall calculation - weight plugins more heavily since that's what varies
-    const overallHealth = Math.round((pluginHealth * 0.6) + (apiHealth * 0.3) + (authHealth * 0.1));
+    const overallHealth = Math.round(
+      (pluginHealth * HEALTH_WEIGHTS.PLUGINS) + 
+      (apiHealth * HEALTH_WEIGHTS.API) + 
+      (authHealth * HEALTH_WEIGHTS.AUTH)
+    );
     
     return {
       overall: overallHealth,
       api: apiHealth,
       auth: authHealth,
       plugins: pluginHealth,
-      status: overallHealth >= 90 ? 'healthy' : overallHealth >= 70 ? 'warning' : 'critical'
+      status: overallHealth >= HEALTH_THRESHOLDS.HEALTHY 
+        ? 'healthy' 
+        : overallHealth >= HEALTH_THRESHOLDS.WARNING 
+          ? 'warning' 
+          : 'critical'
     };
   }, [plugins.length, loadState.loaded.length, currentUser]);
 
   const getHealthColor = (percentage: number): 'success' | 'warning' | 'danger' => {
-    if (percentage >= 90) return 'success';
-    if (percentage >= 70) return 'warning';
+    if (percentage >= HEALTH_THRESHOLDS.HEALTHY) return 'success';
+    if (percentage >= HEALTH_THRESHOLDS.WARNING) return 'warning';
     return 'danger';
   };
 
   const getHealthIcon = (percentage: number) => {
-    if (percentage >= 90) return <CheckCircleIcon color="var(--pf-global--success-color--100)" />;
-    if (percentage >= 70) return <ExclamationTriangleIcon color="var(--pf-global--warning-color--100)" />;
+    if (percentage >= HEALTH_THRESHOLDS.HEALTHY) return <CheckCircleIcon color="var(--pf-global--success-color--100)" />;
+    if (percentage >= HEALTH_THRESHOLDS.WARNING) return <ExclamationTriangleIcon color="var(--pf-global--warning-color--100)" />;
     return <ExclamationTriangleIcon color="var(--pf-global--danger-color--100)" />;
   };
 

@@ -36,16 +36,22 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({
   }
   
   // Calculate grid span based on widget size
-  const getGridSpan = (size: string | undefined): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 => {
+  type GridSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+  
+  const getGridSpan = (size: string | undefined): GridSpan => {
+    const clampToGridSpan = (value: number): GridSpan => {
+      return Math.max(1, Math.min(12, Math.floor(value))) as GridSpan;
+    };
+
     switch (size) {
       case 'small':
-        return Math.floor(12 / columns) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+        return clampToGridSpan(12 / columns);
       case 'medium':
-        return Math.floor(12 / Math.max(1, columns - 1)) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+        return clampToGridSpan(12 / Math.max(1, columns - 1));
       case 'large':
         return 12;
       default:
-        return Math.floor(12 / columns) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+        return clampToGridSpan(12 / columns);
     }
   };
   

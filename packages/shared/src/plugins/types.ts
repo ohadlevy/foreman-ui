@@ -259,18 +259,34 @@ export interface ApiEndpoint {
 /**
  * Plugin context provided during initialization
  */
+// Placeholder interfaces for future implementation
+interface PluginApiClient {
+  // TODO: Define API client interface when available
+  [key: string]: unknown;
+}
+
+interface PluginUser {
+  // TODO: Define User interface when available
+  [key: string]: unknown;
+}
+
+interface PluginNotifications {
+  // TODO: Define notifications interface when available
+  [key: string]: unknown;
+}
+
 export interface PluginContext {
-  /** Foreman API client */
-  apiClient: unknown; // TODO: Type this properly when API client types are available
+  /** Foreman API client - optional, plugins should handle undefined gracefully */
+  apiClient?: PluginApiClient;
   
-  /** Current user */
-  user: unknown; // TODO: Type this properly when User types are available
+  /** Current user - optional, plugins should handle undefined gracefully */
+  user?: PluginUser;
   
   /** Plugin registry for inter-plugin communication */
   pluginRegistry: PluginRegistry;
   
-  /** Notification system */
-  notifications: unknown; // TODO: Type this properly when notification types are available
+  /** Notification system - optional, plugins should handle undefined gracefully */
+  notifications?: PluginNotifications;
   
   /** i18n functions */
   i18n: {

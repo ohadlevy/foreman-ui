@@ -110,21 +110,30 @@ export const generatePluginNamespace = (pluginName: string): string => {
 /**
  * Merge plugin configurations (useful for plugin inheritance or composition)
  */
-export const mergePluginConfigs = (base: Record<string, unknown>, override: Record<string, unknown>): Record<string, unknown> => {
+export const mergePluginConfigs = <T extends Record<string, unknown>>(
+  base: T, 
+  override: Partial<T>
+): T => {
   const merged = { ...base };
   
   Object.keys(override).forEach(key => {
-    if (Array.isArray(override[key])) {
+    const overrideValue = override[key];
+    if (Array.isArray(overrideValue)) {
       // For arrays, concatenate
       const baseArray = Array.isArray(base[key]) ? base[key] as unknown[] : [];
-      merged[key] = [...baseArray, ...(override[key] as unknown[])];
-    } else if (typeof override[key] === 'object' && override[key] !== null) {
+      (merged as Record<string, unknown>)[key] = [...baseArray, ...overrideValue];
+    } else if (typeof overrideValue === 'object' && overrideValue !== null) {
       // For objects, merge recursively
-      const baseObj = typeof base[key] === 'object' && base[key] !== null ? base[key] as Record<string, unknown> : {};
-      merged[key] = mergePluginConfigs(baseObj, override[key] as Record<string, unknown>);
+      const baseObj = typeof base[key] === 'object' && base[key] !== null 
+        ? base[key] as Record<string, unknown> 
+        : {};
+      (merged as Record<string, unknown>)[key] = mergePluginConfigs(
+        baseObj, 
+        overrideValue as Record<string, unknown>
+      );
     } else {
       // For primitives, override
-      merged[key] = override[key];
+      (merged as Record<string, unknown>)[key] = overrideValue;
     }
   });
   
