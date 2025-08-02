@@ -1,0 +1,82 @@
+{
+  "name": "@foreman/shared",
+  "version": "1.0.0",
+  "description": "Shared components and utilities for Foreman UI",
+  "license": "GPL-3.0",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "tsc && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "generate-types": "openapi-typescript http://localhost:3000/apidoc/v2.json -o src/types/generated/api.ts"
+  },
+  "dependencies": {
+    "@patternfly/react-core": "^5.2.0",
+    "@patternfly/react-icons": "^5.2.0",
+    "@patternfly/react-styles": "^5.2.0",
+    "@patternfly/react-table": "^5.2.0",
+    "@patternfly/react-tokens": "^5.2.0",
+    "@tanstack/react-query": "^4.29.0",
+    "axios": "^1.4.0",
+    "date-fns": "^2.30.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.11.0",
+    "zustand": "^4.3.8"
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "^7.0.18",
+    "@storybook/addon-interactions": "^7.0.18",
+    "@storybook/addon-links": "^7.0.18",
+    "@storybook/blocks": "^7.0.18",
+    "@storybook/react": "^7.0.18",
+    "@storybook/react-vite": "^7.0.18",
+    "@storybook/testing-library": "^0.1.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "eslint": "^9.15.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-storybook": "^0.6.12",
+    "jsdom": "^26.1.0",
+    "openapi-typescript": "^6.2.5",
+    "storybook": "^7.0.18",
+    "typescript": "^5.0.4",
+    "vite": "^4.3.8",
+    "vite-plugin-dts": "^2.3.0",
+    "vitest": "^0.31.1"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "sideEffects": [
+    "*.css",
+    "*.scss"
+  ]
+}

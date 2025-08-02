@@ -1,0 +1,60 @@
+{
+  "name": "foreman-ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Modern React-based user interface for Foreman",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ohadlevy/foreman-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ohadlevy/foreman-ui/issues"
+  },
+  "homepage": "https://github.com/ohadlevy/foreman-ui#readme",
+  "license": "GPL-3.0",
+  "keywords": ["foreman", "react", "ui", "typescript", "infrastructure", "configuration-management"],
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "lerna run dev --parallel",
+    "dev:shared": "lerna run dev --scope=@foreman/shared",
+    "dev:user": "lerna run dev --scope=@foreman/user-portal",
+    "dev:admin": "lerna run dev --scope=@foreman/admin-portal",
+    "build": "lerna run build",
+    "build:shared": "lerna run build --scope=@foreman/shared",
+    "build:user": "lerna run build --scope=@foreman/user-portal",
+    "build:admin": "lerna run build --scope=@foreman/admin-portal",
+    "test": "lerna run test",
+    "test:watch": "lerna run test:watch",
+    "test:coverage": "lerna run test -- --coverage",
+    "test:ui": "lerna run test:ui",
+    "test:shared": "lerna run test --scope=@foreman/shared",
+    "test:user": "lerna run test --scope=@foreman/user-portal",
+    "lint": "lerna run lint",
+    "lint:fix": "lerna run lint:fix",
+    "clean": "lerna clean && rm -rf node_modules",
+    "storybook": "lerna run storybook --scope=@foreman/shared",
+    "generate-types": "lerna run generate-types --scope=@foreman/shared"
+  },
+  "devDependencies": {
+    "lerna": "^8.1.8",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "git add"
+    ]
+  }
+}
