@@ -5,7 +5,41 @@ import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
 import type { User, AuthResponse, LoginCredentials } from '@foreman/shared';
 
-// Mock the shared module
+// Global mock functions
+const mockLogoutGlobal = vi.fn();
+
+// Mock the shared module  
+vi.mock('@foreman/shared', () => {
+  return {
+    useAuth: vi.fn(),
+    UserLayout: vi.fn(({ children }) => (
+      <div data-testid="user-layout">
+        <button data-testid="logout-button" onClick={mockLogoutGlobal}>
+          Logout
+        </button>
+        {children}
+      </div>
+    )),
+    PluginRouter: vi.fn(() => <div data-testid="plugin-router">Plugin Router</div>),
+    pluginRegistry: {
+      register: vi.fn(),
+      getPlugin: vi.fn(),
+      getAllPlugins: vi.fn().mockReturnValue([]),
+      subscribe: vi.fn().mockReturnValue(() => {}),
+      isRegistered: vi.fn().mockReturnValue(false),
+    },
+    FOREMAN_BRANDING: {
+      colors: {
+        primary: '#005c7e',
+        primaryGradientStart: '#0072a0',
+        secondary: '#0187b6',
+      }
+    },
+    AuthProvider: vi.fn(({ children }) => <div data-testid="auth-provider">{children}</div>),
+    ErrorBoundary: vi.fn(({ children }) => <div data-testid="error-boundary">{children}</div>),
+  };
+});
+
 const mockLogin = vi.fn<[LoginCredentials], Promise<AuthResponse>>().mockResolvedValue({ 
   user: { 
     id: 1, 
@@ -19,29 +53,8 @@ const mockLogin = vi.fn<[LoginCredentials], Promise<AuthResponse>>().mockResolve
   }, 
   token: 'test-token' 
 });
-const mockLogout = vi.fn();
+const mockLogout = mockLogoutGlobal;
 const mockClearError = vi.fn();
-
-vi.mock('@foreman/shared', () => ({
-  useAuth: vi.fn(),
-  UserLayout: vi.fn(({ children }) => (
-    <div data-testid="user-layout">
-      <button data-testid="logout-button" onClick={mockLogout}>
-        Logout
-      </button>
-      {children}
-    </div>
-  )),
-  FOREMAN_BRANDING: {
-    colors: {
-      primary: '#005c7e',
-      primaryGradientStart: '#0072a0',
-      secondary: '#0187b6',
-    }
-  },
-  AuthProvider: vi.fn(({ children }) => <div data-testid="auth-provider">{children}</div>),
-  ErrorBoundary: vi.fn(({ children }) => <div data-testid="error-boundary">{children}</div>),
-}));
 
 // Mock pages
 vi.mock('../pages/Dashboard', () => ({

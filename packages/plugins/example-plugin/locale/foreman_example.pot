@@ -1,0 +1,202 @@
+# FOREMAN EXAMPLE PLUGIN
+# Copyright (C) 2024 The Foreman Project
+# This file is distributed under the same license as the foreman_example package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: foreman_example 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-02T12:02:08.552Z\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: \n"
+
+#: src/i18n/keys.ts:menu.main
+msgid "menu.main"
+msgstr "Example Plugin"
+
+#: src/i18n/keys.ts:pages.dashboard.title
+msgid "pages.dashboard.title"
+msgstr "Example Dashboard"
+
+#: src/i18n/keys.ts:pages.dashboard.welcome
+msgid "pages.dashboard.welcome"
+msgstr "Welcome to the Example Plugin!"
+
+#: src/i18n/keys.ts:pages.dashboard.description
+msgid "pages.dashboard.description"
+msgstr "This is a reference implementation showing how to create Foreman UI plugins."
+
+#: src/i18n/keys.ts:features.title
+msgid "features.title"
+msgstr "Plugin Features Demonstrated"
+
+#: src/i18n/keys.ts:features.routes
+msgid "features.routes"
+msgstr "Custom routes and pages"
+
+#: src/i18n/keys.ts:features.menu
+msgid "features.menu"
+msgstr "Navigation menu integration"
+
+#: src/i18n/keys.ts:features.extensions
+msgid "features.extensions"
+msgstr "Component extensions (host tabs)"
+
+#: src/i18n/keys.ts:features.widgets
+msgid "features.widgets"
+msgstr "Dashboard widgets"
+
+#: src/i18n/keys.ts:features.i18n
+msgid "features.i18n"
+msgstr "Internationalization support"
+
+#: src/i18n/keys.ts:features.permissions
+msgid "features.permissions"
+msgstr "Permission-based access control"
+
+#: src/i18n/keys.ts:host.tab_title
+msgid "host.tab_title"
+msgstr "Example Data"
+
+#: src/i18n/keys.ts:host.no_data
+msgid "host.no_data"
+msgstr "No example data available for this host."
+
+#: src/i18n/keys.ts:host.loading
+msgid "host.loading"
+msgstr "Loading example data..."
+
+#: src/i18n/keys.ts:host.info
+msgid "host.info"
+msgstr "This tab demonstrates how plugins can extend existing pages."
+
+#: src/i18n/keys.ts:widgets.category
+msgid "widgets.category"
+msgstr "Example"
+
+#: src/i18n/keys.ts:widgets.summary.title
+msgid "widgets.summary.title"
+msgstr "Example Summary"
+
+#: src/i18n/keys.ts:widgets.summary.total_items
+msgid "widgets.summary.total_items"
+msgstr "Total Items"
+
+#: src/i18n/keys.ts:widgets.summary.active_items
+msgid "widgets.summary.active_items"
+msgstr "Active Items"
+
+#: src/i18n/keys.ts:widgets.summary.last_updated
+msgid "widgets.summary.last_updated"
+msgstr "Last Updated"
+
+#: src/i18n/keys.ts:permissions.view_dashboard
+msgid "permissions.view_dashboard"
+msgstr "View example plugin dashboard"
+
+#: src/i18n/keys.ts:permissions.manage_features
+msgid "permissions.manage_features"
+msgstr "Manage example plugin features"
+
+#: src/i18n/keys.ts:breadcrumbs.dashboard
+msgid "breadcrumbs.dashboard"
+msgstr "Example Dashboard"
+
+#: src/i18n/keys.ts:actions.refresh
+msgid "actions.refresh"
+msgstr "Refresh"
+
+#: src/i18n/keys.ts:actions.configure
+msgid "actions.configure"
+msgstr "Configure"
+
+#: src/i18n/keys.ts:actions.export
+msgid "actions.export"
+msgstr "Export Data"
+
+#: src/i18n/keys.ts:status.loading
+msgid "status.loading"
+msgstr "Loading..."
+
+#: src/i18n/keys.ts:status.error
+msgid "status.error"
+msgstr "An error occurred"
+
+#: src/i18n/keys.ts:status.success
+msgid "status.success"
+msgstr "Operation completed successfully"
+
+#: src/i18n/keys.ts:status.no_permission
+msgid "status.no_permission"
+msgstr "You do not have permission to access this feature"
+
+#: src/i18n/keys.ts:form.name
+msgid "form.name"
+msgstr "Name"
+
+#: src/i18n/keys.ts:form.description
+msgid "form.description"
+msgstr "Description"
+
+#: src/i18n/keys.ts:form.enabled
+msgid "form.enabled"
+msgstr "Enabled"
+
+#: src/i18n/keys.ts:form.save
+msgid "form.save"
+msgstr "Save"
+
+#: src/i18n/keys.ts:form.cancel
+msgid "form.cancel"
+msgstr "Cancel"
+
+#: src/i18n/keys.ts:form.required
+msgid "form.required"
+msgstr "This field is required"
+
+#: src/i18n/keys.ts:table.name
+msgid "table.name"
+msgstr "Name"
+
+#: src/i18n/keys.ts:table.status
+msgid "table.status"
+msgstr "Status"
+
+#: src/i18n/keys.ts:table.created
+msgid "table.created"
+msgstr "Created"
+
+#: src/i18n/keys.ts:table.actions
+msgid "table.actions"
+msgstr "Actions"
+
+#: src/i18n/keys.ts:common.yes
+msgid "common.yes"
+msgstr "Yes"
+
+#: src/i18n/keys.ts:common.no
+msgid "common.no"
+msgstr "No"
+
+#: src/i18n/keys.ts:common.enabled
+msgid "common.enabled"
+msgstr "Enabled"
+
+#: src/i18n/keys.ts:common.disabled
+msgid "common.disabled"
+msgstr "Disabled"
+
+#: src/i18n/keys.ts:common.active
+msgid "common.active"
+msgstr "Active"
+
+#: src/i18n/keys.ts:common.inactive
+msgid "common.inactive"
+msgstr "Inactive"
+

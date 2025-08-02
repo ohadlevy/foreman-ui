@@ -39,7 +39,10 @@ export default [
     rules: {
       ...typescript.configs.recommended.rules,
       ...react.configs.recommended.rules,
-      ...reactHooks.configs.recommended.rules,
+      'react-hooks/rules-of-hooks': 'error',
+      // Disable exhaustive-deps temporarily due to ESLint 9 compatibility issue
+      // TODO: Re-enable when eslint-plugin-react-hooks supports ESLint 9
+      'react-hooks/exhaustive-deps': 'off',
       'react/react-in-jsx-scope': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },

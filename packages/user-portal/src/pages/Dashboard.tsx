@@ -16,7 +16,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from '@patternfly/react-icons';
-import { useMyHosts, useCurrentUserData, usePermissions } from '@foreman/shared';
+import { useMyHosts, useCurrentUserData, usePermissions, DashboardWidgets } from '@foreman/shared';
 import { useNavigate } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
@@ -141,6 +141,11 @@ export const Dashboard: React.FC = () => {
           </Card>
         </PageSection>
       )}
+
+      {/* Plugin Dashboard Widgets */}
+      <PageSection>
+        <DashboardWidgets />
+      </PageSection>
     </>
   );
 };
