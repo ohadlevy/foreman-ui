@@ -96,7 +96,18 @@ describe('PluginLoader', () => {
       
       await pluginLoader.initialize();
       
-      // Should fall back to default plugins when empty string is provided
+      // Empty string means explicitly no plugins
+      expect((mockHooks.pluginRegistry.register as any)).not.toHaveBeenCalled();
+      expect(consoleSpy.log).toHaveBeenCalledWith('🔌 Initializing plugin system...');
+      expect(consoleSpy.log).toHaveBeenCalledWith('🎉 Plugin system initialization complete');
+    });
+
+    it('should handle explicit default request', async () => {
+      process.env.REACT_APP_ENABLED_PLUGINS = 'default';
+      
+      await pluginLoader.initialize();
+      
+      // "default" explicitly requests default plugins
       expect((mockHooks.pluginRegistry.register as any)).toHaveBeenCalledTimes(2);
       expect(consoleSpy.log).toHaveBeenCalledWith('🔌 Initializing plugin system...');
       expect(consoleSpy.log).toHaveBeenCalledWith('🎉 Plugin system initialization complete');

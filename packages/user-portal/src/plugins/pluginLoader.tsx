@@ -123,14 +123,17 @@ export class PluginLoader {
     
     // Development-only environment variable support
     const envPlugins = process.env.REACT_APP_ENABLED_PLUGINS;
-    if (envPlugins) {
-      // Special value to explicitly request default plugins
-      if (envPlugins.trim() === 'default') {
+    if (envPlugins !== undefined) {
+      const trimmedEnv = envPlugins.trim();
+      if (trimmedEnv === "") {
+        // Explicitly no plugins
+        return [];
+      }
+      if (trimmedEnv.toLowerCase() === "default") {
+        // Explicitly request default plugins
         return ['foreman_demo', 'foreman_monitoring'];
       }
-      
-      const plugins = envPlugins.split(',').map(p => p.trim()).filter(p => p);
-      // If after filtering we have no plugins, return empty array (no plugins)
+      const plugins = trimmedEnv.split(',').map(p => p.trim()).filter(p => p);
       return plugins;
     }
     
