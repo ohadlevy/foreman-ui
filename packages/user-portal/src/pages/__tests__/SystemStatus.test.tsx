@@ -465,9 +465,9 @@ describe('SystemStatus', () => {
       
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: {
-          database: { message: 'Database OK', status: 'ok' }, // valid
-          cache: { message: 'Cache down' }, // missing status
-          redis: { status: 'error' }, // missing message
+          database: { label: 'Database', description: 'Database OK', status: 'ok' }, // valid
+          cache: { label: 'Cache', description: 'Cache down' }, // missing status
+          redis: { status: 'error' }, // missing label
           elastic: null, // null entry
           puppet: undefined, // undefined entry
         },
