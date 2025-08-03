@@ -493,7 +493,7 @@ export const SystemStatus: React.FC = () => {
                                   color={statusItem.status === 'ok' ? 'green' : statusItem.status === 'warning' ? 'orange' : 'red'}
                                   isCompact
                                 >
-                                  {statusItem.status.toUpperCase()}
+                                  {statusItem.status?.toUpperCase() || 'UNKNOWN'}
                                 </Label>
                               </FlexItem>
                             </Flex>

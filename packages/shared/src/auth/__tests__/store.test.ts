@@ -195,6 +195,50 @@ describe('AuthStore', () => {
       expect(hasPermission).toBe(false);
     });
 
+    it('should handle permission checks during user loading states', () => {
+      // Test when user is explicitly null (loading state)
+      act(() => {
+        useAuthStore.getState().setUser(null);
+      });
+      
+      expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(false);
+      expect(useAuthStore.getState().hasPermission('view_hosts', 'Host')).toBe(false);
+    });
+
+    it('should handle empty user objects gracefully', () => {
+      const emptyUser = {};
+      
+      act(() => {
+        useAuthStore.getState().setUser(emptyUser as any);
+      });
+      
+      // Should not crash and should return false
+      expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(false);
+    });
+
+    it('should handle user objects with missing roles', () => {
+      const userWithoutRoles = {
+        id: 1,
+        login: 'user',
+        firstname: 'Regular',
+        lastname: 'User',
+        mail: 'user@example.com',
+        admin: false,
+        disabled: false,
+        auth_source_id: 1,
+        // no roles field - this can happen during partial API responses
+        organizations: [],
+        locations: []
+      };
+      
+      act(() => {
+        useAuthStore.getState().setUser(userWithoutRoles as any);
+      });
+      
+      // Should not crash and should return false
+      expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(false);
+    });
+
     it('should return true for admin user', () => {
       const adminUser = {
         id: 1,
@@ -249,6 +293,122 @@ describe('AuthStore', () => {
       expect(useAuthStore.getState().hasPermission('view_hosts', 'Host')).toBe(true);
       expect(useAuthStore.getState().hasPermission('edit_hosts')).toBe(false);
       expect(useAuthStore.getState().hasPermission('view_hosts', 'User')).toBe(false);
+    });
+
+    it('should handle roles with undefined permissions gracefully', () => {
+      const userWithBadRole = {
+        id: 1,
+        login: 'user',
+        firstname: 'Regular',
+        lastname: 'User',
+        mail: 'user@example.com',
+        admin: false,
+        disabled: false,
+        auth_source_id: 1,
+        roles: [{
+          id: 1,
+          name: 'BadRole'
+          // no permissions field - this happens in real API responses
+        }],
+        organizations: [],
+        locations: []
+      };
+
+      act(() => {
+        useAuthStore.getState().setUser(userWithBadRole);
+      });
+
+      // Should not crash and should return false
+      expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(false);
+      expect(useAuthStore.getState().hasPermission('edit_hosts')).toBe(false);
+    });
+
+    it('should handle roles with null permissions gracefully', () => {
+      const userWithNullPermissions = {
+        id: 1,
+        login: 'user',
+        firstname: 'Regular',
+        lastname: 'User',
+        mail: 'user@example.com',
+        admin: false,
+        disabled: false,
+        auth_source_id: 1,
+        roles: [{
+          id: 1,
+          name: 'NullPermissionsRole',
+          permissions: null // null instead of array
+        }],
+        organizations: [],
+        locations: []
+      };
+
+      act(() => {
+        useAuthStore.getState().setUser(userWithNullPermissions);
+      });
+
+      // Should not crash and should return false
+      expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(false);
+    });
+
+    it('should handle roles with malformed permissions gracefully', () => {
+      const userWithMalformedPermissions = {
+        id: 1,
+        login: 'user',
+        firstname: 'Regular',
+        lastname: 'User',
+        mail: 'user@example.com',
+        admin: false,
+        disabled: false,
+        auth_source_id: 1,
+        roles: [{
+          id: 1,
+          name: 'MalformedRole',
+          permissions: 'not-an-array' // wrong type
+        }],
+        organizations: [],
+        locations: []
+      };
+
+      act(() => {
+        useAuthStore.getState().setUser(userWithMalformedPermissions);
+      });
+
+      // Should not crash and should return false
+      expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(false);
+    });
+
+    it('should handle permission objects with missing properties', () => {
+      const userWithMalformedPerms = {
+        id: 1,
+        login: 'user',
+        firstname: 'Regular',
+        lastname: 'User',
+        mail: 'user@example.com',
+        admin: false,
+        disabled: false,
+        auth_source_id: 1,
+        roles: [{
+          id: 1,
+          name: 'MalformedPermsRole',
+          permissions: [
+            null, // null permission object
+            undefined, // undefined permission object
+            { id: 1 }, // missing name and resource_type
+            { name: 'view_hosts' }, // missing resource_type (should still work)
+            'not-an-object' // wrong type
+          ]
+        }],
+        organizations: [],
+        locations: []
+      };
+
+      act(() => {
+        useAuthStore.getState().setUser(userWithMalformedPerms);
+      });
+
+      // Should not crash - the valid permission should work
+      expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(true);
+      expect(useAuthStore.getState().hasPermission('edit_hosts')).toBe(false);
     });
   });
 

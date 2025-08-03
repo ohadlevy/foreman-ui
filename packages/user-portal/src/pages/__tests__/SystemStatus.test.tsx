@@ -411,4 +411,104 @@ describe('SystemStatus', () => {
 
     expect(screen.getByText('No system status information available')).toBeInTheDocument();
   });
+
+  describe('Edge Cases and Error Handling', () => {
+    it('should handle malformed status data with undefined status values', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      // Mock statuses with undefined status values
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: {
+          database: { 
+            message: 'Database connection',
+            // status is undefined - this caused the original crash
+          },
+          cache: {
+            message: 'Cache service',
+            status: null // null status
+          },
+          redis: {
+            message: 'Redis service'
+            // missing status field entirely
+          }
+        },
+        isSuccess: true,
+      }));
+
+      // Should not crash
+      render(<SystemStatus />, { wrapper: createWrapper() });
+
+      // Should display fallback values
+      expect(screen.getByText('UNKNOWN')).toBeInTheDocument();
+    });
+
+    it('should handle empty status objects', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: {
+          database: {}, // completely empty status object
+          cache: null, // null status object
+        },
+        isSuccess: true,
+      }));
+
+      // Should not crash
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      // Should handle gracefully
+      expect(screen.getByText('System Components')).toBeInTheDocument();
+    });
+
+    it('should handle status data with mixed valid and invalid entries', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: {
+          database: { message: 'Database OK', status: 'ok' }, // valid
+          cache: { message: 'Cache down' }, // missing status
+          redis: { status: 'error' }, // missing message
+          elastic: null, // null entry
+          puppet: undefined, // undefined entry
+        },
+        isSuccess: true,
+      }));
+
+      // Should not crash and should handle valid entries
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      expect(screen.getByText('Database OK')).toBeInTheDocument();
+      expect(screen.getByText('OK')).toBeInTheDocument();
+      expect(screen.getByText('UNKNOWN')).toBeInTheDocument();
+    });
+
+    it('should handle completely malformed statuses data', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      // Mock with completely wrong data structure
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: 'not-an-object' as any,
+        isSuccess: true,
+      }));
+
+      // Should not crash
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      expect(screen.getByText('No system status information available')).toBeInTheDocument();
+    });
+
+    it('should handle array instead of object for statuses', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: [{ name: 'database', status: 'ok' }] as any, // array instead of object
+        isSuccess: true,
+      }));
+
+      // Should not crash
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      expect(screen.getByText('No system status information available')).toBeInTheDocument();
+    });
+  });
 });

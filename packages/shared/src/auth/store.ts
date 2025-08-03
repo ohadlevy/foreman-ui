@@ -89,6 +89,9 @@ export const useAuthStore = create<AuthStore>()(
         if (user.admin) return true;
 
         // Check if user has the specific permission
+        // Handle users without roles array
+        if (!user.roles || !Array.isArray(user.roles)) return false;
+        
         const hasPermission = user.roles.some(role => {
           // Handle roles without permissions array
           if (!role.permissions || !Array.isArray(role.permissions)) return false;
