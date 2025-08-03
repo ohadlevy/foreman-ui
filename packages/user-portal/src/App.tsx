@@ -1,16 +1,27 @@
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { UserLayout, FOREMAN_BRANDING } from '@foreman/shared';
+import { UserLayout, FOREMAN_BRANDING, PluginRouter } from '@foreman/shared';
 import { Dashboard } from './pages/Dashboard';
 import { HostsList } from './pages/Hosts/HostsList';
 import { HostDetails } from './pages/Hosts/HostDetails';
 import { CreateHost } from './pages/Hosts/CreateHost';
 import { Profile } from './pages/Profile';
 import { Settings } from './pages/Settings';
+import { SystemStatus } from './pages/SystemStatus';
 import { SimpleLogin } from './pages/SimpleLogin';
 import { useAuth } from '@foreman/shared';
+import { pluginLoader } from './plugins/pluginLoader';
 
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
+
+  // Initialize plugin system
+  React.useEffect(() => {
+    const initializePlugins = async () => {
+      await pluginLoader.initialize();
+    };
+    initializePlugins();
+  }, []);
 
   if (isLoading) {
     return (
@@ -43,7 +54,10 @@ function App() {
         <Route path="/hosts/:id" element={<HostDetails />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/system-status" element={<SystemStatus />} />
         <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+        {/* Plugin Routes */}
+        <Route path="/*" element={<PluginRouter />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </UserLayout>

@@ -1,0 +1,42 @@
+{
+  "name": "@foreman/plugin-example",
+  "version": "1.0.0",
+  "description": "Example plugin demonstrating Foreman UI plugin development",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "extract-translations": "node scripts/extract-translations.js",
+    "build:translations": "npm run extract-translations"
+  },
+  "dependencies": {
+    "@foreman/shared": "*",
+    "@patternfly/react-core": "^5.2.0",
+    "@patternfly/react-icons": "^5.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^13.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "eslint": "^9.15.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "typescript": "^5.0.4",
+    "vitest": "^0.31.1"
+  },
+  "peerDependencies": {
+    "@foreman/shared": "*",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  }
+}

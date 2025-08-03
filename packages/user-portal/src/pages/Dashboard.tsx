@@ -16,7 +16,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from '@patternfly/react-icons';
-import { useMyHosts, useCurrentUserData, usePermissions } from '@foreman/shared';
+import { useMyHosts, useCurrentUserData, usePermissions, DashboardWidgets } from '@foreman/shared';
 import { useNavigate } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
@@ -93,8 +93,8 @@ export const Dashboard: React.FC = () => {
 
       <PageSection>
         <Gallery hasGutter minWidths={{ default: '300px' }}>
-          {statsCards.map((stat, index) => (
-            <GalleryItem key={index}>
+          {statsCards.map((stat) => (
+            <GalleryItem key={stat.title}>
               <Card isClickable>
                 <CardTitle>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -122,8 +122,8 @@ export const Dashboard: React.FC = () => {
             <CardTitle>Quick Actions</CardTitle>
             <CardBody>
               <Gallery hasGutter>
-                {quickActions.map((action, index) => (
-                  <GalleryItem key={index}>
+                {quickActions.map((action) => (
+                  <GalleryItem key={action.title}>
                     <Card isClickable onClick={action.onClick}>
                       <CardBody>
                         <Title headingLevel="h3" size="lg">
@@ -141,6 +141,11 @@ export const Dashboard: React.FC = () => {
           </Card>
         </PageSection>
       )}
+
+      {/* Plugin Dashboard Widgets */}
+      <PageSection>
+        <DashboardWidgets />
+      </PageSection>
     </>
   );
 };

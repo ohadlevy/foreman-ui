@@ -31,6 +31,8 @@ import {
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import { usePermissions } from '../../hooks';
+import { usePluginMenuItems } from '../../plugins/hooks';
+import { hasPluginPermissions } from '../../plugins/utils';
 import { ForemanBrand } from '../Branding';
 import { NotificationBell, NotificationDrawer } from '../Notifications';
 
@@ -43,9 +45,13 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const { canViewHosts } = usePermissions();
+  const pluginMenuItems = usePluginMenuItems();
   
   const [isNavOpen, setIsNavOpen] = React.useState(true);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = React.useState(false);
+
+  // Get user permissions for filtering plugin menu items
+  const userPermissions = user?.roles?.flatMap(role => role.permissions || []) || [];
 
   const onNavToggle = () => {
     setIsNavOpen(!isNavOpen);
@@ -59,6 +65,11 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     logout();
     navigate('/login');
   };
+
+  // Filter plugin menu items by permissions
+  const filteredPluginMenuItems = pluginMenuItems.filter(item => 
+    hasPluginPermissions(item.permissions, userPermissions)
+  );
 
   const navigation = (
     <Nav>
@@ -74,6 +85,23 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
         <NavItem isActive={location.pathname === '/profile'}>
           <Link to="/profile">Profile</Link>
         </NavItem>
+        <NavItem isActive={location.pathname === '/system-status'}>
+          <Link to="/system-status">System Status</Link>
+        </NavItem>
+        
+        {/* Plugin Menu Items */}
+        {filteredPluginMenuItems.map((item) => (
+          item.path && (
+            <NavItem 
+              key={item.id} 
+              isActive={location.pathname === item.path}
+            >
+              <Link to={item.path}>
+                {item.labelKey ? item.labelKey : item.label}
+              </Link>
+            </NavItem>
+          )
+        ))}
       </NavList>
     </Nav>
   );

@@ -17,6 +17,12 @@ This is a **modern React UI replacement** for Foreman's existing Ruby on Rails w
 - **User Base**: Infrastructure teams managing physical/virtual servers, provisioning, configuration management
 - **Goal**: Complete frontend modernization while maintaining plugin compatibility
 
+## Development Guidelines
+
+### Code Development Workflow
+- Always run lint/tsc/tests, if you change any file during that cycle, run it again
+- Remove trailing whitespaces
+
 ## Architecture Overview
 
 **Lerna Monorepo Structure:**
@@ -153,6 +159,36 @@ components/
 ├── Tables/             # Enhanced PatternFly table components
 ├── Dashboards/         # Dashboard widgets and layouts
 └── Plugin/             # Plugin integration components
+```
+
+### System Status & Health Monitoring
+
+The SystemStatus page (`/system-status`) provides users with:
+
+**Health Metrics Dashboard:**
+- **Overall System Health**: Weighted calculation of all system components
+- **API Connection**: Status of Foreman API connectivity and response quality  
+- **Authentication**: Always shows 100% (since page requires auth to access)
+- **Extensions/Plugins**: Percentage of successfully loaded plugins
+
+**Plugin Information:**
+- List of installed extensions with status indicators
+- Plugin metadata (version, author, description, features)
+- Feature breakdown (dashboard widgets, menu items, routes)
+- Error details for failed plugin loads
+
+**System Information:**
+- Foreman version (fetched from `/api/status` endpoint)
+- Quick statistics (extension counts, working extensions)
+- User-friendly explanations for non-technical users
+
+**API Integration:**
+```typescript
+// Status API integration
+const { data: status, isLoading, error } = useStatus();
+
+// Displays version with loading/error states
+{statusLoading ? 'Loading...' : statusError ? 'Unknown' : status?.version}
 ```
 
 ### Plugin Integration Points
@@ -312,6 +348,7 @@ export const ForemanAnsiblePlugin: ForemanPlugin = {
 - Self-service host management
 - Basic provisioning workflows
 - User profile management
+- System status and health monitoring
 - Core plugin integration (Ansible, Puppet basics)
 
 ### Phase 2: Admin Portal MVP

@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { AxiosErrorResponse } from '../types';
+import i18next from 'i18next';
+import { initReactI18next } from 'react-i18next';
 
 interface AuthContextType {
   isInitialized: boolean;
@@ -88,6 +90,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   queryClient,
   ...props 
 }) => {
+  // Initialize i18next once for plugin translations
+  React.useEffect(() => {
+    if (!i18next.isInitialized) {
+      i18next
+        .use(initReactI18next)
+        .init({
+          lng: 'en',
+          fallbackLng: 'en',
+          interpolation: {
+            escapeValue: false,
+          },
+          resources: {
+            en: {
+              translation: {}
+            }
+          }
+        });
+    }
+  }, []);
+
   const defaultQueryClient = new QueryClient({
     defaultOptions: {
       queries: {
