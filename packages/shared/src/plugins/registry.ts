@@ -198,9 +198,9 @@ export class ForemanPluginRegistry implements PluginRegistry {
     
     try {
       // In development: use provided keys as fallback
-      const devTranslations: Record<string, unknown> = {};
+      const fallbackTranslations: Record<string, unknown> = {};
       Object.entries(plugin.i18n.keys).forEach(([key, defaultValue]) => {
-        devTranslations[key] = defaultValue;
+        fallbackTranslations[key] = defaultValue;
       });
       
       // Load from Foreman's translation system if available
@@ -213,7 +213,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
       i18next.addResourceBundle(
         plugin.i18n.defaultLocale, 
         domain, 
-        devTranslations, 
+        fallbackTranslations, 
         true, 
         true
       );

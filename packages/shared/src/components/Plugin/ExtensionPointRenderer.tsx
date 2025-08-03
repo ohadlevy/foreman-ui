@@ -42,8 +42,11 @@ export const ExtensionPointRenderer: React.FC<ExtensionPointRendererProps> = ({
     return null;
   }
   
-  const renderExtension = (extension: typeof extensions[0], index: number) => {
+  const renderExtension = (extension: typeof extensions[0]) => {
     const ExtensionComponent = extension.component;
+    
+    // Create unique key from extension point and component properties
+    const extensionKey = `${extensionPoint}-${extension.title || extension.order || extension.component.name}`;
     
     // Prepare props for the extension component
     const props = {
@@ -52,14 +55,14 @@ export const ExtensionPointRenderer: React.FC<ExtensionPointRendererProps> = ({
       ...extensionProps
     };
     
-    const element = <ExtensionComponent key={`${extensionPoint}-${index}`} {...props} />;
+    const element = <ExtensionComponent key={extensionKey} {...props} />;
     
-    return Wrapper ? <Wrapper key={`wrapper-${extensionPoint}-${index}`}>{element}</Wrapper> : element;
+    return Wrapper ? <Wrapper key={`wrapper-${extensionKey}`}>{element}</Wrapper> : element;
   };
   
   return (
     <>
-      {filteredExtensions.map((extension, index) => renderExtension(extension, index))}
+      {filteredExtensions.map((extension) => renderExtension(extension))}
     </>
   );
 };

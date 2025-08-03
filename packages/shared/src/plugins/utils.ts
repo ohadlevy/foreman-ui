@@ -1,4 +1,4 @@
-import { ComponentExtension, MenuItem, PluginPermission } from './types';
+import { ComponentExtension, MenuItem, PluginPermission, ForemanPlugin } from './types';
 
 /**
  * Check if user has required permissions for a plugin feature
@@ -160,7 +160,7 @@ export const extractPluginName = (packageName: string): string => {
 /**
  * Create a plugin development template
  */
-export const createPluginTemplate = (name: string, displayName: string) => {
+export const createPluginTemplate = (name: string, displayName: string): ForemanPlugin => {
   return {
     name,
     version: '1.0.0',

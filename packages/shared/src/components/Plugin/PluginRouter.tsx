@@ -27,7 +27,7 @@ export const PluginRouter: React.FC = () => {
         
         return (
           <Route
-            key={`${route.pluginName}-${index}`}
+            key={`${route.pluginName}-${route.path}`}
             path={route.path}
             element={
               <route.element 

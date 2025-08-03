@@ -100,10 +100,19 @@ export class PluginLoader {
 
   /**
    * Get enabled plugins from configuration
-   * In production, this would come from environment variables or API
+   * 
+   * SECURITY NOTE: In production, plugin authorization should come from Foreman API
+   * (GET /api/plugins/enabled) rather than environment variables. The API response
+   * should include only plugins that the current user is authorized to use.
+   * 
+   * Environment variable support is primarily for development and will be deprecated
+   * once the Foreman API integration is complete.
    */
   private getEnabledPluginsFromConfig(): string[] {
-    // Check environment variable for enabled plugins
+    // TODO: Replace with Foreman API call: GET /api/plugins/enabled
+    // The API should handle authorization and only return plugins the user can access
+    
+    // Development-only environment variable support
     const envPlugins = process.env.REACT_APP_ENABLED_PLUGINS;
     if (envPlugins) {
       // Special value to explicitly request default plugins
