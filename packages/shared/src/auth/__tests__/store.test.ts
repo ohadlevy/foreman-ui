@@ -307,7 +307,8 @@ describe('AuthStore', () => {
         auth_source_id: 1,
         roles: [{
           id: 1,
-          name: 'BadRole'
+          name: 'BadRole',
+          builtin: false
           // no permissions field - this happens in real API responses
         }],
         organizations: [],
@@ -336,6 +337,7 @@ describe('AuthStore', () => {
         roles: [{
           id: 1,
           name: 'NullPermissionsRole',
+          builtin: false,
           permissions: null // null instead of array
         }],
         organizations: [],
@@ -363,6 +365,7 @@ describe('AuthStore', () => {
         roles: [{
           id: 1,
           name: 'MalformedRole',
+          builtin: false,
           permissions: 'not-an-array' // wrong type
         }],
         organizations: [],
@@ -390,6 +393,7 @@ describe('AuthStore', () => {
         roles: [{
           id: 1,
           name: 'MalformedPermsRole',
+          builtin: false,
           permissions: [
             null, // null permission object
             undefined, // undefined permission object
