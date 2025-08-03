@@ -39,7 +39,9 @@ import {
   usePluginMenuItems,
   useCurrentUserData,
   usePing,
-  useStatuses
+  useStatuses,
+  type ForemanStatuses,
+  type ForemanStatusItem
 } from '@foreman/shared';
 
 // Health calculation constants
@@ -53,6 +55,23 @@ const HEALTH_WEIGHTS = {
   AUTH: 0.1,    // Authentication is binary - either working or user can't see this page
 } as const;
 
+/**
+ * Validates and filters status entries to ensure they are valid objects
+ * Filters out null, undefined, arrays, empty objects, and non-objects
+ */
+const getValidStatusEntries = (statuses: unknown): Array<[string, ForemanStatusItem]> => {
+  if (!statuses || typeof statuses !== 'object' || Array.isArray(statuses)) {
+    return [];
+  }
+  
+  return Object.entries(statuses as ForemanStatuses).filter(([_key, statusItem]) => 
+    statusItem && 
+    typeof statusItem === 'object' && 
+    !Array.isArray(statusItem) &&
+    Object.keys(statusItem).length > 0
+  );
+};
+
 const HEALTH_THRESHOLDS = {
   HEALTHY: 90,
   WARNING: 70,
@@ -63,6 +82,93 @@ const DEFAULT_HEALTH_VALUES = {
   API_WITHOUT_USER: 85,
   AUTH_AUTHENTICATED: 100,
 } as const;
+
+/**
+ * Renders the system status components section with proper error handling
+ */
+const SystemStatusComponents: React.FC<{ 
+  statuses: unknown, 
+  statusesLoading: boolean, 
+  statusesError: Error | null 
+}> = ({
+  statuses,
+  statusesLoading,
+  statusesError
+}) => {
+  if (statusesLoading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <Text>Loading system statuses...</Text>
+      </div>
+    );
+  }
+
+  if (statusesError) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <ExclamationTriangleIcon style={{ color: 'var(--pf-global--warning-color--100)', marginRight: '0.5rem' }} />
+        <Text>Unable to fetch system statuses</Text>
+        <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
+          This may indicate the Foreman API is not accessible or the /api/statuses endpoint is not available.
+        </Text>
+      </div>
+    );
+  }
+
+  const validStatusEntries = getValidStatusEntries(statuses);
+  
+  if (validStatusEntries.length > 0) {
+    return (
+      <Grid hasGutter>
+        {validStatusEntries.map(([key, statusItem]) => (
+          <GridItem key={key} span={6} xl={4}>
+            <Card isCompact>
+              <CardBody>
+                <Flex>
+                  <FlexItem>
+                    {statusItem?.status === 'ok' ? (
+                      <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
+                    ) : statusItem?.status === 'warning' ? (
+                      <ExclamationTriangleIcon style={{ color: 'var(--pf-global--warning-color--100)' }} />
+                    ) : (
+                      <ExclamationTriangleIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
+                    )}
+                  </FlexItem>
+                  <FlexItem>
+                    <div>
+                      <Text component={TextVariants.small}>{statusItem?.label || key}</Text>
+                      <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
+                        {statusItem?.description || key}
+                      </Text>
+                    </div>
+                  </FlexItem>
+                  <FlexItem align={{ default: 'alignRight' }}>
+                    <Label 
+                      color={statusItem?.status === 'ok' ? 'green' : statusItem?.status === 'warning' ? 'orange' : 'red'}
+                      isCompact
+                    >
+                      {statusItem?.status?.toUpperCase() || 'UNKNOWN'}
+                    </Label>
+                  </FlexItem>
+                </Flex>
+              </CardBody>
+            </Card>
+          </GridItem>
+        ))}
+      </Grid>
+    );
+  }
+
+  return (
+    <div style={{ textAlign: 'center', padding: '2rem' }}>
+      <InfoIcon style={{ color: 'var(--pf-global--info-color--100)', marginRight: '0.5rem' }} />
+      <Text>No system status information available</Text>
+      <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
+        The Foreman API did not return any status components to monitor.
+      </Text>
+    </div>
+  );
+};
 
 export const SystemStatus: React.FC = () => {
   const plugins = usePlugins();
@@ -452,75 +558,11 @@ export const SystemStatus: React.FC = () => {
             <Card>
               <CardTitle>System Components Status</CardTitle>
               <CardBody>
-                {statusesLoading ? (
-                  <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <Text>Loading system statuses...</Text>
-                  </div>
-                ) : statusesError ? (
-                  <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <ExclamationTriangleIcon style={{ color: 'var(--pf-global--warning-color--100)', marginRight: '0.5rem' }} />
-                    <Text>Unable to fetch system statuses</Text>
-                    <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-                      This may indicate the Foreman API is not accessible or the /api/statuses endpoint is not available.
-                    </Text>
-                  </div>
-                ) : (() => {
-                  const validStatusEntries = statuses && typeof statuses === 'object' && !Array.isArray(statuses) ? Object.entries(statuses)
-                    .filter(([_key, statusItem]) => 
-                      statusItem && 
-                      typeof statusItem === 'object' && 
-                      !Array.isArray(statusItem) &&
-                      Object.keys(statusItem).length > 0
-                    ) : [];
-                  
-                  return validStatusEntries.length > 0 ? (
-                    <Grid hasGutter>
-                      {validStatusEntries.map(([key, statusItem]) => (
-                      <GridItem key={key} span={6} xl={4}>
-                        <Card isCompact>
-                          <CardBody>
-                            <Flex>
-                              <FlexItem>
-                                {statusItem?.status === 'ok' ? (
-                                  <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
-                                ) : statusItem?.status === 'warning' ? (
-                                  <ExclamationTriangleIcon style={{ color: 'var(--pf-global--warning-color--100)' }} />
-                                ) : (
-                                  <ExclamationTriangleIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
-                                )}
-                              </FlexItem>
-                              <FlexItem>
-                                <div>
-                                  <Text component={TextVariants.small}>{statusItem?.label || key}</Text>
-                                  <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-                                    {statusItem?.description || key}
-                                  </Text>
-                                </div>
-                              </FlexItem>
-                              <FlexItem align={{ default: 'alignRight' }}>
-                                <Label 
-                                  color={statusItem?.status === 'ok' ? 'green' : statusItem?.status === 'warning' ? 'orange' : 'red'}
-                                  isCompact
-                                >
-                                  {statusItem?.status?.toUpperCase() || 'UNKNOWN'}
-                                </Label>
-                              </FlexItem>
-                            </Flex>
-                          </CardBody>
-                        </Card>
-                      </GridItem>
-                      ))}
-                    </Grid>
-                  ) : (
-                    <div style={{ textAlign: 'center', padding: '2rem' }}>
-                      <InfoIcon style={{ color: 'var(--pf-global--info-color--100)', marginRight: '0.5rem' }} />
-                      <Text>No system status information available</Text>
-                      <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-                        The Foreman API did not return any status components to monitor.
-                      </Text>
-                    </div>
-                  );
-                })()}
+                <SystemStatusComponents 
+                  statuses={statuses}
+                  statusesLoading={statusesLoading}
+                  statusesError={statusesError}
+                />
               </CardBody>
             </Card>
           </GridItem>
