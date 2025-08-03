@@ -262,7 +262,7 @@ describe('Plugin Utils', () => {
       const override = {
         routes: [{ path: '/override' }],
         permissions: ['override_perm'],
-        settings: { debug: true }
+        settings: { debug: true, enabled: true }
       };
 
       const merged = mergePluginConfigs(base, override);
