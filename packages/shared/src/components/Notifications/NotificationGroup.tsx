@@ -39,63 +39,74 @@ export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) =
   };
 
   const groupTitle = (
-    <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
+    <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
       <FlexItem>
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
-          <FlexItem>
-            {group.name}
-          </FlexItem>
-          {hasUnread && (
-            <FlexItem>
-              <Badge isRead={false}>
-                {group.unreadCount}
-              </Badge>
-            </FlexItem>
-          )}
-        </Flex>
+        {group.name}
       </FlexItem>
-      <FlexItem>
-        <Flex spaceItems={{ default: 'spaceItemsXs' }}>
-          {hasUnread && (
-            <FlexItem>
-              <Button
-                variant="plain"
-                onClick={handleMarkGroupAsRead}
-                isDisabled={isLoading}
-                icon={<CheckIcon />}
-                aria-label="Mark all as read"
-                size="sm"
-              />
-            </FlexItem>
-          )}
-          <FlexItem>
-            <Button
-              variant="plain"
-              onClick={handleClearGroup}
-              isDisabled={isLoading}
-              icon={<TimesIcon />}
-              aria-label="Clear all notifications"
-              size="sm"
-            />
-          </FlexItem>
-        </Flex>
-      </FlexItem>
+      {hasUnread && (
+        <FlexItem>
+          <Badge isRead={false}>
+            {group.unreadCount}
+          </Badge>
+        </FlexItem>
+      )}
     </Flex>
   );
 
+  // TODO: This is a workaround for PatternFly's NotificationDrawerGroup
+  // not supporting action buttons without DOM nesting. We overlay the actions
+  // on the group header to avoid layout disruption. We should propose an
+  // 'actions' prop to PatternFly to handle this properly.
+  // See: https://github.com/patternfly/patternfly-react/issues/[TBD]
+  
   return (
-    <NotificationDrawerGroup
-      title={groupTitle}
-      isExpanded={isExpanded}
-      onExpand={handleToggle}
-      count={group.notifications.length}
-      isRead={!hasUnread}
-    >
-      <NotificationDrawerGroupList>
-        {group.notifications.map((notification) => (
-          <NotificationItem key={notification.id} notification={notification} />
-        ))}
-      </NotificationDrawerGroupList>
-    </NotificationDrawerGroup>
+    <div style={{ position: 'relative' }}>
+      <NotificationDrawerGroup
+        title={groupTitle}
+        isExpanded={isExpanded}
+        onExpand={handleToggle}
+        count={group.notifications.length}
+        isRead={!hasUnread}
+      >
+        <NotificationDrawerGroupList>
+          {group.notifications.map((notification) => (
+            <NotificationItem key={notification.id} notification={notification} />
+          ))}
+        </NotificationDrawerGroupList>
+      </NotificationDrawerGroup>
+      
+      {/* Overlay actions on the group header */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '12px',
+          right: '120px', // Move further left to avoid expand icon area
+          display: 'flex',
+          gap: '8px',
+          zIndex: 10,
+          pointerEvents: 'auto'
+        }}
+        onClick={(e) => e.stopPropagation()} // Prevent group toggle
+      >
+        {hasUnread && (
+          <Button
+            variant="plain"
+            onClick={handleMarkGroupAsRead}
+            isDisabled={isLoading}
+            icon={<CheckIcon />}
+            aria-label={`Mark all ${group.name} notifications as read`}
+            size="sm"
+          />
+        )}
+        <Button
+          variant="plain"
+          onClick={handleClearGroup}
+          isDisabled={isLoading}
+          icon={<TimesIcon />}
+          aria-label={`Clear all ${group.name} notifications`}
+          size="sm"
+        />
+      </div>
+    </div>
   );
 };
