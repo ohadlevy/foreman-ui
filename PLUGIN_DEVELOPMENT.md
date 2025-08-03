@@ -1,18 +1,364 @@
-# Plugin Development Guide
+# Foreman UI Plugin Development Guide
 
-This guide covers how to develop plugins for the Foreman UI framework.
+This guide walks you through creating your first Foreman UI plugin from start to finish, with practical examples and step-by-step instructions.
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Quick Start](#quick-start)
-- [Plugin Structure](#plugin-structure)
-- [Extension Points](#extension-points)
+- [Prerequisites](#prerequisites)
+- [Creating Your First Plugin](#creating-your-first-plugin)
+- [Step-by-Step Tutorial](#step-by-step-tutorial)
+- [Plugin Examples](#plugin-examples)
 - [Development Workflow](#development-workflow)
+- [Advanced Topics](#advanced-topics)
 - [Testing Plugins](#testing-plugins)
 - [Internationalization](#internationalization)
 - [Best Practices](#best-practices)
 - [Deployment](#deployment)
+
+## Prerequisites
+
+- Node.js 18+ and npm/yarn
+- React 18+ knowledge
+- TypeScript familiarity
+- Foreman UI development environment
+
+## Creating Your First Plugin
+
+Let's create a simple "Server Monitor" plugin that displays system information.
+
+### Step 1: Project Setup
+
+```bash
+# Create plugin directory
+mkdir foreman-server-monitor
+cd foreman-server-monitor
+
+# Initialize package.json
+npm init -y
+
+# Install dependencies
+npm install @foreman/shared react react-dom @patternfly/react-core @patternfly/react-icons
+npm install -D typescript @types/react @types/react-dom vitest @testing-library/react
+```
+
+### Step 2: TypeScript Configuration
+
+Create `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "es6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}
+```
+
+### Step 3: Plugin Structure
+
+```
+src/
+├── components/
+│   ├── ServerMonitorPage.tsx
+│   ├── SystemInfoWidget.tsx
+│   └── ServerStatusCard.tsx
+├── hooks/
+│   └── useSystemInfo.ts
+├── types/
+│   └── index.ts
+└── plugin.ts
+```
+
+## Step-by-Step Tutorial
+
+### Define Types
+
+Create `src/types/index.ts`:
+
+```typescript
+export interface SystemInfo {
+  hostname: string;
+  uptime: number;
+  load: number[];
+  memory: {
+    total: number;
+    free: number;
+    used: number;
+  };
+  disk: {
+    total: number;
+    free: number;
+    used: number;
+  };
+}
+```
+
+### Create Custom Hook
+
+Create `src/hooks/useSystemInfo.ts`:
+
+```typescript
+import { useState, useEffect } from 'react';
+import { SystemInfo } from '../types';
+
+export const useSystemInfo = (refreshInterval = 30000) => {
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSystemInfo = async () => {
+      try {
+        setLoading(true);
+        // Mock data for development
+        setSystemInfo({
+          hostname: 'foreman.example.com',
+          uptime: 86400,
+          load: [0.5, 0.3, 0.2],
+          memory: { total: 8192, free: 4096, used: 4096 },
+          disk: { total: 100000, free: 60000, used: 40000 }
+        });
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSystemInfo();
+    const interval = setInterval(fetchSystemInfo, refreshInterval);
+    
+    return () => clearInterval(interval);
+  }, [refreshInterval]);
+
+  return { systemInfo, loading, error };
+};
+```
+
+### Create Dashboard Widget
+
+Create `src/components/SystemInfoWidget.tsx`:
+
+```typescript
+import React from 'react';
+import {
+  Card,
+  CardTitle,
+  CardBody,
+  Grid,
+  GridItem,
+  Progress,
+  Text,
+  TextContent,
+  TextVariants,
+  Spinner
+} from '@patternfly/react-core';
+import { DashboardWidgetProps } from '@foreman/shared';
+import { useSystemInfo } from '../hooks/useSystemInfo';
+
+export const SystemInfoWidget: React.FC<DashboardWidgetProps> = ({ 
+  title = 'System Information' 
+}) => {
+  const { systemInfo, loading, error } = useSystemInfo();
+
+  if (loading) {
+    return (
+      <Card>
+        <CardTitle>{title}</CardTitle>
+        <CardBody><Spinner size="lg" /></CardBody>
+      </Card>
+    );
+  }
+
+  if (error || !systemInfo) {
+    return (
+      <Card>
+        <CardTitle>{title}</CardTitle>
+        <CardBody>
+          <Text component={TextVariants.p}>
+            Error loading system information
+          </Text>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const memoryUsagePercent = (systemInfo.memory.used / systemInfo.memory.total) * 100;
+  const diskUsagePercent = (systemInfo.disk.used / systemInfo.disk.total) * 100;
+
+  return (
+    <Card>
+      <CardTitle>{title}</CardTitle>
+      <CardBody>
+        <Grid hasGutter>
+          <GridItem span={12}>
+            <TextContent>
+              <Text component={TextVariants.h4}>{systemInfo.hostname}</Text>
+              <Text component={TextVariants.small}>
+                Uptime: {Math.floor(systemInfo.uptime / 86400)}d {Math.floor((systemInfo.uptime % 86400) / 3600)}h
+              </Text>
+            </TextContent>
+          </GridItem>
+          
+          <GridItem span={6}>
+            <Text component={TextVariants.h6}>Memory Usage</Text>
+            <Progress 
+              value={memoryUsagePercent}
+              variant={memoryUsagePercent > 80 ? 'danger' : 'success'}
+            />
+          </GridItem>
+          
+          <GridItem span={6}>
+            <Text component={TextVariants.h6}>Disk Usage</Text>
+            <Progress 
+              value={diskUsagePercent}
+              variant={diskUsagePercent > 80 ? 'danger' : 'success'}
+            />
+          </GridItem>
+        </Grid>
+      </CardBody>
+    </Card>
+  );
+};
+```
+
+### Define the Plugin
+
+Create `src/plugin.ts`:
+
+```typescript
+import { ForemanPlugin } from '@foreman/shared';
+import { SystemInfoWidget } from './components/SystemInfoWidget';
+
+export const serverMonitorPlugin: ForemanPlugin = {
+  name: 'foreman_server_monitor',
+  version: '1.0.0',
+  displayName: 'Server Monitor',
+  description: 'Monitor system performance and resource usage',
+  author: 'Your Organization',
+  foremanVersions: ['>=3.0.0'],
+
+  // Dashboard widgets
+  dashboardWidgets: [
+    {
+      id: 'system-info-widget',
+      title: 'System Information',
+      component: SystemInfoWidget,
+      size: 'medium',
+      permissions: ['view_server_monitor'],
+      category: 'monitoring'
+    }
+  ],
+
+  // Permissions
+  permissions: [
+    {
+      name: 'view_server_monitor',
+      resource_type: 'ServerMonitor',
+      actions: ['view'],
+      description: 'View server monitoring information'
+    }
+  ],
+
+  // Internationalization
+  i18n: {
+    domain: 'foreman_server_monitor',
+    defaultLocale: 'en',
+    supportedLocales: ['en'],
+    keys: {
+      'server_monitor.title': 'Server Monitor',
+      'server_monitor.widgets.system_info': 'System Information'
+    }
+  },
+
+  // Lifecycle hooks
+  async initialize(context) {
+    console.log('Server Monitor plugin initializing...');
+  },
+
+  async destroy() {
+    console.log('Server Monitor plugin shutting down...');
+  }
+};
+
+export default serverMonitorPlugin;
+```
+
+## Plugin Examples
+
+### Simple Information Display
+
+```typescript
+export const versionInfoPlugin: ForemanPlugin = {
+  name: 'foreman_version_info',
+  version: '1.0.0',
+  displayName: 'Version Info',
+  
+  dashboardWidgets: [
+    {
+      id: 'version-widget',
+      title: 'Foreman Version',
+      component: () => (
+        <Card>
+          <CardTitle>Foreman Version</CardTitle>
+          <CardBody>
+            <Text>Foreman 3.8.0</Text>
+          </CardBody>
+        </Card>
+      ),
+      size: 'small'
+    }
+  ]
+};
+```
+
+### Custom Route Plugin
+
+```typescript
+export const customPagePlugin: ForemanPlugin = {
+  name: 'foreman_custom_page',
+  version: '1.0.0',
+  displayName: 'Custom Page',
+  
+  routes: [
+    {
+      path: '/custom-page',
+      element: ({ pluginDisplayName }) => (
+        <Page>
+          <PageSection>
+            <Title headingLevel="h1">{pluginDisplayName}</Title>
+            <Text>This is a custom page added by a plugin!</Text>
+          </PageSection>
+        </Page>
+      ),
+      permissions: ['view_custom_page']
+    }
+  ],
+  
+  menuItems: [
+    {
+      id: 'custom-page',
+      label: 'Custom Page',
+      path: '/custom-page',
+      order: 100
+    }
+  ]
+};
+```
 
 ## Overview
 
