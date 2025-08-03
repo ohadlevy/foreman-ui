@@ -511,5 +511,22 @@ describe('SystemStatus', () => {
       
       expect(screen.getByText('No system status information available')).toBeInTheDocument();
     });
+
+    it('should handle empty string status values safely', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: {
+          database: { label: 'Database', description: 'Database service', status: '' }, // empty string status
+          cache: { label: 'Cache', description: 'Cache service', status: '   ' }, // whitespace only status
+        },
+        isSuccess: true,
+      }));
+
+      // Should not crash and should show UNKNOWN for empty/whitespace status
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      expect(screen.getAllByText('UNKNOWN')).toHaveLength(2); // Both empty and whitespace status should show UNKNOWN
+    });
   });
 });

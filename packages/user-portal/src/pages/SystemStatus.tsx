@@ -147,7 +147,7 @@ const SystemStatusComponents: React.FC<{
                       color={statusItem?.status === 'ok' ? 'green' : statusItem?.status === 'warning' ? 'orange' : 'red'}
                       isCompact
                     >
-                      {statusItem?.status?.toUpperCase() || 'UNKNOWN'}
+                      {(statusItem?.status?.trim() || '').toUpperCase() || 'UNKNOWN'}
                     </Label>
                   </FlexItem>
                 </Flex>
