@@ -126,8 +126,8 @@ describe('ForemanPluginRegistry', () => {
       
       expect(initializeFn).toHaveBeenCalledWith(
         expect.objectContaining({
-          apiClient: null,
-          user: null,
+          apiClient: undefined,
+          user: undefined,
           pluginRegistry: registry,
           i18n: expect.objectContaining({
             t: expect.any(Function),

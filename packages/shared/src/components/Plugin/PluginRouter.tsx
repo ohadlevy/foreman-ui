@@ -17,7 +17,7 @@ export const PluginRouter: React.FC = () => {
   
   return (
     <Routes>
-      {pluginRoutes.map((route, index) => {
+      {pluginRoutes.map((route) => {
         // Check if user has required permissions for this route
         const hasPermission = hasPluginPermissions(route.permissions, userPermissions);
         

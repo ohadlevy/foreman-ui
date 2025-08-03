@@ -176,13 +176,9 @@ export const createPluginTemplate = (name: string, displayName: string): Foreman
     i18n: {
       defaultLocale: 'en',
       supportedLocales: ['en'],
-      resources: {
-        en: {
-          [name]: {
-            title: displayName,
-            description: `${displayName} plugin for Foreman`
-          }
-        }
+      keys: {
+        'title': displayName,
+        'description': `${displayName} plugin for Foreman`
       }
     }
   };

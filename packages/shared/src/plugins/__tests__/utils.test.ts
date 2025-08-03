@@ -354,7 +354,7 @@ describe('Plugin Utils', () => {
       // Check i18n configuration
       expect(template.i18n?.defaultLocale).toBe('en');
       expect(template.i18n?.supportedLocales).toEqual(['en']);
-      expect(template.i18n?.resources.en.foreman_test.title).toBe('Test Plugin');
+      expect(template.i18n?.keys.title).toBe('Test Plugin');
     });
   });
 });
