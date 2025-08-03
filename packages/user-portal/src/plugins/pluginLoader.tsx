@@ -10,6 +10,7 @@ import { pluginRegistry, ForemanPlugin } from '@foreman/shared';
 export class PluginLoader {
   private static instance: PluginLoader;
   private initialized = false;
+  private attemptedPlugins = new Set<string>();
 
   public static getInstance(): PluginLoader {
     if (!PluginLoader.instance) {
@@ -37,10 +38,17 @@ export class PluginLoader {
       const availablePlugins = await this.discoverPlugins();
       
       for (const pluginInfo of availablePlugins) {
+        // Skip if we've already attempted to load this plugin
+        if (this.attemptedPlugins.has(pluginInfo.name)) {
+          console.log(`ℹ️ Plugin '${pluginInfo.name}' already attempted, skipping`);
+          continue;
+        }
+
         try {
+          this.attemptedPlugins.add(pluginInfo.name);
           const plugin = await this.loadPlugin(pluginInfo);
           if (plugin) {
-            // Check if plugin is already registered before attempting registration
+            // Double-check if plugin is already registered (race condition protection)
             if (!pluginRegistry.isRegistered(plugin.name)) {
               await pluginRegistry.register(plugin);
               console.log(`✅ Plugin '${plugin.name}' loaded successfully`);
@@ -50,6 +58,7 @@ export class PluginLoader {
           }
         } catch (error) {
           console.error(`❌ Failed to load plugin '${pluginInfo.name}':`, error);
+          // Keep in attemptedPlugins to avoid retrying failed plugins
         }
       }
 

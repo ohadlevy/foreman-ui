@@ -7,6 +7,7 @@ import {
   DashboardWidget,
   PluginContext 
 } from './types';
+import { pluginTranslationService } from './translationService';
 
 /**
  * Central plugin registry for managing Foreman plugins
@@ -92,8 +93,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
       
       // Remove translations
       if (plugin.i18n) {
-        const namespace = this.getPluginTranslationNamespace(pluginName);
-        i18next.removeResourceBundle(i18next.language, namespace);
+        pluginTranslationService.removePluginTranslations(pluginName, plugin.i18n);
       }
       
       // Remove from registry
@@ -194,53 +194,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
       return;
     }
 
-    const domain = plugin.i18n.domain || pluginName;
-    
-    try {
-      // In development: use provided keys as fallback
-      const fallbackTranslations: Record<string, unknown> = {};
-      Object.entries(plugin.i18n.keys).forEach(([key, defaultValue]) => {
-        fallbackTranslations[key] = defaultValue;
-      });
-      
-      // Load from Foreman's translation system if available
-      if (plugin.i18n.translationUrl) {
-        // TODO: Fetch translations from Foreman API
-        // For now, use development keys
-      }
-      
-      // Register with i18next using domain as namespace
-      i18next.addResourceBundle(
-        plugin.i18n.defaultLocale, 
-        domain, 
-        fallbackTranslations, 
-        true, 
-        true
-      );
-      
-      console.log(`Loaded translations for plugin ${pluginName} (domain: ${domain})`);
-    } catch (error) {
-      console.error(`Failed to load translations for plugin ${pluginName}:`, error);
-      
-      // Fallback to development keys
-      const fallbackTranslations: Record<string, unknown> = {};
-      Object.entries(plugin.i18n.keys).forEach(([key, defaultValue]) => {
-        fallbackTranslations[key] = defaultValue;
-      });
-      
-      try {
-        i18next.addResourceBundle(
-          plugin.i18n.defaultLocale,
-          domain,
-          fallbackTranslations,
-          true,
-          true
-        );
-      } catch (fallbackError) {
-        console.error(`Failed to load fallback translations for plugin ${pluginName}:`, fallbackError);
-        // Continue anyway - translations are optional for plugin functionality
-      }
-    }
+    await pluginTranslationService.loadPluginTranslations(pluginName, plugin.i18n);
   }
 
   /**
@@ -248,7 +202,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
    */
   getPluginTranslationNamespace(pluginName: string): string {
     const plugin = this.plugins.get(pluginName);
-    return plugin?.i18n?.domain || pluginName;
+    return pluginTranslationService.getPluginTranslationNamespace(pluginName, plugin?.i18n);
   }
 
   /**

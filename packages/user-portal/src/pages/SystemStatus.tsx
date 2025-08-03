@@ -43,10 +43,14 @@ import {
 } from '@foreman/shared';
 
 // Health calculation constants
+// Weight distribution reflects impact on user experience:
+// - PLUGINS (60%): Most variable component, directly affects available functionality
+// - API (30%): Core connectivity, affects all operations but usually stable
+// - AUTH (10%): Binary state (authenticated or not), least variable in normal operation
 const HEALTH_WEIGHTS = {
-  PLUGINS: 0.6,
-  API: 0.3,
-  AUTH: 0.1,
+  PLUGINS: 0.6, // Plugins are the main differentiator and most likely to have issues
+  API: 0.3,     // API connectivity is critical but typically more stable
+  AUTH: 0.1,    // Authentication is binary - either working or user can't see this page
 } as const;
 
 const HEALTH_THRESHOLDS = {

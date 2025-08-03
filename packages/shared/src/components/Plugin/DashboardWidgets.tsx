@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { usePluginDashboardWidgets } from '../../plugins/hooks';
 import { useAuthStore } from '../../auth/store';
 import { hasPluginPermissions } from '../../plugins/utils';
+import { calculateWidgetGridSpan, type GridSpan } from '../../utils/gridUtils';
 
 interface DashboardWidgetsProps {
   /** Number of columns in the grid (default: 3) */
@@ -35,24 +36,9 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({
     return null;
   }
   
-  // Calculate grid span based on widget size
-  type GridSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
-  
+  // Calculate grid span based on widget size using utility function
   const getGridSpan = (size: string | undefined): GridSpan => {
-    const clampToGridSpan = (value: number): GridSpan => {
-      return Math.max(1, Math.min(12, Math.floor(value))) as GridSpan;
-    };
-
-    switch (size) {
-      case 'small':
-        return clampToGridSpan(12 / columns);
-      case 'medium':
-        return clampToGridSpan(12 / Math.max(1, columns - 1));
-      case 'large':
-        return 12;
-      default:
-        return clampToGridSpan(12 / columns);
-    }
+    return calculateWidgetGridSpan(size, columns);
   };
   
   return (
