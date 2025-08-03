@@ -28,14 +28,13 @@ const ACTION_OVERLAY_TOP_OFFSET = '12px';
 const ACTION_BUTTON_GAP = '8px';
 const ACTION_OVERLAY_Z_INDEX = 10;
 
-
 // Container styles for positioning context  
 const CONTAINER_STYLES = {
   position: 'relative' as const
 };
 
-// Utility function to create consistent action overlay styles
-const createActionOverlayStyles = () => ({
+// Action overlay styles - defined as constant to avoid recreation on every render
+const ACTION_OVERLAY_STYLES = {
   position: 'absolute' as const,
   top: ACTION_OVERLAY_TOP_OFFSET,
   right: ACTION_OVERLAY_RIGHT_OFFSET,
@@ -43,7 +42,7 @@ const createActionOverlayStyles = () => ({
   gap: ACTION_BUTTON_GAP,
   zIndex: ACTION_OVERLAY_Z_INDEX,
   pointerEvents: 'auto' as const
-});
+};
 
 export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) => {
   const { expandedGroup, expandGroup } = useNotificationStore();
@@ -91,10 +90,14 @@ export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) =
     </Flex>
   );
 
-  // TODO: This is a workaround for PatternFly's NotificationDrawerGroup
+  // TECHNICAL DEBT: This is a workaround for PatternFly's NotificationDrawerGroup
   // not supporting action buttons without DOM nesting. We overlay the actions
-  // on the group header to avoid layout disruption. We should propose an
-  // 'actions' prop to PatternFly to handle this properly.
+  // on the group header to avoid layout disruption. 
+  // 
+  // Action items:
+  // 1. Propose 'actions' prop to PatternFly NotificationDrawerGroup component
+  // 2. Create GitHub issue in patternfly-react repository
+  // 3. Replace this overlay approach with proper PatternFly API when available
   
   return (
     <div style={CONTAINER_STYLES}>
@@ -116,7 +119,7 @@ export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) =
       <div
         role="group"
         aria-label={`Actions for ${group.name} notifications`}
-        style={createActionOverlayStyles()}
+        style={ACTION_OVERLAY_STYLES}
         onClick={handleOverlayClick}
       >
         {hasUnread && (
