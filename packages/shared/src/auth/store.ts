@@ -11,7 +11,7 @@ interface AuthState {
 }
 
 interface AuthActions {
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
   setToken: (token: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
 
       // Actions
-      setUser: (user: User) => {
+      setUser: (user: User | null) => {
         set({ user, isAuthenticated: !!user });
       },
 
@@ -89,15 +89,21 @@ export const useAuthStore = create<AuthStore>()(
         if (user.admin) return true;
 
         // Check if user has the specific permission
-        const hasPermission = user.roles.some(role =>
-          role.permissions.some(perm => {
+        // Handle users without roles array
+        if (!user.roles || !Array.isArray(user.roles)) return false;
+        
+        const hasPermission = user.roles.some(role => {
+          // Handle roles without permissions array
+          if (!role.permissions || !Array.isArray(role.permissions)) return false;
+          
+          return role.permissions.some(perm => {
             // Handle malformed permissions gracefully
             if (!perm || typeof perm !== 'object') return false;
             const permissionMatch = perm.name === permission;
             const resourceMatch = !resource || perm.resource_type === resource;
             return permissionMatch && resourceMatch;
-          })
-        );
+          });
+        });
 
         return hasPermission;
       },

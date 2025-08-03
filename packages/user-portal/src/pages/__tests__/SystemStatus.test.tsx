@@ -411,4 +411,122 @@ describe('SystemStatus', () => {
 
     expect(screen.getByText('No system status information available')).toBeInTheDocument();
   });
+
+  describe('Edge Cases and Error Handling', () => {
+    it('should handle malformed status data with undefined status values', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      // Mock statuses with undefined status values
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: {
+          database: { 
+            message: 'Database connection',
+            // status is undefined - this caused the original crash
+          },
+          cache: {
+            message: 'Cache service',
+            status: null // null status
+          },
+          redis: {
+            message: 'Redis service'
+            // missing status field entirely
+          }
+        },
+        isSuccess: true,
+      }));
+
+      // Should not crash
+      render(<SystemStatus />, { wrapper: createWrapper() });
+
+      // Should display fallback values for status items with undefined status
+      expect(screen.getAllByText('UNKNOWN')).toHaveLength(3); // Three status items with undefined/null/missing status
+    });
+
+    it('should handle empty status objects', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: {
+          database: {}, // completely empty status object
+          cache: null, // null status object
+        },
+        isSuccess: true,
+      }));
+
+      // Should not crash
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      // Should handle gracefully - empty/null objects are filtered out, so no status info available
+      expect(screen.getByText('No system status information available')).toBeInTheDocument();
+    });
+
+    it('should handle status data with mixed valid and invalid entries', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: {
+          database: { label: 'Database', description: 'Database OK', status: 'ok' }, // valid
+          cache: { label: 'Cache', description: 'Cache down' }, // missing status
+          redis: { status: 'error' }, // missing label
+          elastic: null, // null entry
+          puppet: undefined, // undefined entry
+        },
+        isSuccess: true,
+      }));
+
+      // Should not crash and should handle valid entries
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      expect(screen.getByText('Database OK')).toBeInTheDocument();
+      expect(screen.getByText('OK')).toBeInTheDocument();
+      expect(screen.getByText('ERROR')).toBeInTheDocument();
+      expect(screen.getAllByText('UNKNOWN')).toHaveLength(1); // One status item missing status
+    });
+
+    it('should handle completely malformed statuses data', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      // Mock with completely wrong data structure
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: 'not-an-object' as unknown as Record<string, unknown>,
+        isSuccess: true,
+      }));
+
+      // Should not crash
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      expect(screen.getByText('No system status information available')).toBeInTheDocument();
+    });
+
+    it('should handle array instead of object for statuses', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: [{ name: 'database', status: 'ok' }] as unknown as Record<string, unknown>, // array instead of object
+        isSuccess: true,
+      }));
+
+      // Should not crash
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      expect(screen.getByText('No system status information available')).toBeInTheDocument();
+    });
+
+    it('should handle empty string status values safely', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+      
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: {
+          database: { label: 'Database', description: 'Database service', status: '' }, // empty string status
+          cache: { label: 'Cache', description: 'Cache service', status: '   ' }, // whitespace only status
+        },
+        isSuccess: true,
+      }));
+
+      // Should not crash and should show UNKNOWN for empty/whitespace status
+      render(<SystemStatus />, { wrapper: createWrapper() });
+      
+      expect(screen.getAllByText('UNKNOWN')).toHaveLength(2); // Both empty and whitespace status should show UNKNOWN
+    });
+  });
 });
