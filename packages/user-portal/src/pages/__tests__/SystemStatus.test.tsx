@@ -438,8 +438,8 @@ describe('SystemStatus', () => {
       // Should not crash
       render(<SystemStatus />, { wrapper: createWrapper() });
 
-      // Should display fallback values
-      expect(screen.getByText('UNKNOWN')).toBeInTheDocument();
+      // Should display fallback values for status items with undefined status
+      expect(screen.getAllByText('UNKNOWN')).toHaveLength(3); // Three status items with undefined/null/missing status
     });
 
     it('should handle empty status objects', () => {
@@ -456,8 +456,8 @@ describe('SystemStatus', () => {
       // Should not crash
       render(<SystemStatus />, { wrapper: createWrapper() });
       
-      // Should handle gracefully
-      expect(screen.getByText('System Components')).toBeInTheDocument();
+      // Should handle gracefully - empty/null objects are filtered out, so no status info available
+      expect(screen.getByText('No system status information available')).toBeInTheDocument();
     });
 
     it('should handle status data with mixed valid and invalid entries', () => {
@@ -479,7 +479,8 @@ describe('SystemStatus', () => {
       
       expect(screen.getByText('Database OK')).toBeInTheDocument();
       expect(screen.getByText('OK')).toBeInTheDocument();
-      expect(screen.getByText('UNKNOWN')).toBeInTheDocument();
+      expect(screen.getByText('ERROR')).toBeInTheDocument();
+      expect(screen.getAllByText('UNKNOWN')).toHaveLength(1); // One status item missing status
     });
 
     it('should handle completely malformed statuses data', () => {

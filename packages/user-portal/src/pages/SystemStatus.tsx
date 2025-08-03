@@ -464,17 +464,21 @@ export const SystemStatus: React.FC = () => {
                       This may indicate the Foreman API is not accessible or the /api/statuses endpoint is not available.
                     </Text>
                   </div>
-                ) : statuses && Object.keys(statuses).length > 0 ? (
-                  <Grid hasGutter>
-                    {Object.entries(statuses).map(([key, statusItem]) => (
+                ) : (() => {
+                  const validStatusEntries = statuses ? Object.entries(statuses)
+                    .filter(([key, statusItem]) => statusItem && typeof statusItem === 'object' && !Array.isArray(statusItem)) : [];
+                  
+                  return validStatusEntries.length > 0 ? (
+                    <Grid hasGutter>
+                      {validStatusEntries.map(([key, statusItem]) => (
                       <GridItem key={key} span={6} xl={4}>
                         <Card isCompact>
                           <CardBody>
                             <Flex>
                               <FlexItem>
-                                {statusItem.status === 'ok' ? (
+                                {statusItem?.status === 'ok' ? (
                                   <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
-                                ) : statusItem.status === 'warning' ? (
+                                ) : statusItem?.status === 'warning' ? (
                                   <ExclamationTriangleIcon style={{ color: 'var(--pf-global--warning-color--100)' }} />
                                 ) : (
                                   <ExclamationTriangleIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
@@ -482,35 +486,36 @@ export const SystemStatus: React.FC = () => {
                               </FlexItem>
                               <FlexItem>
                                 <div>
-                                  <Text component={TextVariants.small}>{statusItem.label}</Text>
+                                  <Text component={TextVariants.small}>{statusItem?.label || key}</Text>
                                   <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-                                    {statusItem.description || key}
+                                    {statusItem?.description || statusItem?.message || key}
                                   </Text>
                                 </div>
                               </FlexItem>
                               <FlexItem align={{ default: 'alignRight' }}>
                                 <Label 
-                                  color={statusItem.status === 'ok' ? 'green' : statusItem.status === 'warning' ? 'orange' : 'red'}
+                                  color={statusItem?.status === 'ok' ? 'green' : statusItem?.status === 'warning' ? 'orange' : 'red'}
                                   isCompact
                                 >
-                                  {statusItem.status?.toUpperCase() || 'UNKNOWN'}
+                                  {statusItem?.status?.toUpperCase() || 'UNKNOWN'}
                                 </Label>
                               </FlexItem>
                             </Flex>
                           </CardBody>
                         </Card>
                       </GridItem>
-                    ))}
-                  </Grid>
-                ) : (
-                  <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <InfoIcon style={{ color: 'var(--pf-global--info-color--100)', marginRight: '0.5rem' }} />
-                    <Text>No system status information available</Text>
-                    <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-                      The Foreman API did not return any status components to monitor.
-                    </Text>
-                  </div>
-                )}
+                      ))}
+                    </Grid>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '2rem' }}>
+                      <InfoIcon style={{ color: 'var(--pf-global--info-color--100)', marginRight: '0.5rem' }} />
+                      <Text>No system status information available</Text>
+                      <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
+                        The Foreman API did not return any status components to monitor.
+                      </Text>
+                    </div>
+                  );
+                })()}
               </CardBody>
             </Card>
           </GridItem>

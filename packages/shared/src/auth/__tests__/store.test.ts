@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useAuthStore } from '../store';
 import { act } from '@testing-library/react';
+import type { User } from '../../types';
 
 // Mock localStorage
 const localStorageMock = {
@@ -66,7 +67,7 @@ describe('AuthStore', () => {
 
     it('should set authentication to false when user is null', () => {
       act(() => {
-        useAuthStore.getState().setUser(null as any);
+        useAuthStore.getState().setUser(null);
       });
 
       const state = useAuthStore.getState();
@@ -209,7 +210,7 @@ describe('AuthStore', () => {
       const emptyUser = {};
       
       act(() => {
-        useAuthStore.getState().setUser(emptyUser as any);
+        useAuthStore.getState().setUser(emptyUser as unknown as User);
       });
       
       // Should not crash and should return false
@@ -232,7 +233,7 @@ describe('AuthStore', () => {
       };
       
       act(() => {
-        useAuthStore.getState().setUser(userWithoutRoles as any);
+        useAuthStore.getState().setUser(userWithoutRoles as unknown as User);
       });
       
       // Should not crash and should return false
@@ -316,7 +317,7 @@ describe('AuthStore', () => {
       };
 
       act(() => {
-        useAuthStore.getState().setUser(userWithBadRole as User);
+        useAuthStore.getState().setUser(userWithBadRole as unknown as User);
       });
 
       // Should not crash and should return false
@@ -345,7 +346,7 @@ describe('AuthStore', () => {
       };
 
       act(() => {
-        useAuthStore.getState().setUser(userWithNullPermissions as User);
+        useAuthStore.getState().setUser(userWithNullPermissions as unknown as User);
       });
 
       // Should not crash and should return false
@@ -373,7 +374,7 @@ describe('AuthStore', () => {
       };
 
       act(() => {
-        useAuthStore.getState().setUser(userWithMalformedPermissions as User);
+        useAuthStore.getState().setUser(userWithMalformedPermissions as unknown as User);
       });
 
       // Should not crash and should return false
@@ -407,7 +408,7 @@ describe('AuthStore', () => {
       };
 
       act(() => {
-        useAuthStore.getState().setUser(userWithMalformedPerms as User);
+        useAuthStore.getState().setUser(userWithMalformedPerms as unknown as User);
       });
 
       // Should not crash - the valid permission should work
