@@ -17,21 +17,33 @@ interface NotificationGroupProps {
   group: NotificationGroupData;
 }
 
-// Styles for action overlay positioning
-const OVERLAY_STYLES = {
-  position: 'absolute' as const,
-  top: '12px',
-  right: '120px', // Move further left to avoid expand icon area
-  display: 'flex',
-  gap: '8px',
-  zIndex: 10,
-  pointerEvents: 'auto' as const
-};
+// Action overlay positioning constants
+// The right offset for the action overlay is calculated as follows:
+// - Expand icon area: 48px (width of expand/collapse button)
+// - Button width: 56px (width of action buttons) 
+// - Padding: 16px (space between icon/button and overlay)
+// Total: 48px + 56px + 16px = 120px
+const ACTION_OVERLAY_RIGHT_OFFSET = '120px';
+const ACTION_OVERLAY_TOP_OFFSET = '12px';
+const ACTION_BUTTON_GAP = '8px';
+const ACTION_OVERLAY_Z_INDEX = 10;
 
-// Container styles for positioning context
+
+// Container styles for positioning context  
 const CONTAINER_STYLES = {
   position: 'relative' as const
 };
+
+// Utility function to create consistent action overlay styles
+const createActionOverlayStyles = () => ({
+  position: 'absolute' as const,
+  top: ACTION_OVERLAY_TOP_OFFSET,
+  right: ACTION_OVERLAY_RIGHT_OFFSET,
+  display: 'flex',
+  gap: ACTION_BUTTON_GAP,
+  zIndex: ACTION_OVERLAY_Z_INDEX,
+  pointerEvents: 'auto' as const
+});
 
 export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) => {
   const { expandedGroup, expandGroup } = useNotificationStore();
@@ -83,10 +95,9 @@ export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) =
   // not supporting action buttons without DOM nesting. We overlay the actions
   // on the group header to avoid layout disruption. We should propose an
   // 'actions' prop to PatternFly to handle this properly.
-  // See: https://github.com/patternfly/patternfly-react/issues/[TBD]
   
   return (
-    <section style={CONTAINER_STYLES} aria-label={`Notification group: ${group.name}`}>
+    <div style={CONTAINER_STYLES}>
       <NotificationDrawerGroup
         title={groupTitle}
         isExpanded={isExpanded}
@@ -103,7 +114,9 @@ export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) =
       
       {/* Overlay actions on the group header */}
       <div
-        style={OVERLAY_STYLES}
+        role="group"
+        aria-label={`Actions for ${group.name} notifications`}
+        style={createActionOverlayStyles()}
         onClick={handleOverlayClick}
       >
         {hasUnread && (
@@ -125,6 +138,6 @@ export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) =
           size="sm"
         />
       </div>
-    </section>
+    </div>
   );
 };
