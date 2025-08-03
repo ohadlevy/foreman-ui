@@ -89,15 +89,18 @@ export const useAuthStore = create<AuthStore>()(
         if (user.admin) return true;
 
         // Check if user has the specific permission
-        const hasPermission = user.roles.some(role =>
-          role.permissions.some(perm => {
+        const hasPermission = user.roles.some(role => {
+          // Handle roles without permissions array
+          if (!role.permissions || !Array.isArray(role.permissions)) return false;
+          
+          return role.permissions.some(perm => {
             // Handle malformed permissions gracefully
             if (!perm || typeof perm !== 'object') return false;
             const permissionMatch = perm.name === permission;
             const resourceMatch = !resource || perm.resource_type === resource;
             return permissionMatch && resourceMatch;
-          })
-        );
+          });
+        });
 
         return hasPermission;
       },
