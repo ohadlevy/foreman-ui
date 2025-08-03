@@ -488,7 +488,7 @@ export const SystemStatus: React.FC = () => {
                                 <div>
                                   <Text component={TextVariants.small}>{statusItem?.label || key}</Text>
                                   <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-                                    {statusItem?.description || statusItem?.message || key}
+                                    {statusItem?.description || key}
                                   </Text>
                                 </div>
                               </FlexItem>
