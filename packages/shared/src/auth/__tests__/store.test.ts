@@ -316,7 +316,7 @@ describe('AuthStore', () => {
       };
 
       act(() => {
-        useAuthStore.getState().setUser(userWithBadRole);
+        useAuthStore.getState().setUser(userWithBadRole as User);
       });
 
       // Should not crash and should return false
@@ -345,7 +345,7 @@ describe('AuthStore', () => {
       };
 
       act(() => {
-        useAuthStore.getState().setUser(userWithNullPermissions);
+        useAuthStore.getState().setUser(userWithNullPermissions as User);
       });
 
       // Should not crash and should return false
@@ -373,7 +373,7 @@ describe('AuthStore', () => {
       };
 
       act(() => {
-        useAuthStore.getState().setUser(userWithMalformedPermissions);
+        useAuthStore.getState().setUser(userWithMalformedPermissions as User);
       });
 
       // Should not crash and should return false
@@ -407,7 +407,7 @@ describe('AuthStore', () => {
       };
 
       act(() => {
-        useAuthStore.getState().setUser(userWithMalformedPerms);
+        useAuthStore.getState().setUser(userWithMalformedPerms as User);
       });
 
       // Should not crash - the valid permission should work
