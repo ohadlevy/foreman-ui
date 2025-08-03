@@ -487,7 +487,7 @@ describe('SystemStatus', () => {
       
       // Mock with completely wrong data structure
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
-        data: 'not-an-object' as any,
+        data: 'not-an-object' as unknown as Record<string, unknown>,
         isSuccess: true,
       }));
 
@@ -501,7 +501,7 @@ describe('SystemStatus', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
       
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
-        data: [{ name: 'database', status: 'ok' }] as any, // array instead of object
+        data: [{ name: 'database', status: 'ok' }] as unknown as Record<string, unknown>, // array instead of object
         isSuccess: true,
       }));
 
