@@ -466,7 +466,7 @@ export const SystemStatus: React.FC = () => {
                   </div>
                 ) : (() => {
                   const validStatusEntries = statuses ? Object.entries(statuses)
-                    .filter(([key, statusItem]) => statusItem && typeof statusItem === 'object' && !Array.isArray(statusItem)) : [];
+                    .filter(([_key, statusItem]) => statusItem && typeof statusItem === 'object' && !Array.isArray(statusItem)) : [];
                   
                   return validStatusEntries.length > 0 ? (
                     <Grid hasGutter>
