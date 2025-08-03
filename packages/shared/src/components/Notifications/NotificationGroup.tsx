@@ -17,6 +17,33 @@ interface NotificationGroupProps {
   group: NotificationGroupData;
 }
 
+// Action overlay positioning constants
+// The right offset for the action overlay is calculated as follows:
+// - Expand icon area: 48px (width of expand/collapse button)
+// - Button width: 56px (width of action buttons) 
+// - Padding: 16px (space between icon/button and overlay)
+// Total: 48px + 56px + 16px = 120px
+const ACTION_OVERLAY_RIGHT_OFFSET = '120px';
+const ACTION_OVERLAY_TOP_OFFSET = '12px';
+const ACTION_BUTTON_GAP = '8px';
+const ACTION_OVERLAY_Z_INDEX = 10;
+
+// Container styles for positioning context  
+const CONTAINER_STYLES = {
+  position: 'relative' as const
+};
+
+// Action overlay styles - defined as constant to avoid recreation on every render
+const ACTION_OVERLAY_STYLES = {
+  position: 'absolute' as const,
+  top: ACTION_OVERLAY_TOP_OFFSET,
+  right: ACTION_OVERLAY_RIGHT_OFFSET,
+  display: 'flex',
+  gap: ACTION_BUTTON_GAP,
+  zIndex: ACTION_OVERLAY_Z_INDEX,
+  pointerEvents: 'auto' as const
+};
+
 export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) => {
   const { expandedGroup, expandGroup } = useNotificationStore();
   const { markGroupAsRead, clearGroup, isLoading } = useNotificationActions();
@@ -38,64 +65,82 @@ export const NotificationGroup: React.FC<NotificationGroupProps> = ({ group }) =
     clearGroup(group.name);
   };
 
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent group toggle
+  };
+
+  // Props for group title flex layout
+  const groupTitleFlexProps = {
+    alignItems: { default: 'alignItemsCenter' as const },
+    spaceItems: { default: 'spaceItemsSm' as const }
+  };
+
   const groupTitle = (
-    <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
+    <Flex {...groupTitleFlexProps}>
       <FlexItem>
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
-          <FlexItem>
-            {group.name}
-          </FlexItem>
-          {hasUnread && (
-            <FlexItem>
-              <Badge isRead={false}>
-                {group.unreadCount}
-              </Badge>
-            </FlexItem>
-          )}
-        </Flex>
+        {group.name}
       </FlexItem>
-      <FlexItem>
-        <Flex spaceItems={{ default: 'spaceItemsXs' }}>
-          {hasUnread && (
-            <FlexItem>
-              <Button
-                variant="plain"
-                onClick={handleMarkGroupAsRead}
-                isDisabled={isLoading}
-                icon={<CheckIcon />}
-                aria-label="Mark all as read"
-                size="sm"
-              />
-            </FlexItem>
-          )}
-          <FlexItem>
-            <Button
-              variant="plain"
-              onClick={handleClearGroup}
-              isDisabled={isLoading}
-              icon={<TimesIcon />}
-              aria-label="Clear all notifications"
-              size="sm"
-            />
-          </FlexItem>
-        </Flex>
-      </FlexItem>
+      {hasUnread && (
+        <FlexItem>
+          <Badge isRead={false}>
+            {group.unreadCount}
+          </Badge>
+        </FlexItem>
+      )}
     </Flex>
   );
 
+  // TECHNICAL DEBT: This is a workaround for PatternFly's NotificationDrawerGroup
+  // not supporting action buttons without DOM nesting. We overlay the actions
+  // on the group header to avoid layout disruption. 
+  // 
+  // Action items:
+  // 1. Propose 'actions' prop to PatternFly NotificationDrawerGroup component
+  // 2. Create GitHub issue in patternfly-react repository
+  // 3. Replace this overlay approach with proper PatternFly API when available
+  
   return (
-    <NotificationDrawerGroup
-      title={groupTitle}
-      isExpanded={isExpanded}
-      onExpand={handleToggle}
-      count={group.notifications.length}
-      isRead={!hasUnread}
-    >
-      <NotificationDrawerGroupList>
-        {group.notifications.map((notification) => (
-          <NotificationItem key={notification.id} notification={notification} />
-        ))}
-      </NotificationDrawerGroupList>
-    </NotificationDrawerGroup>
+    <div style={CONTAINER_STYLES}>
+      <NotificationDrawerGroup
+        title={groupTitle}
+        isExpanded={isExpanded}
+        onExpand={handleToggle}
+        count={group.notifications.length}
+        isRead={!hasUnread}
+      >
+        <NotificationDrawerGroupList>
+          {group.notifications.map((notification) => (
+            <NotificationItem key={notification.id} notification={notification} />
+          ))}
+        </NotificationDrawerGroupList>
+      </NotificationDrawerGroup>
+      
+      {/* Overlay actions on the group header */}
+      <div
+        role="group"
+        aria-label={`Actions for ${group.name} notifications`}
+        style={ACTION_OVERLAY_STYLES}
+        onClick={handleOverlayClick}
+      >
+        {hasUnread && (
+          <Button
+            variant="plain"
+            onClick={handleMarkGroupAsRead}
+            isDisabled={isLoading}
+            icon={<CheckIcon />}
+            aria-label={`Mark all ${group.name} notifications as read`}
+            size="sm"
+          />
+        )}
+        <Button
+          variant="plain"
+          onClick={handleClearGroup}
+          isDisabled={isLoading}
+          icon={<TimesIcon />}
+          aria-label={`Clear all ${group.name} notifications`}
+          size="sm"
+        />
+      </div>
+    </div>
   );
 };

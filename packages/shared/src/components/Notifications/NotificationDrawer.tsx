@@ -76,14 +76,16 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ children
             title="Notifications"
             customText={unreadCount > 0 ? `${unreadCount} unread` : 'All read'}
           >
-            {hasNotifications && (
-              <Button variant="link" onClick={handleClearAll} size="sm">
-                Clear all
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {hasNotifications && (
+                <Button variant="plain" onClick={handleClearAll} size="sm">
+                  Clear all
+                </Button>
+              )}
+              <Button variant="plain" onClick={handleRefresh} size="sm">
+                Refresh
               </Button>
-            )}
-            <Button variant="link" onClick={handleRefresh} size="sm">
-              Refresh
-            </Button>
+            </div>
           </NotificationDrawerHeader>
           <NotificationDrawerBody>
             {error && (
