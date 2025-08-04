@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from './store';
 import { createDefaultClient } from '../api/client';
@@ -12,6 +12,38 @@ export const useAuth = () => {
   // Create API client
   const apiClient = createDefaultClient();
   const authAPI = new AuthAPI(apiClient);
+
+  // Simple token verification - only run once on mount and don't loop
+  React.useEffect(() => {
+    const storedToken = localStorage.getItem('foreman_auth_token');
+    
+    // If no token exists, ensure we're logged out
+    if (!storedToken) {
+      authStore.logout();
+      return;
+    }
+
+    // If we already have a user and are authenticated, don't re-verify
+    if (authStore.isAuthenticated && authStore.user) {
+      return;
+    }
+
+    // Only verify if we have a token but no user data yet
+    const verifyStoredToken = async () => {
+      authStore.setLoading(true);
+      try {
+        const user = await authAPI.verifyToken();
+        authStore.login(user, storedToken);
+      } catch (error) {
+        console.warn('Stored token verification failed, logging out:', error);
+        authStore.logout();
+      } finally {
+        authStore.setLoading(false);
+      }
+    };
+
+    verifyStoredToken();
+  }, []); // Only run once on mount
 
   // Login mutation
   const loginMutation = useMutation({
@@ -68,7 +100,7 @@ export const useAuth = () => {
   });
 
   // Note: Token verification moved to AuthProvider to run only once on app startup
-  
+
 
   // Removed redundant current user query to prevent auth bypass issues
 
@@ -87,7 +119,7 @@ export const useAuth = () => {
 
   // Calculate loading state from auth store only
   const isLoadingCalculated = authStore.isLoading;
-  
+
 
   return {
     // State

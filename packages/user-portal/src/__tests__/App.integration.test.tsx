@@ -8,7 +8,7 @@ import type { User, AuthResponse, LoginCredentials } from '@foreman/shared';
 // Global mock functions
 const mockLogoutGlobal = vi.fn();
 
-// Mock the shared module  
+// Mock the shared module
 vi.mock('@foreman/shared', () => {
   return {
     useAuth: vi.fn(),
@@ -40,18 +40,18 @@ vi.mock('@foreman/shared', () => {
   };
 });
 
-const mockLogin = vi.fn<[LoginCredentials], Promise<AuthResponse>>().mockResolvedValue({ 
-  user: { 
-    id: 1, 
-    login: 'test', 
-    admin: false, 
-    disabled: false, 
-    auth_source_id: 1, 
-    roles: [], 
-    organizations: [], 
-    locations: [] 
-  }, 
-  token: 'test-token' 
+const mockLogin = vi.fn<[LoginCredentials], Promise<AuthResponse>>().mockResolvedValue({
+  user: {
+    id: 1,
+    login: 'test',
+    admin: false,
+    disabled: false,
+    auth_source_id: 1,
+    roles: [],
+    organizations: [],
+    locations: []
+  },
+  token: 'test-token'
 });
 const mockLogout = mockLogoutGlobal;
 const mockClearError = vi.fn();
@@ -107,7 +107,7 @@ describe('App Integration Tests', () => {
 
   const renderApp = (initialEntries = ['/']) => {
     return render(
-      <MemoryRouter 
+      <MemoryRouter
         initialEntries={initialEntries}
         future={{
           v7_startTransition: true,
@@ -124,15 +124,15 @@ describe('App Integration Tests', () => {
       isAuthenticated: false,
       isLoading: false,
       login: mockLogin,
-      loginWithToken: vi.fn<[string], Promise<User>>().mockResolvedValue({ 
-        id: 1, 
-        login: 'test', 
-        admin: false, 
-        disabled: false, 
-        auth_source_id: 1, 
-        roles: [], 
-        organizations: [], 
-        locations: [] 
+      loginWithToken: vi.fn<[string], Promise<User>>().mockResolvedValue({
+        id: 1,
+        login: 'test',
+        admin: false,
+        disabled: false,
+        auth_source_id: 1,
+        roles: [],
+        organizations: [],
+        locations: []
       }),
       logout: mockLogout,
       clearError: mockClearError,
@@ -179,7 +179,7 @@ describe('App Integration Tests', () => {
     it('should handle login action', async () => {
       const user = userEvent.setup();
       mockUseAuth.isAuthenticated = false;
-      
+
       renderApp();
 
       // Should show login page initially
@@ -197,7 +197,7 @@ describe('App Integration Tests', () => {
     it('should handle logout action', async () => {
       const user = userEvent.setup();
       mockUseAuth.isAuthenticated = true;
-      
+
       renderApp();
 
       // Should show authenticated layout
@@ -223,7 +223,7 @@ describe('App Integration Tests', () => {
 
     it('should show user layout for authenticated routes', () => {
       renderApp();
-      
+
       expect(screen.getByTestId('user-layout')).toBeInTheDocument();
       expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
     });
@@ -233,7 +233,7 @@ describe('App Integration Tests', () => {
     it('should display error message when login fails', () => {
       mockUseAuth.isAuthenticated = false;
       mockUseAuth.error = 'Invalid credentials';
-      
+
       renderApp();
 
       expect(screen.getByTestId('login-page')).toBeInTheDocument();
@@ -244,7 +244,7 @@ describe('App Integration Tests', () => {
       const user = userEvent.setup();
       mockUseAuth.isAuthenticated = false;
       mockUseAuth.error = 'Some error';
-      
+
       renderApp();
 
       await user.click(screen.getByTestId('clear-error'));
@@ -269,7 +269,7 @@ describe('App Integration Tests', () => {
         organizations: [],
         locations: []
       };
-      
+
       renderApp();
 
       expect(screen.getByTestId('user-layout')).toBeInTheDocument();
@@ -291,7 +291,7 @@ describe('App Integration Tests', () => {
         organizations: [],
         locations: []
       };
-      
+
       renderApp();
 
       expect(screen.getByTestId('user-layout')).toBeInTheDocument();
@@ -302,12 +302,12 @@ describe('App Integration Tests', () => {
   describe('loading states', () => {
     it('should show loading screen with proper styling', () => {
       mockUseAuth.isLoading = true;
-      
+
       renderApp();
 
       expect(screen.getByText('Loading...')).toBeInTheDocument();
       expect(screen.getByText('Verifying authentication')).toBeInTheDocument();
-      
+
       // The loading content should be properly displayed
       const loadingContent = screen.getByText('Loading...').parentElement;
       expect(loadingContent).toHaveStyle({ color: 'rgb(255, 255, 255)' });
@@ -323,9 +323,9 @@ describe('App Integration Tests', () => {
       // Simulate authentication completion
       mockUseAuth.isLoading = false;
       mockUseAuth.isAuthenticated = true;
-      
+
       rerender(
-        <MemoryRouter 
+        <MemoryRouter
           initialEntries={['/']}
           future={{
             v7_startTransition: true,
@@ -350,9 +350,9 @@ describe('App Integration Tests', () => {
       // Simulate no authentication
       mockUseAuth.isLoading = false;
       mockUseAuth.isAuthenticated = false;
-      
+
       rerender(
-        <MemoryRouter 
+        <MemoryRouter
           initialEntries={['/']}
           future={{
             v7_startTransition: true,

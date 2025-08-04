@@ -9,12 +9,12 @@ const POLLING_INTERVAL = 30000; // 30 seconds
 
 export const useNotifications = () => {
   const { isAuthenticated } = useAuth();
-  const { 
-    setNotifications, 
-    setLoading, 
-    setError, 
+  const {
+    setNotifications,
+    setLoading,
+    setError,
     setLastPolled,
-    notifications 
+    notifications
   } = useNotificationStore();
 
   const notificationsQuery = useQuery({
@@ -151,7 +151,7 @@ export const useNotificationActions = () => {
     clearNotification,
     markGroupAsRead,
     clearGroup,
-    isLoading: 
+    isLoading:
       markAsReadMutation.isPending ||
       clearNotificationMutation.isPending ||
       markGroupAsReadMutation.isPending ||

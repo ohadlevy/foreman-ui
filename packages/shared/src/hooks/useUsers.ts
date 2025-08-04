@@ -1,25 +1,34 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { useApi } from './useApi';
 import { UserFormData, SearchParams } from '../types';
 import { useAuthStore } from '../auth/store';
+import { useAuth } from '../auth/useAuth';
 
 export const useUsers = (params?: SearchParams) => {
   const { users } = useApi();
+  const { hasPermission } = useAuth();
+
+  const canViewUsers = useMemo(() => hasPermission('view_users'), [hasPermission]);
 
   return useQuery({
     queryKey: ['users', params],
     queryFn: () => users.list(params),
     keepPreviousData: true,
+    enabled: canViewUsers,
   });
 };
 
 export const useUser = (id: number, enabled = true) => {
   const { users } = useApi();
+  const { hasPermission } = useAuth();
+
+  const canViewUsers = useMemo(() => hasPermission('view_users'), [hasPermission]);
 
   return useQuery({
     queryKey: ['users', id],
     queryFn: () => users.get(id),
-    enabled: enabled && !!id,
+    enabled: enabled && !!id && canViewUsers,
   });
 };
 
@@ -94,14 +103,14 @@ export const useChangePassword = () => {
   const { users } = useApi();
 
   return useMutation({
-    mutationFn: ({ 
-      id, 
-      currentPassword, 
-      newPassword 
-    }: { 
-      id: number; 
-      currentPassword: string; 
-      newPassword: string; 
+    mutationFn: ({
+      id,
+      currentPassword,
+      newPassword
+    }: {
+      id: number;
+      currentPassword: string;
+      newPassword: string;
     }) => users.changePassword(id, currentPassword, newPassword),
   });
 };

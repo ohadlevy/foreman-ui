@@ -77,13 +77,13 @@ export const useRevokePersonalAccessToken = () => {
 export const useCurrentToken = () => {
   const { tokens } = usePersonalAccessTokens();
   const currentTokenValue = localStorage.getItem('foreman_auth_token');
-  
+
   // Find the current token by matching the actual stored token value
-  const currentToken = tokens.find(token => 
+  const currentToken = tokens.find(token =>
     // First try to match the actual token value (most reliable)
     token.token_value === currentTokenValue ||
     // Fallback: use stored token ID if available
-    (localStorage.getItem('foreman_auth_token_id') && 
+    (localStorage.getItem('foreman_auth_token_id') &&
      token.id.toString() === localStorage.getItem('foreman_auth_token_id')) ||
     // Last fallback: newest active Foreman UI token
     (token.name?.includes('Foreman UI') && token['active?'] !== false && token.active !== false)

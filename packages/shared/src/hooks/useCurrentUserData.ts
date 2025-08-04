@@ -31,7 +31,7 @@ export const useCurrentUserData = () => {
         isSuccess: currentUserQuery.isSuccess,
       };
     }
-    
+
     return {
       data: authUser,
       isLoading: false,

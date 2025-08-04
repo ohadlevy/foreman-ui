@@ -18,7 +18,7 @@ export class ForemanAPIClient {
   constructor(config: ForemanClientConfig) {
     this.token = config.token;
     this.baseURL = config.baseURL;
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -33,7 +33,7 @@ export class ForemanAPIClient {
         password: config.password
       };
     }
-    
+
     this.client = axios.create({
       baseURL: config.baseURL,
       timeout: config.timeout || 30000,
@@ -47,7 +47,7 @@ export class ForemanAPIClient {
 
 
   private setupInterceptors() {
-    // Request interceptor for logging and token handling
+    // Request interceptor for authentication and token handling
     this.client.interceptors.request.use(
       (config) => {
         // Add Bearer token if available (for Personal Access Tokens)
@@ -69,7 +69,7 @@ export class ForemanAPIClient {
             config.headers.Authorization = `Bearer ${this.token}`;
           }
         }
-        
+
         // Making API request
         return config;
       },
@@ -86,7 +86,7 @@ export class ForemanAPIClient {
           // Check if this is a login/auth verification request
           const url = error.config?.url || '';
           const isAuthRequest = url.includes('/current_user') || url.includes('/login');
-          
+
           if (isAuthRequest) {
             // This is an authentication failure - clear token and redirect to login
             this.clearToken();
@@ -164,7 +164,7 @@ export class ForemanAPIClient {
 
   // Helper method for paginated endpoints
   async getPaginated<T>(
-    url: string, 
+    url: string,
     params?: Record<string, unknown>
   ): Promise<ApiResponse<T>> {
     return this.get<ApiResponse<T>>(url, { params });
@@ -180,7 +180,7 @@ export class ForemanAPIClient {
         },
       };
     }
-    
+
     return {
       error: {
         message: error instanceof Error ? error.message : 'An unknown error occurred',
@@ -203,13 +203,13 @@ export const createDefaultClient = () => {
   // Temporary: Force use of proxy path for testing
   const baseURL = process.env.REACT_APP_API_URL || '/api/v2';
   const token = localStorage.getItem('foreman_auth_token') || undefined;
-  
-  
+
+
   // Only create a new client if one doesn't exist or if the baseURL has changed
   if (!defaultClientInstance || defaultClientInstance.baseURL !== baseURL) {
     // Creating API client without token initially
     defaultClientInstance = createForemanClient({ baseURL });
-    
+
     // Set token if available
     if (token) {
       defaultClientInstance.setToken(token);
@@ -226,7 +226,7 @@ export const createDefaultClient = () => {
       lastToken = token;
     }
   }
-  
+
   return defaultClientInstance;
 };
 

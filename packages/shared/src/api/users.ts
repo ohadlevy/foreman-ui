@@ -15,7 +15,7 @@ interface GraphQLError {
 export class UsersAPI {
   // Minimum viable base64 string length (4 chars can represent up to 3 bytes)
   private static readonly MIN_BASE64_ID_LENGTH = 4;
-  
+
   // Cached regex for base64 validation to improve performance
   private static readonly BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
@@ -43,7 +43,7 @@ export class UsersAPI {
       // Check length first (faster), then validate base64 format
       if (rawId.length > UsersAPI.MIN_BASE64_ID_LENGTH && this.isValidBase64(rawId)) {
         const decodedId = atob(rawId);
-        
+
         // Extract numeric part from strings like "User-5", "gid://User/5", or "MDEwOlJlcG9zaXRvcnk1"
         const numericMatch = decodedId.match(/(\d+)$/);
         if (numericMatch) {
@@ -82,18 +82,18 @@ export class UsersAPI {
       'Accept': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
     };
-    
+
     // Configure authentication for GraphQL
     if (token) {
       // Enhanced token format validation before processing
       if (!token.trim() || token.length < 4) {
         throw new Error('Authentication failed');
       }
-      
+
       // Validate if token is base64-encoded credentials (username:password)
       let decoded: string | null = null;
       let isBase64Credential = false;
-      
+
       if (this.isValidBase64(token)) {
         try {
           decoded = atob(token);
@@ -113,7 +113,7 @@ export class UsersAPI {
         }
         decoded = null;
       }
-      
+
       if (isBase64Credential && decoded) {
         // Token is already base64-encoded credentials
         headers.Authorization = `Basic ${token}`;
@@ -127,17 +127,17 @@ export class UsersAPI {
         headers.Authorization = `Basic ${btoa(token + ':')}`;
       }
     }
-    
+
     const response = await fetch(API_ENDPOINTS.GRAPHQL, {
       method: 'POST',
       headers,
       body: JSON.stringify({ query }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`GraphQL query failed: ${response.status}`);
     }
-    
+
     try {
       return await response.json();
     } catch (jsonError) {
@@ -190,21 +190,21 @@ export class UsersAPI {
           }
         }
       `;
-      
+
       const graphqlResponse = await this.executeGraphQLQuery(query);
-      
+
       if (graphqlResponse.data?.currentUser) {
         const userData = graphqlResponse.data.currentUser as Record<string, unknown>;
-        
+
         // Convert GraphQL permissions from Connection format
         const permissionsData = userData.permissions as { edges?: Array<{ node: { id: string; name: string; resourceType?: string } }> } | undefined;
-        
+
         const permissions = (permissionsData?.edges || []).map((edge) => ({
           id: parseInt(edge.node.id) || 0,
           name: edge.node.name,
           resource_type: edge.node.resourceType || ''
         }));
-        
+
         // Create virtual role for all permissions
         const virtualRole = {
           id: -1,
@@ -214,17 +214,17 @@ export class UsersAPI {
           permissions: permissions,
           builtin: false
         };
-        
+
         // GraphQL returns base64-encoded IDs, need to extract numeric user ID
         const rawId = userData.id as string;
         const numericUserId = this.parseUserIdFromGraphQL(rawId);
-        
+
         // Final validation to ensure we have a valid numeric user ID
         if (isNaN(numericUserId) || numericUserId <= 0) {
           console.warn(`Invalid user ID encountered: ${numericUserId}. User ID must be a positive integer.`);
           throw new Error('Invalid user ID format. User ID must be a positive integer.');
         }
-        
+
         const result = {
           id: numericUserId,
           login: userData.login as string,
@@ -239,7 +239,7 @@ export class UsersAPI {
           organizations: userData.defaultOrganization ? [userData.defaultOrganization] : [],
           locations: userData.defaultLocation ? [userData.defaultLocation] : []
         } as User;
-        
+
         return result;
       }
     } catch (graphqlError) {
@@ -282,8 +282,8 @@ export class UsersAPI {
   }
 
   async changePassword(
-    id: number, 
-    currentPassword: string, 
+    id: number,
+    currentPassword: string,
     newPassword: string
   ): Promise<void> {
     return this.client.put(`${API_ENDPOINTS.USERS}/${id}`, {

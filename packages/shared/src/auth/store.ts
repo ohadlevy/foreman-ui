@@ -37,13 +37,13 @@ export const useAuthStore = create<AuthStore>()(
       // Actions
       setUser: (user: User | null) => {
         const { user: currentUser } = get();
-        
+
         // Use last_login_on or updated_at timestamp to determine which user object is more recent
         // If either user object is missing timestamps, always update
         if (user && currentUser) {
           const newUpdatedAt = user.last_login_on ? new Date(user.last_login_on).getTime() : null;
           const currentUpdatedAt = currentUser.last_login_on ? new Date(currentUser.last_login_on).getTime() : null;
-          
+
           // Only skip update if both have timestamps and new data is older
           if (
             newUpdatedAt !== null &&
@@ -53,7 +53,7 @@ export const useAuthStore = create<AuthStore>()(
             return;
           }
         }
-        
+
         set({ user, isAuthenticated: !!user });
       },
 
@@ -102,16 +102,16 @@ export const useAuthStore = create<AuthStore>()(
 
       hasPermission: (permission: string, resource?: string) => {
         const { user } = get();
-        
+
         if (!user) return false;
         if (user.admin) return true;
 
         // Check explicit permissions from roles
         if (!user.roles || !Array.isArray(user.roles)) return false;
-        
+
         return user.roles.some(role => {
           if (!role.permissions || !Array.isArray(role.permissions)) return false;
-          
+
           return role.permissions.some(perm => {
             if (!perm || typeof perm !== 'object') return false;
             const permissionMatch = perm.name === permission;
@@ -135,7 +135,7 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         token: state.token,
         user: state.user,
-        isAuthenticated: state.isAuthenticated,
+        // Don't persist isAuthenticated - it should be determined by token verification
       }),
     }
   )
