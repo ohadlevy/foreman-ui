@@ -12,6 +12,8 @@ export const useUsers = (params?: SearchParams) => {
     queryKey: ['users', params],
     queryFn: () => users.list(params),
     keepPreviousData: true,
+    // Note: Direct hasPermission call instead of useMemo - hasPermission function reference 
+    // changes on every render (from Zustand store), making memoization ineffective
     enabled: hasPermission('view_users'),
   });
 };
@@ -23,6 +25,8 @@ export const useUser = (id: number, enabled = true) => {
   return useQuery({
     queryKey: ['users', id],
     queryFn: () => users.get(id),
+    // Note: Direct hasPermission call instead of useMemo - hasPermission function reference 
+    // changes on every render (from Zustand store), making memoization ineffective
     enabled: enabled && !!id && hasPermission('view_users'),
   });
 };

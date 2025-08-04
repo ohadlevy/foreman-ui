@@ -29,20 +29,35 @@ export const useAuth = () => {
     }
 
     // Only verify if we have a token but no user data yet
+    let isMounted = true; // Track if component is still mounted
+    
     const verifyStoredToken = async () => {
+      if (!isMounted) return; // Early exit if component unmounted
+      
       authStore.setLoading(true);
       try {
         const user = await authAPI.verifyToken();
-        authStore.login(user, storedToken);
+        if (isMounted) { // Only update state if component is still mounted
+          authStore.login(user, storedToken);
+        }
       } catch (error) {
-        console.warn('Stored token verification failed, logging out:', error);
-        authStore.logout();
+        if (isMounted) { // Only update state if component is still mounted
+          console.warn('Stored token verification failed, logging out:', error);
+          authStore.logout();
+        }
       } finally {
-        authStore.setLoading(false);
+        if (isMounted) { // Only update state if component is still mounted
+          authStore.setLoading(false);
+        }
       }
     };
 
     verifyStoredToken();
+
+    // Cleanup function to mark component as unmounted
+    return () => {
+      isMounted = false;
+    };
   }, []); // Only run once on mount
 
   // Login mutation
