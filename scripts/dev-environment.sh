@@ -219,7 +219,7 @@ launch_browser_debug() {
     log "Launching browser with debugging tools for $url..."
 
     case "$browser" in
-        "chrome"|"chromium"|"google-chrome"|*)
+        "chrome"|"chromium"|"google-chrome")
             # Launch Chrome/Chromium with remote debugging enabled
             local chrome_cmd=""
             for cmd in google-chrome chromium-browser chromium chrome; do
@@ -230,23 +230,49 @@ launch_browser_debug() {
             done
 
             if [ -n "$chrome_cmd" ]; then
-                # Create unique user data dir to avoid conflicts
-                local user_data_dir="/tmp/foreman-chrome-debug-$$"
-                mkdir -p "$user_data_dir"
+                # Create unique user data dir using mktemp for cross-platform compatibility
+                local user_data_dir
+                if user_data_dir=$(mktemp -d "${TMPDIR:-/tmp}/foreman-chrome-debug-XXXXXXXXXX"); then
+                    log "Created temporary Chrome user data directory: $user_data_dir"
+                    
+                    # Set up cleanup trap to remove temp directory on script exit
+                    cleanup_chrome_temp() {
+                        if [ -d "$user_data_dir" ]; then
+                            log "Cleaning up temporary Chrome user data directory: $user_data_dir"
+                            rm -rf "$user_data_dir" 2>/dev/null || warn "Failed to clean up temp directory: $user_data_dir"
+                        fi
+                    }
+                    trap cleanup_chrome_temp EXIT INT TERM
+                else
+                    error "Failed to create temporary directory for Chrome user data"
+                    return 1
+                fi
 
                 log "Opening Chrome with remote debugging on port $debug_port..."
                 log "Developer tools will auto-open for debugging"
 
-                $chrome_cmd \
-                    --new-window \
-                    --auto-open-devtools-for-tabs \
-                    --remote-debugging-port="$debug_port" \
-                    --user-data-dir="$user_data_dir" \
-                    --disable-web-security \
-                    --disable-features=VizDisplayCompositor \
-                    --no-first-run \
-                    --no-default-browser-check \
-                    "$url" &
+                # Configure Chrome arguments
+                local chrome_args=(
+                    --new-window
+                    --auto-open-devtools-for-tabs
+                    --remote-debugging-port="$debug_port"
+                    --user-data-dir="$user_data_dir"
+                    --disable-features=VizDisplayCompositor
+                    --no-first-run
+                    --no-default-browser-check
+                )
+                
+                # Optionally disable web security for debugging (see CHROME_DISABLE_WEB_SECURITY)
+                if [ "${CHROME_DISABLE_WEB_SECURITY:-0}" = "1" ]; then
+                    warn "⚠️  SECURITY WARNING: Chrome will be launched with --disable-web-security"
+                    warn "   This disables Same-Origin Policy, CORS, and other critical browser security features"
+                    warn "   This should ONLY be used for local development debugging against localhost"
+                    warn "   DO NOT browse to external websites with this Chrome instance"
+                    warn "   Close this browser instance immediately after debugging"
+                    chrome_args+=(--disable-web-security)
+                fi
+                
+                $chrome_cmd "${chrome_args[@]}" "$url" &
 
                 local browser_pid=$!
                 info "Chrome launched with PID: $browser_pid"
@@ -272,6 +298,11 @@ launch_browser_debug() {
                 error "No supported browser found. Install Chrome/Chromium for debugging support."
                 return 1
             fi
+            ;;
+        *)
+            error "Unsupported browser: $browser. Only Chrome/Chromium are supported for debugging."
+            error "Set BROWSER environment variable to 'chrome', 'chromium', or 'google-chrome'."
+            return 1
             ;;
     esac
 }

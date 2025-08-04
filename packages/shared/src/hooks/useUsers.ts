@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
 import { useApi } from './useApi';
 import { UserFormData, SearchParams } from '../types';
 import { useAuthStore } from '../auth/store';
@@ -9,13 +8,11 @@ export const useUsers = (params?: SearchParams) => {
   const { users } = useApi();
   const { hasPermission } = useAuth();
 
-  const canViewUsers = useMemo(() => hasPermission('view_users'), [hasPermission]);
-
   return useQuery({
     queryKey: ['users', params],
     queryFn: () => users.list(params),
     keepPreviousData: true,
-    enabled: canViewUsers,
+    enabled: hasPermission('view_users'),
   });
 };
 
@@ -23,12 +20,10 @@ export const useUser = (id: number, enabled = true) => {
   const { users } = useApi();
   const { hasPermission } = useAuth();
 
-  const canViewUsers = useMemo(() => hasPermission('view_users'), [hasPermission]);
-
   return useQuery({
     queryKey: ['users', id],
     queryFn: () => users.get(id),
-    enabled: enabled && !!id && canViewUsers,
+    enabled: enabled && !!id && hasPermission('view_users'),
   });
 };
 

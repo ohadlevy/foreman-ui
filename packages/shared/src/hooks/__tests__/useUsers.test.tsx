@@ -38,7 +38,7 @@ describe('useUsers', () => {
     vi.clearAllMocks();
   });
 
-  it('should memoize hasPermission check for performance', async () => {
+  it('should call hasPermission for permission checks', async () => {
     const mockHasPermission = vi.fn().mockReturnValue(true);
     const mockUsersList = vi.fn().mockResolvedValue([]);
 
@@ -56,15 +56,15 @@ describe('useUsers', () => {
       wrapper: createWrapper(),
     });
 
-    // Initial render should call hasPermission once
+    // Initial render should call hasPermission
     expect(mockHasPermission).toHaveBeenCalledWith('view_users');
     expect(mockHasPermission).toHaveBeenCalledTimes(1);
 
-    // Re-render with same hasPermission function should not call it again due to useMemo
+    // Re-render will call hasPermission again (no memoization)
     rerender();
     
-    // hasPermission should still only be called once due to memoization
-    expect(mockHasPermission).toHaveBeenCalledTimes(1);
+    // hasPermission should be called again on re-render
+    expect(mockHasPermission).toHaveBeenCalledTimes(2);
   });
 
   it('should re-evaluate permission when hasPermission function changes', async () => {
@@ -131,7 +131,7 @@ describe('useUser', () => {
     vi.clearAllMocks();
   });
 
-  it('should memoize hasPermission check for individual user queries', () => {
+  it('should call hasPermission for individual user queries', () => {
     const mockHasPermission = vi.fn().mockReturnValue(true);
     const mockUsersGet = vi.fn().mockResolvedValue({});
 
@@ -149,13 +149,13 @@ describe('useUser', () => {
       wrapper: createWrapper(),
     });
 
-    // Initial render should call hasPermission once
+    // Initial render should call hasPermission
     expect(mockHasPermission).toHaveBeenCalledWith('view_users');
     expect(mockHasPermission).toHaveBeenCalledTimes(1);
 
-    // Re-render should not call hasPermission again due to memoization
+    // Re-render will call hasPermission again (no memoization)
     rerender();
-    expect(mockHasPermission).toHaveBeenCalledTimes(1);
+    expect(mockHasPermission).toHaveBeenCalledTimes(2);
   });
 
   it('should disable query when user lacks permission or id is invalid', () => {
