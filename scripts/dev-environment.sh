@@ -353,11 +353,14 @@ monitor_browser_console() {
             local ws_url=$(echo "$tabs" | grep -o '"webSocketDebuggerUrl":"[^"]*"' | head -1 | cut -d'"' -f4)
 
             if [ -n "$ws_url" ]; then
-                # Log that we found the debugging endpoint
-                if [ ! -f "/tmp/debug-session-started" ]; then
-                    info "Found debug session: $ws_url"
-                    info "You can also access Chrome DevTools at: http://localhost:$debug_port"
-                    touch "/tmp/debug-session-started"
+                # Log that we found the debugging endpoint (use unique temp file)
+                local debug_session_file
+                if debug_session_file=$(create_temp_file "debug-session-started-${USER:-unknown}-${debug_port}" ".flag"); then
+                    if [ ! -f "$debug_session_file" ]; then
+                        info "Found debug session: $ws_url"
+                        info "You can also access Chrome DevTools at: http://localhost:$debug_port"
+                        touch "$debug_session_file"
+                    fi
                 fi
             fi
         fi
