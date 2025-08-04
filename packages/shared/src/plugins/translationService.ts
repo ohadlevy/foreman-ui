@@ -22,24 +22,24 @@ export class PluginTranslationService {
    */
   async loadPluginTranslations(pluginName: string, i18nConfig: PluginI18nConfig): Promise<void> {
     const domain = i18nConfig.domain || pluginName;
-    
+
     try {
       // Prepare fallback translations from plugin configuration
       const fallbackTranslations = this.prepareFallbackTranslations(i18nConfig);
-      
+
       // Attempt to load from Foreman's translation system if available
       const remoteTranslations = await this.loadRemoteTranslations(i18nConfig);
-      
+
       // Merge remote and fallback translations (remote takes precedence)
       const finalTranslations = { ...fallbackTranslations, ...remoteTranslations };
-      
+
       // Register with i18next using domain as namespace
       this.registerTranslations(i18nConfig.defaultLocale, domain, finalTranslations);
-      
+
       console.log(`Loaded translations for plugin ${pluginName} (domain: ${domain})`);
     } catch (error) {
       console.error(`Failed to load translations for plugin ${pluginName}:`, error);
-      
+
       // Fallback to development keys only
       await this.loadFallbackOnly(pluginName, i18nConfig);
     }
@@ -50,7 +50,7 @@ export class PluginTranslationService {
    */
   removePluginTranslations(pluginName: string, i18nConfig?: PluginI18nConfig): void {
     if (!i18nConfig) return;
-    
+
     const domain = i18nConfig.domain || pluginName;
     i18next.removeResourceBundle(i18next.language, domain);
   }
@@ -97,8 +97,8 @@ export class PluginTranslationService {
    * Register translations with i18next
    */
   private registerTranslations(
-    locale: string, 
-    namespace: string, 
+    locale: string,
+    namespace: string,
     translations: Record<string, unknown>
   ): void {
     // Check if i18next is initialized and has addResourceBundle method
@@ -119,7 +119,7 @@ export class PluginTranslationService {
   private async loadFallbackOnly(pluginName: string, i18nConfig: PluginI18nConfig): Promise<void> {
     const domain = i18nConfig.domain || pluginName;
     const fallbackTranslations = this.prepareFallbackTranslations(i18nConfig);
-    
+
     try {
       this.registerTranslations(i18nConfig.defaultLocale, domain, fallbackTranslations);
       console.log(`Loaded fallback translations for plugin ${pluginName}`);

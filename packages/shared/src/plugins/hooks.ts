@@ -1,10 +1,10 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { pluginRegistry } from './registry';
-import { 
-  ForemanPlugin, 
-  ComponentExtension, 
-  MenuItem, 
+import {
+  ForemanPlugin,
+  ComponentExtension,
+  MenuItem,
   DashboardWidget,
   PluginLoadState,
   PluginRoute
@@ -63,8 +63,8 @@ export const usePluginLoadState = (): PluginLoadState => {
  */
 export const usePluginExtensions = (extensionPoint: string): ComponentExtension[] => {
   const updateCounter = usePluginRegistryState();
-  return useMemo(() => 
-    pluginRegistry.getPluginsWithExtensions(extensionPoint), 
+  return useMemo(() =>
+    pluginRegistry.getPluginsWithExtensions(extensionPoint),
     [extensionPoint, updateCounter]
   );
 };

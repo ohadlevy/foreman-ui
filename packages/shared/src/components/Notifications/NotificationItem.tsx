@@ -45,9 +45,9 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
 
   const getNotificationUrl = (): string | null => {
     if (!notification.actions) return null;
-    
+
     const actions = notification.actions as Record<string, unknown>;
-    
+
     // Look for common action patterns that contain URLs
     if (actions.links && Array.isArray(actions.links)) {
       const firstLink = actions.links[0] as Record<string, unknown>;
@@ -55,7 +55,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
         return firstLink.href as string;
       }
     }
-    
+
     // Check for a direct URL field
     if (actions.url || actions.href || actions.link) {
       const url = actions.url || actions.href || actions.link;
@@ -63,7 +63,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
         return url;
       }
     }
-    
+
     // Check for action objects with URLs
     for (const action of Object.values(actions)) {
       if (action && typeof action === 'object') {
@@ -73,7 +73,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
         }
       }
     }
-    
+
     return null;
   };
 

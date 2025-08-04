@@ -47,7 +47,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const { canViewHosts } = usePermissions();
   const pluginMenuItems = usePluginMenuItems();
-  
+
   const [isNavOpen, setIsNavOpen] = React.useState(true);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = React.useState(false);
 
@@ -68,7 +68,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
   };
 
   // Filter plugin menu items by permissions
-  const filteredPluginMenuItems = pluginMenuItems.filter(item => 
+  const filteredPluginMenuItems = pluginMenuItems.filter(item =>
     hasPluginPermissions(item.permissions, userPermissions)
   );
 
@@ -89,12 +89,12 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
         <NavItem isActive={location.pathname === '/system-status'}>
           <Link to="/system-status">System Status</Link>
         </NavItem>
-        
+
         {/* Plugin Menu Items */}
         {filteredPluginMenuItems.map((item) => (
           item.path && (
-            <NavItem 
-              key={item.id} 
+            <NavItem
+              key={item.id}
               isActive={location.pathname === item.path}
             >
               <Link to={item.path}>
@@ -109,21 +109,21 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
 
   const userDropdownItems = (
     <DropdownList>
-      <DropdownItem 
+      <DropdownItem
         key="profile"
         icon={<UserIcon />}
         onClick={() => navigate('/profile')}
       >
         Profile
       </DropdownItem>
-      <DropdownItem 
+      <DropdownItem
         key="settings"
         icon={<CogIcon />}
         onClick={() => navigate('/settings')}
       >
         Settings
       </DropdownItem>
-      <DropdownItem 
+      <DropdownItem
         key="logout"
         icon={<SignOutAltIcon />}
         onClick={handleLogout}
@@ -183,7 +183,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
       </MastheadToggle>
       <MastheadMain>
         <MastheadBrand>
-          <ForemanBrand 
+          <ForemanBrand
             size="md"
             showText={true}
             onClick={() => navigate('/dashboard')}

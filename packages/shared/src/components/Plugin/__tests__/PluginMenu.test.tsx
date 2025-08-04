@@ -37,7 +37,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => (
 describe('PluginMenu', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default auth store mock
     mockUseAuthStore.mockReturnValue({
       user: {

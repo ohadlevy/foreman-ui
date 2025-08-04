@@ -77,7 +77,7 @@ describe('RecentActivity', () => {
     describe('rendering', () => {
       it('should render recent activity items', () => {
         renderWithRouter(<RecentActivity />);
-        
+
         expect(screen.getByText('Test Host 1')).toBeInTheDocument();
         expect(screen.getByText('Search: web servers')).toBeInTheDocument();
         expect(screen.getByText('Dashboard')).toBeInTheDocument();
@@ -85,7 +85,7 @@ describe('RecentActivity', () => {
 
       it('should display timestamps for activity items', () => {
         renderWithRouter(<RecentActivity />);
-        
+
         // Check that timestamps are displayed (exact format may vary based on mock)
         const timestamps = screen.getAllByText(/hours? ago/);
         expect(timestamps.length).toBeGreaterThan(0);
@@ -93,7 +93,7 @@ describe('RecentActivity', () => {
 
       it('should display subtitles as badges when available', () => {
         renderWithRouter(<RecentActivity />);
-        
+
         expect(screen.getByText('host details')).toBeInTheDocument();
         expect(screen.getByText('hosts search')).toBeInTheDocument();
       });
@@ -105,13 +105,13 @@ describe('RecentActivity', () => {
         });
 
         renderWithRouter(<RecentActivity />);
-        
+
         expect(screen.getByText('No recent activity')).toBeInTheDocument();
       });
 
       it('should limit displayed items to maxItems', () => {
         renderWithRouter(<RecentActivity maxItems={2} />);
-        
+
         expect(screen.getByText('Test Host 1')).toBeInTheDocument();
         expect(screen.getByText('Search: web servers')).toBeInTheDocument();
         expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
@@ -121,41 +121,41 @@ describe('RecentActivity', () => {
     describe('functionality', () => {
       it('should navigate when activity item is clicked', () => {
         renderWithRouter(<RecentActivity />);
-        
+
         const hostItem = screen.getByText('Test Host 1');
         fireEvent.click(hostItem);
-        
+
         expect(mockNavigate).toHaveBeenCalledWith('/hosts/1');
       });
 
       it('should call onItemSelect when provided', () => {
         const mockOnItemSelect = vi.fn();
         renderWithRouter(<RecentActivity onItemSelect={mockOnItemSelect} />);
-        
+
         const hostItem = screen.getByText('Test Host 1');
         fireEvent.click(hostItem);
-        
+
         expect(mockOnItemSelect).toHaveBeenCalledWith(mockActivities[0]);
       });
 
       it('should show clear history button by default', () => {
         renderWithRouter(<RecentActivity />);
-        
+
         expect(screen.getByText('Clear history')).toBeInTheDocument();
       });
 
       it('should hide clear button when showClearButton is false', () => {
         renderWithRouter(<RecentActivity showClearButton={false} />);
-        
+
         expect(screen.queryByText('Clear history')).not.toBeInTheDocument();
       });
 
       it('should call clearActivity when clear button is clicked', () => {
         renderWithRouter(<RecentActivity />);
-        
+
         const clearButton = screen.getByText('Clear history');
         fireEvent.click(clearButton);
-        
+
         expect(mockActivityStore.clearActivity).toHaveBeenCalled();
       });
     });
@@ -163,7 +163,7 @@ describe('RecentActivity', () => {
     describe('activity icons', () => {
       it('should display appropriate icons for different activity types', () => {
         renderWithRouter(<RecentActivity />);
-        
+
         // Check that menu items are rendered (icons are part of MenuItem components)
         const menuItems = screen.getAllByRole('menuitem');
         expect(menuItems.length).toBeGreaterThan(0);
@@ -174,7 +174,7 @@ describe('RecentActivity', () => {
   describe('RecentHosts component', () => {
     it('should render only host-related activities', () => {
       renderWithRouter(<RecentHosts />);
-      
+
       expect(mockActivityStore.getRecentHosts).toHaveBeenCalled();
       expect(screen.getByText('Test Host 1')).toBeInTheDocument();
       expect(screen.queryByText('Search: web servers')).not.toBeInTheDocument();
@@ -187,17 +187,17 @@ describe('RecentActivity', () => {
       };
       mockUseActivityStore.mockReturnValue(emptyStore);
       renderWithRouter(<RecentHosts />);
-      
+
       expect(screen.getByText('No recent hosts')).toBeInTheDocument();
     });
 
     it('should call onItemSelect when host item is clicked', () => {
       const mockOnItemSelect = vi.fn();
       renderWithRouter(<RecentHosts onItemSelect={mockOnItemSelect} />);
-      
+
       const hostItem = screen.getByText('Test Host 1');
       fireEvent.click(hostItem);
-      
+
       expect(mockOnItemSelect).toHaveBeenCalledWith(mockActivities[0]);
     });
   });
@@ -205,7 +205,7 @@ describe('RecentActivity', () => {
   describe('RecentSearches component', () => {
     it('should render only search-related activities', () => {
       renderWithRouter(<RecentSearches />);
-      
+
       expect(mockActivityStore.getRecentSearches).toHaveBeenCalled();
       expect(screen.getByText('Search: web servers')).toBeInTheDocument();
       expect(screen.queryByText('Test Host 1')).not.toBeInTheDocument();
@@ -218,17 +218,17 @@ describe('RecentActivity', () => {
       };
       mockUseActivityStore.mockReturnValue(emptyStore);
       renderWithRouter(<RecentSearches />);
-      
+
       expect(screen.getByText('No recent searches')).toBeInTheDocument();
     });
 
     it('should navigate and call onItemSelect when search item is clicked', () => {
       const mockOnItemSelect = vi.fn();
       renderWithRouter(<RecentSearches onItemSelect={mockOnItemSelect} />);
-      
+
       const searchItem = screen.getByText('Search: web servers');
       fireEvent.click(searchItem);
-      
+
       expect(mockNavigate).toHaveBeenCalledWith('/hosts?search=web');
       expect(mockOnItemSelect).toHaveBeenCalledWith(mockActivities[1]);
     });
@@ -237,20 +237,20 @@ describe('RecentActivity', () => {
   describe('accessibility', () => {
     it('should have proper menu structure', () => {
       renderWithRouter(<RecentActivity />);
-      
+
       const menu = screen.getByRole('menu');
       expect(menu).toBeInTheDocument();
-      
+
       const menuItems = screen.getAllByRole('menuitem');
       expect(menuItems.length).toBeGreaterThan(0);
     });
 
     it('should support keyboard navigation', () => {
       renderWithRouter(<RecentActivity />);
-      
+
       const menuItems = screen.getAllByRole('menuitem');
       expect(menuItems.length).toBeGreaterThan(0);
-      
+
       // Test that menuitem elements are accessible
       const firstMenuItem = menuItems[0];
       expect(firstMenuItem).toBeInTheDocument();

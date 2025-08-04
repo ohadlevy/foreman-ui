@@ -24,7 +24,7 @@ describe('activityStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorageMock.getItem.mockReturnValue(null);
-    
+
     // Reset the store state
     useActivityStore.setState({
       recentActivity: [],
@@ -34,7 +34,7 @@ describe('activityStore', () => {
   describe('initial state', () => {
     it('should have empty recent activity initially', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       expect(result.current.recentActivity).toEqual([]);
     });
 
@@ -48,7 +48,7 @@ describe('activityStore', () => {
   describe('addActivity', () => {
     it('should add a new activity item', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'host_view',
@@ -69,7 +69,7 @@ describe('activityStore', () => {
 
     it('should add activity with optional subtitle', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'host_edit',
@@ -84,7 +84,7 @@ describe('activityStore', () => {
 
     it('should add new activities to the beginning of the list', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'host_view',
@@ -107,7 +107,7 @@ describe('activityStore', () => {
 
     it('should limit activity list to MAX_ACTIVITIES (50)', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       // Add 52 activities
       act(() => {
         for (let i = 0; i < 52; i++) {
@@ -126,7 +126,7 @@ describe('activityStore', () => {
 
     it('should remove duplicate activities with same type and url', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'host_view',
@@ -150,7 +150,7 @@ describe('activityStore', () => {
 
     it('should allow different types for same url', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'host_view',
@@ -176,7 +176,7 @@ describe('activityStore', () => {
   describe('page visit tracking', () => {
     it('should track page visit activity', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'page_visit',
@@ -195,7 +195,7 @@ describe('activityStore', () => {
 
     it('should track page visit with subtitle', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'page_visit',
@@ -213,7 +213,7 @@ describe('activityStore', () => {
   describe('host tracking', () => {
     it('should track host view activity', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'host_view',
@@ -232,7 +232,7 @@ describe('activityStore', () => {
 
     it('should track host edit activity', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'host_edit',
@@ -249,7 +249,7 @@ describe('activityStore', () => {
   describe('search tracking', () => {
     it('should track search activity', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'search',
@@ -272,7 +272,7 @@ describe('activityStore', () => {
   describe('clearActivity', () => {
     it('should clear all activity', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       // Add some activities first
       act(() => {
         result.current.addActivity({
@@ -300,7 +300,7 @@ describe('activityStore', () => {
   describe('filtering methods', () => {
     beforeEach(() => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       act(() => {
         result.current.addActivity({
           type: 'host_view',
@@ -328,9 +328,9 @@ describe('activityStore', () => {
     describe('getRecentHosts', () => {
       it('should return only host-related activities', () => {
         const { result } = renderHook(() => useActivityStore());
-        
+
         const hostActivities = result.current.getRecentHosts();
-        
+
         expect(hostActivities).toHaveLength(2);
         expect(hostActivities[0].type).toBe('host_edit');
         expect(hostActivities[1].type).toBe('host_view');
@@ -338,7 +338,7 @@ describe('activityStore', () => {
 
       it('should limit results to MAX_RECENT_HOSTS', () => {
         const { result } = renderHook(() => useActivityStore());
-        
+
         // Add more host activities than the limit
         act(() => {
           for (let i = 0; i < 15; i++) {
@@ -349,9 +349,9 @@ describe('activityStore', () => {
             });
           }
         });
-        
+
         const hostActivities = result.current.getRecentHosts();
-        
+
         expect(hostActivities.length).toBeLessThanOrEqual(10); // MAX_RECENT_HOSTS
       });
     });
@@ -359,9 +359,9 @@ describe('activityStore', () => {
     describe('getRecentSearches', () => {
       it('should return only search activities', () => {
         const { result } = renderHook(() => useActivityStore());
-        
+
         const searchActivities = result.current.getRecentSearches();
-        
+
         expect(searchActivities).toHaveLength(1);
         expect(searchActivities[0].type).toBe('search');
         expect(searchActivities[0].title).toBe('Search: web');
@@ -369,7 +369,7 @@ describe('activityStore', () => {
 
       it('should limit results to MAX_RECENT_SEARCHES', () => {
         const { result } = renderHook(() => useActivityStore());
-        
+
         // Add more search activities than the limit
         act(() => {
           for (let i = 0; i < 10; i++) {
@@ -382,7 +382,7 @@ describe('activityStore', () => {
         });
 
         const searchActivities = result.current.getRecentSearches();
-        
+
         expect(searchActivities.length).toBeLessThanOrEqual(5); // MAX_RECENT_SEARCHES
       });
     });
@@ -393,7 +393,7 @@ describe('activityStore', () => {
       // Test that the store is configured with persistence
       // The actual localStorage behavior is handled by Zustand persist middleware
       const { result } = renderHook(() => useActivityStore());
-      
+
       // Just verify the store functions exist
       expect(result.current.addActivity).toBeDefined();
       expect(result.current.clearActivity).toBeDefined();
@@ -404,7 +404,7 @@ describe('activityStore', () => {
   describe('activity management', () => {
     it('should handle different activity types correctly', () => {
       const { result } = renderHook(() => useActivityStore());
-      
+
       const testCases = [
         { type: 'host_view', title: 'Host 1', url: '/hosts/1' },
         { type: 'page_visit', title: 'Dashboard', url: '/dashboard' },

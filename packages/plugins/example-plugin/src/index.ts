@@ -49,7 +49,7 @@ export const ExamplePlugin: ForemanPlugin = {
     },
     {
       name: 'manage_example_features',
-      resource_type: 'ExamplePlugin', 
+      resource_type: 'ExamplePlugin',
       actions: ['create', 'edit', 'destroy'],
       descriptionKey: 'permissions.manage_features'
     }
@@ -91,9 +91,9 @@ export const ExamplePlugin: ForemanPlugin = {
     console.log('Example plugin initializing...');
     console.log('Current user:', context.user);
     console.log('Available API client:', !!context.apiClient);
-    
+
     // Example: Register custom API endpoints, set up event listeners, etc.
-    
+
     console.log('Example plugin initialized successfully');
   },
 

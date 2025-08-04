@@ -18,16 +18,16 @@ export default defineConfig({
             proxyReq.setHeader('Origin', 'http://localhost:3000');
             proxyReq.setHeader('Host', 'localhost:3000');
             proxyReq.setHeader('Referer', 'http://localhost:3000/');
-            
+
             // Ensure proper CORS headers for authentication
             if (req.headers.authorization) {
               proxyReq.setHeader('Authorization', req.headers.authorization);
             }
-            
+
             // Log for debugging
             console.log(`[Proxy] ${req.method} ${req.url} -> ${proxyReq.getHeader('host')}${proxyReq.path}`);
           });
-          
+
           proxy.on('proxyRes', (proxyRes, req, res) => {
             // Add CORS headers to responses if needed
             proxyRes.headers['access-control-allow-origin'] = 'http://localhost:3001';
@@ -47,16 +47,16 @@ export default defineConfig({
             proxyReq.setHeader('Origin', 'http://localhost:3000');
             proxyReq.setHeader('Host', 'localhost:3000');
             proxyReq.setHeader('Referer', 'http://localhost:3000/');
-            
+
             // Ensure proper CORS headers for authentication
             if (req.headers.authorization) {
               proxyReq.setHeader('Authorization', req.headers.authorization);
             }
-            
+
             // Log for debugging
             console.log(`[Notifications Proxy] ${req.method} ${req.url} -> ${proxyReq.getHeader('host')}${proxyReq.path}`);
           });
-          
+
           proxy.on('proxyRes', (proxyRes, req, res) => {
             // Add CORS headers to responses if needed
             proxyRes.headers['access-control-allow-origin'] = 'http://localhost:3001';

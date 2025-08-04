@@ -35,7 +35,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => (
 describe('ExtensionPointRenderer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default auth store mock
     mockUseAuthStore.mockReturnValue({
       user: {
@@ -84,7 +84,7 @@ describe('ExtensionPointRenderer', () => {
     mockUsePluginExtensions.mockReturnValue(mockExtensions);
 
     render(
-      <ExtensionPointRenderer 
+      <ExtensionPointRenderer
         extensionPoint={EXTENSION_POINTS.HOST_DETAILS_TABS}
       />
     );
@@ -106,7 +106,7 @@ describe('ExtensionPointRenderer', () => {
     mockUsePluginExtensions.mockReturnValue(mockExtensions);
 
     render(
-      <ExtensionPointRenderer 
+      <ExtensionPointRenderer
         extensionPoint={EXTENSION_POINTS.HOST_DETAILS_TABS}
         context={testContext}
       />
@@ -127,7 +127,7 @@ describe('ExtensionPointRenderer', () => {
     mockUsePluginExtensions.mockReturnValue(mockExtensions);
 
     render(
-      <ExtensionPointRenderer 
+      <ExtensionPointRenderer
         extensionPoint={EXTENSION_POINTS.HOST_DETAILS_TABS}
         wrapper={TestWrapper}
       />
@@ -155,7 +155,7 @@ describe('ExtensionPointRenderer', () => {
     mockUsePluginExtensions.mockReturnValue(mockExtensions);
 
     render(
-      <ExtensionPointRenderer 
+      <ExtensionPointRenderer
         extensionPoint={EXTENSION_POINTS.HOST_DETAILS_TABS}
         extensionProps={{ customProp: 'test-value' }}
       />
@@ -168,7 +168,7 @@ describe('ExtensionPointRenderer', () => {
     mockUsePluginExtensions.mockReturnValue([]);
 
     const { container } = render(
-      <ExtensionPointRenderer 
+      <ExtensionPointRenderer
         extensionPoint={EXTENSION_POINTS.HOST_DETAILS_TABS}
       />
     );
@@ -195,7 +195,7 @@ describe('ExtensionPointRenderer', () => {
     mockUsePluginExtensions.mockReturnValue(mockExtensions);
 
     render(
-      <ExtensionPointRenderer 
+      <ExtensionPointRenderer
         extensionPoint={EXTENSION_POINTS.HOST_DETAILS_TABS}
       />
     );
@@ -232,7 +232,7 @@ describe('ExtensionPointRenderer', () => {
     mockUsePluginExtensions.mockReturnValue(mockExtensions);
 
     const { container } = render(
-      <ExtensionPointRenderer 
+      <ExtensionPointRenderer
         extensionPoint={EXTENSION_POINTS.HOST_DETAILS_TABS}
       />
     );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { 
+import {
   Page,
   PageSection,
   PageSectionVariants,
@@ -23,7 +23,7 @@ export const UserProfilePage: React.FC = () => {
           User Profile
         </Title>
       </PageSection>
-      
+
       <PageSection>
         <UserProfile />
       </PageSection>
@@ -32,8 +32,8 @@ export const UserProfilePage: React.FC = () => {
 };
 
 // Example usage in a dropdown menu
-export const UserDropdownWithProfile: React.FC<{ onNavigateToProfile: () => void }> = ({ 
-  onNavigateToProfile 
+export const UserDropdownWithProfile: React.FC<{ onNavigateToProfile: () => void }> = ({
+  onNavigateToProfile
 }) => {
   return (
     <div>

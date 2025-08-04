@@ -1,9 +1,9 @@
 /**
  * Translation keys for the example plugin
- * 
+ *
  * These keys will be extracted to .po files for Foreman's translation workflow.
  * The values serve as default English text and development fallbacks.
- * 
+ *
  * Build process will generate:
  * - messages.pot template file
  * - Plugin-specific .po files for Transifex
@@ -16,7 +16,7 @@ export const translationKeys = {
   'pages.dashboard.title': 'Example Dashboard',
   'pages.dashboard.welcome': 'Welcome to the Example Plugin!',
   'pages.dashboard.description': 'This is a reference implementation showing how to create Foreman UI plugins.',
-  
+
   // Features section
   'features.title': 'Plugin Features Demonstrated',
   'features.routes': 'Custom routes and pages',

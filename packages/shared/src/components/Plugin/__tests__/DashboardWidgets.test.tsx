@@ -42,7 +42,7 @@ const TestWidget2 = ({ widgetId }: { widgetId?: string }) => (
 describe('DashboardWidgets', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default auth store mock
     mockUseAuthStore.mockReturnValue({
       user: {
@@ -181,7 +181,7 @@ describe('DashboardWidgets', () => {
     expect(screen.getByTestId('widget-small-widget')).toBeInTheDocument();
     expect(screen.getByTestId('widget-medium-widget')).toBeInTheDocument();
     expect(screen.getByTestId('widget-large-widget')).toBeInTheDocument();
-    
+
     expect(screen.getByText('Small Widget')).toBeInTheDocument();
     expect(screen.getByText('Medium Widget')).toBeInTheDocument();
     expect(screen.getByText('Large Widget')).toBeInTheDocument();

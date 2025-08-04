@@ -19,7 +19,7 @@ Thank you for considering contributing to Foreman UI! This guide will help you g
    ```bash
    # Start user portal
    yarn dev:user
-   
+
    # Or start all packages
    yarn dev
    ```

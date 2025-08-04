@@ -94,7 +94,7 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({
               {activity.title}
             </MenuItem>
           ))}
-          
+
           {showClearButton && (
             <>
               <Divider />

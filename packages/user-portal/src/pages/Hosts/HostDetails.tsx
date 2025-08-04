@@ -30,12 +30,12 @@ import {
   EditIcon,
   TrashIcon,
 } from '@patternfly/react-icons';
-import { 
-  useHost, 
-  useHostPower, 
-  useDeleteHost, 
-  formatDateTime, 
-  formatRelativeTime, 
+import {
+  useHost,
+  useHostPower,
+  useDeleteHost,
+  formatDateTime,
+  formatRelativeTime,
   formatUptime,
   LoadingSpinner,
   useActivityStore,
@@ -119,7 +119,7 @@ export const HostDetails: React.FC = () => {
 
   const actionDropdownItems = (
     <DropdownList>
-      <DropdownItem 
+      <DropdownItem
         key="edit"
         icon={<EditIcon />}
         onClick={() => {
@@ -137,7 +137,7 @@ export const HostDetails: React.FC = () => {
       >
         Edit
       </DropdownItem>
-      <DropdownItem 
+      <DropdownItem
         key="start"
         icon={<PlayIcon />}
         onClick={() => handlePowerAction('start')}
@@ -145,7 +145,7 @@ export const HostDetails: React.FC = () => {
       >
         Start
       </DropdownItem>
-      <DropdownItem 
+      <DropdownItem
         key="stop"
         icon={<StopIcon />}
         onClick={() => handlePowerAction('stop')}
@@ -153,7 +153,7 @@ export const HostDetails: React.FC = () => {
       >
         Stop
       </DropdownItem>
-      <DropdownItem 
+      <DropdownItem
         key="restart"
         icon={<RedoIcon />}
         onClick={() => handlePowerAction('restart')}
@@ -161,7 +161,7 @@ export const HostDetails: React.FC = () => {
       >
         Restart
       </DropdownItem>
-      <DropdownItem 
+      <DropdownItem
         key="reset"
         icon={<PowerOffIcon />}
         onClick={() => handlePowerAction('reset')}
@@ -169,7 +169,7 @@ export const HostDetails: React.FC = () => {
       >
         Reset
       </DropdownItem>
-      <DropdownItem 
+      <DropdownItem
         key="delete"
         icon={<TrashIcon />}
         onClick={handleDelete}
@@ -316,7 +316,7 @@ export const HostDetails: React.FC = () => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>Uptime</DescriptionListTerm>
                     <DescriptionListDescription>
-                      {host.uptime_seconds 
+                      {host.uptime_seconds
                         ? formatUptime(host.uptime_seconds)
                         : 'Unknown'
                       }
@@ -347,7 +347,7 @@ export const HostDetails: React.FC = () => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>Last Report</DescriptionListTerm>
                     <DescriptionListDescription>
-                      {host.last_report 
+                      {host.last_report
                         ? formatRelativeTime(host.last_report)
                         : 'Never'
                       }
@@ -356,7 +356,7 @@ export const HostDetails: React.FC = () => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>Last Compile</DescriptionListTerm>
                     <DescriptionListDescription>
-                      {host.last_compile 
+                      {host.last_compile
                         ? formatRelativeTime(host.last_compile)
                         : 'Never'
                       }

@@ -32,8 +32,8 @@ import {
   DatabaseIcon,
   ClockIcon,
 } from '@patternfly/react-icons';
-import { 
-  usePlugins, 
+import {
+  usePlugins,
   usePluginLoadState,
   usePluginDashboardWidgets,
   usePluginMenuItems,
@@ -63,10 +63,10 @@ const getValidStatusEntries = (statuses: unknown): Array<[string, ForemanStatusI
   if (!statuses || typeof statuses !== 'object' || Array.isArray(statuses)) {
     return [];
   }
-  
-  return Object.entries(statuses as ForemanStatuses).filter(([_key, statusItem]) => 
-    statusItem && 
-    typeof statusItem === 'object' && 
+
+  return Object.entries(statuses as ForemanStatuses).filter(([_key, statusItem]) =>
+    statusItem &&
+    typeof statusItem === 'object' &&
     !Array.isArray(statusItem) &&
     Object.keys(statusItem).length > 0
   );
@@ -86,10 +86,10 @@ const DEFAULT_HEALTH_VALUES = {
 /**
  * Renders the system status components section with proper error handling
  */
-const SystemStatusComponents: React.FC<{ 
-  statuses: unknown, 
-  statusesLoading: boolean, 
-  statusesError: Error | null 
+const SystemStatusComponents: React.FC<{
+  statuses: unknown,
+  statusesLoading: boolean,
+  statusesError: Error | null
 }> = ({
   statuses,
   statusesLoading,
@@ -116,7 +116,7 @@ const SystemStatusComponents: React.FC<{
   }
 
   const validStatusEntries = getValidStatusEntries(statuses);
-  
+
   if (validStatusEntries.length > 0) {
     return (
       <Grid hasGutter>
@@ -143,7 +143,7 @@ const SystemStatusComponents: React.FC<{
                     </div>
                   </FlexItem>
                   <FlexItem align={{ default: 'alignRight' }}>
-                    <Label 
+                    <Label
                       color={statusItem?.status === 'ok' ? 'green' : statusItem?.status === 'warning' ? 'orange' : 'red'}
                       isCompact
                     >
@@ -184,32 +184,32 @@ export const SystemStatus: React.FC = () => {
   const systemHealth = React.useMemo(() => {
     const totalPlugins = plugins.length;
     const workingPlugins = loadState.loaded.length;
-    
+
     // Plugin system health (100% if no plugins, or percentage working)
     const pluginHealth = totalPlugins > 0 ? (workingPlugins / totalPlugins) * 100 : 100;
-    
+
     // API health - if we can fetch detailed user data, API is working well
     const apiHealth = currentUser ? DEFAULT_HEALTH_VALUES.API_WITH_USER : DEFAULT_HEALTH_VALUES.API_WITHOUT_USER;
-    
+
     // Since user can only see this page when authenticated, auth is always healthy
     const authHealth = DEFAULT_HEALTH_VALUES.AUTH_AUTHENTICATED;
-    
+
     // Overall calculation - weight plugins more heavily since that's what varies
     const overallHealth = Math.round(
-      (pluginHealth * HEALTH_WEIGHTS.PLUGINS) + 
-      (apiHealth * HEALTH_WEIGHTS.API) + 
+      (pluginHealth * HEALTH_WEIGHTS.PLUGINS) +
+      (apiHealth * HEALTH_WEIGHTS.API) +
       (authHealth * HEALTH_WEIGHTS.AUTH)
     );
-    
+
     return {
       overall: overallHealth,
       api: apiHealth,
       auth: authHealth,
       plugins: pluginHealth,
-      status: overallHealth >= HEALTH_THRESHOLDS.HEALTHY 
-        ? 'healthy' 
-        : overallHealth >= HEALTH_THRESHOLDS.WARNING 
-          ? 'warning' 
+      status: overallHealth >= HEALTH_THRESHOLDS.HEALTHY
+        ? 'healthy'
+        : overallHealth >= HEALTH_THRESHOLDS.WARNING
+          ? 'warning'
           : 'critical'
     };
   }, [plugins.length, loadState.loaded.length, currentUser]);
@@ -267,15 +267,15 @@ export const SystemStatus: React.FC = () => {
     return (
       <PageSection>
         <EmptyState>
-          <EmptyStateHeader 
+          <EmptyStateHeader
             titleText="No additional extensions found"
             headingLevel="h1"
             icon={<EmptyStateIcon icon={CubesIcon} />}
           />
           <EmptyStateBody>
-            Your Foreman installation is running with the core features only. 
-            Extensions (also called plugins) can be installed by your system administrator 
-            to add additional functionality like monitoring tools, reporting features, 
+            Your Foreman installation is running with the core features only.
+            Extensions (also called plugins) can be installed by your system administrator
+            to add additional functionality like monitoring tools, reporting features,
             or integration with other systems.
           </EmptyStateBody>
         </EmptyState>
@@ -324,8 +324,8 @@ export const SystemStatus: React.FC = () => {
                           <DatabaseIcon style={{ marginRight: '0.5rem' }} />
                           <Text component={TextVariants.small}>API Connection</Text>
                         </div>
-                        <Progress 
-                          value={systemHealth.api} 
+                        <Progress
+                          value={systemHealth.api}
                           measureLocation={ProgressMeasureLocation.outside}
                           variant={getHealthColor(systemHealth.api)}
                           aria-label={`API Connection health: ${systemHealth.api}%`}
@@ -340,8 +340,8 @@ export const SystemStatus: React.FC = () => {
                           <NetworkIcon style={{ marginRight: '0.5rem' }} />
                           <Text component={TextVariants.small}>Authentication</Text>
                         </div>
-                        <Progress 
-                          value={systemHealth.auth} 
+                        <Progress
+                          value={systemHealth.auth}
                           measureLocation={ProgressMeasureLocation.outside}
                           variant={getHealthColor(systemHealth.auth)}
                           aria-label={`Authentication health: ${systemHealth.auth}%`}
@@ -356,8 +356,8 @@ export const SystemStatus: React.FC = () => {
                           <CubesIcon style={{ marginRight: '0.5rem' }} />
                           <Text component={TextVariants.small}>Extensions</Text>
                         </div>
-                        <Progress 
-                          value={systemHealth.plugins} 
+                        <Progress
+                          value={systemHealth.plugins}
                           measureLocation={ProgressMeasureLocation.outside}
                           variant={getHealthColor(systemHealth.plugins)}
                           aria-label={`Extensions health: ${systemHealth.plugins}%`}
@@ -443,11 +443,11 @@ export const SystemStatus: React.FC = () => {
                 <CardBody>
                   <TextContent style={{ marginBottom: '1rem' }}>
                     <Text component={TextVariants.p}>
-                      Your Foreman installation includes additional features called extensions or plugins. 
+                      Your Foreman installation includes additional features called extensions or plugins.
                       These add extra functionality like new dashboard widgets, menu items, and specialized tools.
                     </Text>
                   </TextContent>
-                  <ExpandableSection 
+                  <ExpandableSection
                     toggleText={`Show ${plugins.length} extension${plugins.length !== 1 ? 's' : ''}`}
                     isIndented
                   >
@@ -481,8 +481,8 @@ export const SystemStatus: React.FC = () => {
                             {plugin.description}
                           </Text>
                           <Text component={TextVariants.small}>
-                            <strong>Version:</strong> {plugin.version} | 
-                            <strong> Author:</strong> {plugin.author} | 
+                            <strong>Version:</strong> {plugin.version} |
+                            <strong> Author:</strong> {plugin.author} |
                             <strong> Plugin Name:</strong> {plugin.name}
                           </Text>
                           {plugin.foremanVersions && (
@@ -558,7 +558,7 @@ export const SystemStatus: React.FC = () => {
             <Card>
               <CardTitle>System Components Status</CardTitle>
               <CardBody>
-                <SystemStatusComponents 
+                <SystemStatusComponents
                   statuses={statuses}
                   statusesLoading={statusesLoading}
                   statusesError={statusesError}

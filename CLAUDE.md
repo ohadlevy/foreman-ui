@@ -54,7 +54,7 @@ Claude Code can automatically handle complete development workflows:
 **Complete Automation Workflow:**
 When Claude Code works on features, it can execute:
 - ✅ **Worktree Creation** - Isolated development environment
-- ✅ **Dependency Management** - Auto-install and build shared packages  
+- ✅ **Dependency Management** - Auto-install and build shared packages
 - ✅ **Foreman Container Startup** - Podman-compose with health checks
 - ✅ **Development Server** - Auto-detect port conflicts
 - ✅ **Test Execution** - With browser console capture and server log monitoring
@@ -135,7 +135,7 @@ git branch --show-current           # Confirm correct branch
 **👤 User confirmation required for:**
 - PR creation and submission
 - Force pushing to any branch
-- Deleting branches or worktrees  
+- Deleting branches or worktrees
 - Modifying main/master branches
 - System-wide configuration changes
 
@@ -151,7 +151,7 @@ git branch --show-current           # Confirm correct branch
 foreman-ui/
 ├── packages/
 │   ├── shared/          # @foreman/shared - Component library, API clients, plugin framework
-│   ├── user-portal/     # @foreman/user-portal - Self-service interface  
+│   ├── user-portal/     # @foreman/user-portal - Self-service interface
 │   └── admin-portal/    # @foreman/admin-portal - Modern admin interface (planned)
 ```
 
@@ -194,7 +194,7 @@ export const registerPlugin = (plugin: ForemanPlugin) => {
 
 ### Plugin Categories to Support
 1. **Infrastructure Plugins**: Ansible, Puppet, Remote Execution
-2. **Cloud Providers**: AWS, Azure, OpenStack integrations  
+2. **Cloud Providers**: AWS, Azure, OpenStack integrations
 3. **Monitoring/Security**: OpenSCAP, monitoring dashboards
 4. **Provisioning**: Discovery, bootdisk, templates
 5. **Authentication**: LDAP, SAML, OAuth integrations
@@ -288,7 +288,7 @@ The SystemStatus page (`/system-status`) provides users with:
 
 **Health Metrics Dashboard:**
 - **Overall System Health**: Weighted calculation of all system components
-- **API Connection**: Status of Foreman API connectivity and response quality  
+- **API Connection**: Status of Foreman API connectivity and response quality
 - **Authentication**: Always shows 100% (since page requires auth to access)
 - **Extensions/Plugins**: Percentage of successfully loaded plugins
 
@@ -382,7 +382,7 @@ yarn generate-types  # Generates from http://localhost:3000/apidoc/v2.json
 // Plugin APIs extend base client
 export class AnsibleAPI {
   constructor(private client: ForemanAPIClient) {}
-  
+
   async getHostRoles(hostId: string) {
     return this.client.get(`/ansible/hosts/${hostId}/roles`);
   }
@@ -391,7 +391,7 @@ export class AnsibleAPI {
 // Plugin hook integration
 export const useAnsibleRoles = (hostId: string) => {
   const { ansible } = useApi();
-  return useQuery(['ansible', 'roles', hostId], () => 
+  return useQuery(['ansible', 'roles', hostId], () =>
     ansible.getHostRoles(hostId)
   );
 };
@@ -405,7 +405,7 @@ export const useAnsibleRoles = (hostId: string) => {
 export const ForemanAnsiblePlugin: ForemanPlugin = {
   name: 'foreman_ansible',
   version: '1.0.0',
-  
+
   // Route registration
   routes: [
     {
@@ -414,7 +414,7 @@ export const ForemanAnsiblePlugin: ForemanPlugin = {
       permissions: ['view_ansible']
     }
   ],
-  
+
   // Menu integration
   menuItems: [
     {
@@ -424,7 +424,7 @@ export const ForemanAnsiblePlugin: ForemanPlugin = {
       parent: 'infrastructure'
     }
   ],
-  
+
   // Component extensions
   componentExtensions: {
     'host-details-tabs': [
@@ -450,7 +450,7 @@ export const ForemanAnsiblePlugin: ForemanPlugin = {
 1. **Foreman Instance**: Running on `http://localhost:3000` with plugins
 2. **API Access**: Valid user credentials or Personal Access Token
 3. **Plugin Development**: Access to plugin development instances
-4. **Environment Variables**: 
+4. **Environment Variables**:
    ```bash
    # packages/user-portal/.env.local
    REACT_APP_API_URL=http://localhost:3000/api/v2

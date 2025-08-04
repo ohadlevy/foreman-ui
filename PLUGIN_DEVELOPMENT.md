@@ -141,7 +141,7 @@ export const useSystemInfo = (refreshInterval = 30000) => {
 
     fetchSystemInfo();
     const interval = setInterval(fetchSystemInfo, refreshInterval);
-    
+
     return () => clearInterval(interval);
   }, [refreshInterval]);
 
@@ -170,8 +170,8 @@ import {
 import { DashboardWidgetProps } from '@foreman/shared';
 import { useSystemInfo } from '../hooks/useSystemInfo';
 
-export const SystemInfoWidget: React.FC<DashboardWidgetProps> = ({ 
-  title = 'System Information' 
+export const SystemInfoWidget: React.FC<DashboardWidgetProps> = ({
+  title = 'System Information'
 }) => {
   const { systemInfo, loading, error } = useSystemInfo();
 
@@ -213,18 +213,18 @@ export const SystemInfoWidget: React.FC<DashboardWidgetProps> = ({
               </Text>
             </TextContent>
           </GridItem>
-          
+
           <GridItem span={6}>
             <Text component={TextVariants.h6}>Memory Usage</Text>
-            <Progress 
+            <Progress
               value={memoryUsagePercent}
               variant={memoryUsagePercent > 80 ? 'danger' : 'success'}
             />
           </GridItem>
-          
+
           <GridItem span={6}>
             <Text component={TextVariants.h6}>Disk Usage</Text>
-            <Progress 
+            <Progress
               value={diskUsagePercent}
               variant={diskUsagePercent > 80 ? 'danger' : 'success'}
             />
@@ -307,7 +307,7 @@ export const versionInfoPlugin: ForemanPlugin = {
   name: 'foreman_version_info',
   version: '1.0.0',
   displayName: 'Version Info',
-  
+
   dashboardWidgets: [
     {
       id: 'version-widget',
@@ -333,7 +333,7 @@ export const customPagePlugin: ForemanPlugin = {
   name: 'foreman_custom_page',
   version: '1.0.0',
   displayName: 'Custom Page',
-  
+
   routes: [
     {
       path: '/custom-page',
@@ -348,7 +348,7 @@ export const customPagePlugin: ForemanPlugin = {
       permissions: ['view_custom_page']
     }
   ],
-  
+
   menuItems: [
     {
       id: 'custom-page',
@@ -397,7 +397,7 @@ export const plugin: ForemanPlugin = {
   displayName: 'My Awesome Plugin',
   description: 'Adds awesome functionality to Foreman',
   author: 'Your Name',
-  
+
   // Dashboard widgets
   dashboardWidgets: [
     {
@@ -407,7 +407,7 @@ export const plugin: ForemanPlugin = {
       size: 'medium'
     }
   ],
-  
+
   // Navigation menu items
   menuItems: [
     {
@@ -417,7 +417,7 @@ export const plugin: ForemanPlugin = {
       order: 200
     }
   ],
-  
+
   // Custom routes/pages
   routes: [
     {
@@ -425,7 +425,7 @@ export const plugin: ForemanPlugin = {
       element: MySettingsPage
     }
   ],
-  
+
   // Internationalization
   i18n: {
     domain: 'foreman_my_plugin',
@@ -533,9 +533,9 @@ import React from 'react';
 import { Card, CardTitle, CardBody } from '@patternfly/react-core';
 import { DashboardWidgetProps } from '@foreman/shared';
 
-export const MyDashboardWidget: React.FC<DashboardWidgetProps> = ({ 
+export const MyDashboardWidget: React.FC<DashboardWidgetProps> = ({
   title = 'My Widget',
-  size = 'medium' 
+  size = 'medium'
 }) => {
   return (
     <Card>
@@ -591,9 +591,9 @@ import React from 'react';
 import { Page, PageSection, Title } from '@patternfly/react-core';
 import { PluginRouteProps } from '@foreman/shared';
 
-export const MySettingsPage: React.FC<PluginRouteProps> = ({ 
+export const MySettingsPage: React.FC<PluginRouteProps> = ({
   pluginName,
-  pluginDisplayName 
+  pluginDisplayName
 }) => {
   return (
     <Page>
@@ -767,7 +767,7 @@ import { useTranslation } from 'react-i18next';
 
 export const MyComponent: React.FC = () => {
   const { t } = useTranslation('foreman_my_plugin');
-  
+
   return (
     <div>
       <h1>{t('pages.settings.title')}</h1>
@@ -830,7 +830,7 @@ yarn extract-translations
 
 The current plugin system loads plugins at build time, which means:
 - Plugins must be included in the main repository
-- Changes require rebuilding the entire application  
+- Changes require rebuilding the entire application
 - Plugin distribution is tied to application releases
 
 ### Future Implementation (Runtime Loading) - TODO
@@ -927,11 +927,11 @@ const pluginManager = {
   async listAvailable(): Promise<PluginManifest[]> {
     return fetch('/api/plugins/available');
   },
-  
+
   async install(pluginId: string): Promise<void> {
     return fetch(`/api/plugins/${pluginId}/install`, { method: 'POST' });
   },
-  
+
   async enable(pluginId: string): Promise<void> {
     return fetch(`/api/plugins/${pluginId}/enable`, { method: 'POST' });
   }

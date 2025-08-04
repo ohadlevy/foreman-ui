@@ -49,7 +49,7 @@ The Foreman UI plugin framework enables developers to extend Foreman's user inte
      displayName: 'My Plugin',
      description: 'A custom Foreman plugin',
      author: 'Your Name',
-     
+
      routes: [
        {
          path: '/my-plugin',
@@ -57,7 +57,7 @@ The Foreman UI plugin framework enables developers to extend Foreman's user inte
          permissions: ['view_my_plugin']
        }
      ],
-     
+
      menuItems: [
        {
          id: 'my-plugin-menu',
@@ -72,7 +72,7 @@ The Foreman UI plugin framework enables developers to extend Foreman's user inte
 3. **Register the plugin**:
    ```typescript
    import { pluginRegistry } from '@foreman/shared';
-   
+
    await pluginRegistry.register(myPlugin);
    ```
 
@@ -86,12 +86,12 @@ interface ForemanPlugin {
   name: string;                    // Unique identifier (e.g., 'foreman_ansible')
   version: string;                 // Semantic version
   displayName: string;             // Human-readable name
-  
+
   // Optional metadata
   description?: string;            // Plugin description
   author?: string;                 // Author information
   foremanVersions?: string[];      // Compatible Foreman versions
-  
+
   // Functionality
   routes?: PluginRoute[];          // Custom routes
   menuItems?: MenuItem[];          // Navigation menu items
@@ -99,11 +99,11 @@ interface ForemanPlugin {
   componentExtensions?: ComponentExtension[]; // UI extensions
   dashboardWidgets?: DashboardWidget[];       // Dashboard widgets
   apiEndpoints?: ApiEndpoint[];    // API endpoint registrations
-  
+
   // Lifecycle
   initialize?: (context: PluginContext) => void | Promise<void>;
   destroy?: () => void | Promise<void>;
-  
+
   // Internationalization
   i18n?: PluginI18nConfig;
 }
@@ -121,17 +121,17 @@ interface PluginContext {
   apiClient?: PluginApiClient;     // Foreman API client
   user?: PluginUser;               // Current user information
   notifications?: PluginNotifications; // Notification system
-  
+
   // Always available
   pluginRegistry: PluginRegistry;  // Plugin registry instance
-  
+
   // Internationalization
   i18n: {
     t: (key: string, options?: Record<string, unknown>) => string;
     changeLanguage: (lng: string) => Promise<void>;
     language: string;
   };
-  
+
   // Navigation
   navigation: {
     navigate: (path: string) => void;
@@ -172,17 +172,17 @@ REACT_APP_ENABLED_PLUGINS=
 export const myPlugin: ForemanPlugin = {
   name: 'foreman_example',
   // ... other fields
-  
+
   async initialize(context: PluginContext) {
     // Plugin initialization logic
     console.log('Plugin initializing...', context.user);
-    
+
     // Access services (check for undefined!)
     if (context.apiClient) {
       const data = await context.apiClient.get('/my-endpoint');
     }
   },
-  
+
   async destroy() {
     // Cleanup logic
     console.log('Plugin destroying...');
@@ -323,12 +323,12 @@ const dashboardWidgets: DashboardWidget[] = [
 ```typescript
 const DataWidget: React.FC<DashboardWidgetProps> = () => {
   const [data, setData] = React.useState(null);
-  
+
   React.useEffect(() => {
     // Fetch widget data
     fetchWidgetData().then(setData);
   }, []);
-  
+
   return (
     <div>
       {data ? <div>{JSON.stringify(data)}</div> : <div>Loading...</div>}
@@ -349,23 +349,23 @@ const EXTENSION_POINTS = {
   HOST_DETAILS_TABS: 'host-details-tabs',
   HOST_DETAILS_ACTIONS: 'host-details-actions',
   HOST_DETAILS_INFO: 'host-details-info',
-  
+
   // User profile extensions
   USER_PROFILE_TABS: 'user-profile-tabs',
   USER_PROFILE_ACTIONS: 'user-profile-actions',
-  
+
   // Dashboard extensions
   DASHBOARD_WIDGETS: 'dashboard-widgets',
   DASHBOARD_SIDEBAR: 'dashboard-sidebar',
-  
+
   // Navigation extensions
   MAIN_NAVIGATION: 'main-navigation',
   USER_MENU: 'user-menu',
-  
+
   // Table extensions
   HOST_TABLE_COLUMNS: 'host-table-columns',
   HOST_TABLE_ACTIONS: 'host-table-actions',
-  
+
   // Form extensions
   HOST_FORM_FIELDS: 'host-form-fields',
   USER_FORM_FIELDS: 'user-form-fields'
@@ -379,7 +379,7 @@ import { ComponentExtension, ExtensionComponentProps } from '@foreman/shared';
 
 const MyHostTab: React.FC<ExtensionComponentProps> = ({ context, extensionPoint }) => {
   const hostContext = context as { hostId: string };
-  
+
   return (
     <div>
       <h3>Custom Host Tab</h3>
@@ -412,9 +412,9 @@ import { ExtensionPointRenderer } from '@foreman/shared';
 const MyPage: React.FC = () => (
   <div>
     <h1>My Page</h1>
-    
+
     {/* Render extensions for a custom extension point */}
-    <ExtensionPointRenderer 
+    <ExtensionPointRenderer
       extensionPoint="my-custom-extension"
       context={{ customData: 'value' }}
       extensionProps={{ additionalProp: true }}
@@ -446,7 +446,7 @@ const i18n: PluginI18nConfig = {
 ```typescript
 const MyComponent: React.FC<PluginRouteProps> = () => {
   const { t } = useTranslation('foreman_my_plugin');
-  
+
   return (
     <div>
       <h1>{t('title')}</h1>
@@ -485,7 +485,7 @@ const permissions: PluginPermission[] = [
   },
   {
     name: 'manage_my_plugin',
-    resource_type: 'MyPlugin', 
+    resource_type: 'MyPlugin',
     actions: ['create', 'edit', 'delete'],
     description: 'Manage my plugin resources'
   }
@@ -501,10 +501,10 @@ import { hasPluginPermissions } from '@foreman/shared';
 const MyComponent: React.FC = () => {
   const { data: user } = useCurrentUserData();
   const userPermissions = user?.roles?.flatMap(role => role.permissions || []) || [];
-  
+
   const canView = hasPluginPermissions(['view_my_plugin'], userPermissions);
   const canManage = hasPluginPermissions(['manage_my_plugin'], userPermissions);
-  
+
   return (
     <div>
       {canView && <div>Content visible to viewers</div>}
@@ -530,7 +530,7 @@ const apiEndpoints: ApiEndpoint[] = [
 
 class MyPluginApiClient {
   constructor(private client: unknown) {}
-  
+
   async getResources() {
     return this.client.get('/api/my_plugin/resources');
   }
@@ -542,7 +542,7 @@ class MyPluginApiClient {
 ```typescript
 const MyComponent: React.FC = () => {
   const [hosts, setHosts] = React.useState([]);
-  
+
   React.useEffect(() => {
     // Use Foreman's existing API hooks
     const fetchHosts = async () => {
@@ -554,10 +554,10 @@ const MyComponent: React.FC = () => {
         console.error('Failed to fetch hosts:', error);
       }
     };
-    
+
     fetchHosts();
   }, []);
-  
+
   return (
     <div>
       <h2>Hosts ({hosts.length})</h2>
@@ -657,9 +657,9 @@ import myPlugin from './plugin';
 describe('Plugin Registration', () => {
   it('should register successfully', async () => {
     const registerSpy = vi.spyOn(pluginRegistry, 'register');
-    
+
     await pluginRegistry.register(myPlugin);
-    
+
     expect(registerSpy).toHaveBeenCalledWith(myPlugin);
     expect(pluginRegistry.isRegistered(myPlugin.name)).toBe(true);
   });
@@ -684,7 +684,7 @@ describe('Plugin Registration', () => {
 const MyComponent: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
-  
+
   React.useEffect(() => {
     const loadData = async () => {
       try {
@@ -696,13 +696,13 @@ const MyComponent: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     loadData();
   }, []);
-  
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
-  
+
   return <div>Content</div>;
 };
 ```

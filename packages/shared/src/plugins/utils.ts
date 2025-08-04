@@ -10,8 +10,8 @@ export const hasPluginPermissions = (
   if (!requiredPermissions || requiredPermissions.length === 0) {
     return true;
   }
-  
-  return requiredPermissions.every(required => 
+
+  return requiredPermissions.every(required =>
     userPermissions.some(userPerm => userPerm.name === required)
   );
 };
@@ -23,11 +23,11 @@ export const filterMenuItemsByPermissions = (
   menuItems: MenuItem[],
   userPermissions: PluginPermission[]
 ): MenuItem[] => {
-  return menuItems.filter(item => 
+  return menuItems.filter(item =>
     hasPluginPermissions(item.permissions, userPermissions)
   ).map(item => ({
     ...item,
-    children: item.children 
+    children: item.children
       ? filterMenuItemsByPermissions(item.children, userPermissions)
       : undefined
   }));
@@ -46,12 +46,12 @@ export const filterExtensionsByPermissions = (
     if (!hasPluginPermissions(extension.permissions, userPermissions)) {
       return false;
     }
-    
+
     // Check condition function
     if (extension.condition && context) {
       return extension.condition(context);
     }
-    
+
     return true;
   });
 };
@@ -62,17 +62,17 @@ export const filterExtensionsByPermissions = (
 export const buildMenuHierarchy = (menuItems: MenuItem[]): MenuItem[] => {
   // First, sort by order
   const sortedItems = [...menuItems].sort((a, b) => (a.order || 0) - (b.order || 0));
-  
+
   // Create a map for quick lookup
   const itemMap = new Map<string, MenuItem>();
   sortedItems.forEach(item => itemMap.set(item.id, { ...item, children: [] }));
-  
+
   // Build hierarchy
   const rootItems: MenuItem[] = [];
-  
+
   sortedItems.forEach(item => {
     const menuItem = itemMap.get(item.id)!;
-    
+
     if (item.parent) {
       const parent = itemMap.get(item.parent);
       if (parent) {
@@ -88,7 +88,7 @@ export const buildMenuHierarchy = (menuItems: MenuItem[]): MenuItem[] => {
       rootItems.push(menuItem);
     }
   });
-  
+
   return rootItems;
 };
 
@@ -111,11 +111,11 @@ export const generatePluginNamespace = (pluginName: string): string => {
  * Merge plugin configurations (useful for plugin inheritance or composition)
  */
 export const mergePluginConfigs = <T extends Record<string, unknown>>(
-  base: T, 
+  base: T,
   override: Partial<T>
 ): T => {
   const merged = { ...base };
-  
+
   Object.keys(override).forEach(key => {
     const overrideValue = override[key];
     if (Array.isArray(overrideValue)) {
@@ -124,11 +124,11 @@ export const mergePluginConfigs = <T extends Record<string, unknown>>(
       (merged as Record<string, unknown>)[key] = [...baseArray, ...overrideValue];
     } else if (typeof overrideValue === 'object' && overrideValue !== null) {
       // For objects, merge recursively
-      const baseObj = typeof base[key] === 'object' && base[key] !== null 
-        ? base[key] as Record<string, unknown> 
+      const baseObj = typeof base[key] === 'object' && base[key] !== null
+        ? base[key] as Record<string, unknown>
         : {};
       (merged as Record<string, unknown>)[key] = mergePluginConfigs(
-        baseObj, 
+        baseObj,
         overrideValue as Record<string, unknown>
       );
     } else {
@@ -136,7 +136,7 @@ export const mergePluginConfigs = <T extends Record<string, unknown>>(
       (merged as Record<string, unknown>)[key] = overrideValue;
     }
   });
-  
+
   return merged;
 };
 
@@ -148,12 +148,12 @@ export const extractPluginName = (packageName: string): string => {
   if (packageName.startsWith('@foreman/plugin-')) {
     return packageName.replace('@foreman/plugin-', 'foreman_').replace(/-/g, '_');
   }
-  
+
   // Handle regular packages
   if (packageName.startsWith('foreman-')) {
     return packageName.replace('foreman-', 'foreman_').replace(/-/g, '_');
   }
-  
+
   return packageName;
 };
 

@@ -48,12 +48,12 @@ export const isYesterday = (date: Date | string): boolean => {
  */
 export const formatUserFriendlyDate = (dateString: string): string => {
   if (!dateString) return '';
-  
+
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
+
   // Show relative time for recent dates
   if (diffDays === 0) {
     return 'Today at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -62,10 +62,10 @@ export const formatUserFriendlyDate = (dateString: string): string => {
   } else if (diffDays < 7) {
     return `${diffDays} days ago`;
   } else {
-    return date.toLocaleDateString([], { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString([], {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   }
 };
@@ -85,10 +85,10 @@ export const formatTime = (date: string | Date): string => {
 export const formatDateShort = (date: string | Date): string => {
   if (!date) return '';
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return dateObj.toLocaleDateString([], { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  return dateObj.toLocaleDateString([], {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
   });
 };
 
@@ -98,7 +98,7 @@ export const formatDateShort = (date: string | Date): string => {
 export const formatDateTimeWithTimezone = (date: string | Date, showTimezone = false): string => {
   if (!date) return '';
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+
   const formatted = dateObj.toLocaleString([], {
     year: 'numeric',
     month: 'short',
@@ -106,12 +106,12 @@ export const formatDateTimeWithTimezone = (date: string | Date, showTimezone = f
     hour: '2-digit',
     minute: '2-digit',
   });
-  
+
   if (showTimezone) {
     const timezone = getUserTimezone();
     return `${formatted} (${timezone})`;
   }
-  
+
   return formatted;
 };
 

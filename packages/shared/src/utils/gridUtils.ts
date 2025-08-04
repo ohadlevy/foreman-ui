@@ -15,7 +15,7 @@ export const clampToGridSpan = (value: number): GridSpan => {
  * Calculate grid span based on widget size and column configuration
  */
 export const calculateWidgetGridSpan = (
-  size: string | undefined, 
+  size: string | undefined,
   columns: number = 3
 ): GridSpan => {
   switch (size) {
@@ -46,7 +46,7 @@ export const calculateResponsiveSpans = (
   } = {}
 ): { sm?: GridSpan; md?: GridSpan; lg?: GridSpan } => {
   const { mobile = 1, tablet = 2, desktop = 3 } = config;
-  
+
   return {
     sm: calculateWidgetGridSpan(size, mobile),
     md: calculateWidgetGridSpan(size, tablet),

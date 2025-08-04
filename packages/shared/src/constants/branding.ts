@@ -15,7 +15,7 @@ export const FOREMAN_BRANDING = {
     navVerticalActive: '#026991',
     navVerticalHover: '#025B7F',
     success: '#3e8635', // Green
-    warning: '#f0ad4e', // Orange  
+    warning: '#f0ad4e', // Orange
     danger: '#d9534f', // Red
     info: '#5bc0de', // Light blue
   },
