@@ -8,6 +8,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 FOREMAN_DIR="${FOREMAN_DIR:-$HOME/git/foreman}"
 
+
+warn() {
+    echo -e "${YELLOW}[$(date +'%H:%M:%S')] WARNING: $1${NC}"
+}
+
+error() {
+    echo -e "${RED}[$(date +'%H:%M:%S')] ERROR: $1${NC}"
+    exit 1
+}
+
+log() {
+    echo -e "${GREEN}[$(date +'%H:%M:%S')] $1${NC}"
+}
+
 # File extension pattern for safe git operations (readonly to prevent modification)
 readonly FILE_EXTENSION_PATTERN='\.(ts|tsx|js|jsx|json|md|sh|yml|yaml)$'
 
@@ -17,10 +31,10 @@ validate_file_extension_pattern() {
     if [[ ! "$FILE_EXTENSION_PATTERN" =~ ^\\\.[^\$]*\$$ ]]; then
         error "Invalid FILE_EXTENSION_PATTERN: must start with \\. and end with \$"
     fi
-    
-    # Ensure pattern doesn't contain dangerous regex metacharacters
-    if [[ "$FILE_EXTENSION_PATTERN" =~ [\;\|\&\`\\\$\(\)] ]]; then
-        error "FILE_EXTENSION_PATTERN contains potentially dangerous characters"
+
+    # Ensure pattern doesn't contain dangerous shell metacharacters (keep it simple)
+    if [[ "$FILE_EXTENSION_PATTERN" == *";"* ]] || [[ "$FILE_EXTENSION_PATTERN" == *"&"* ]] || [[ "$FILE_EXTENSION_PATTERN" == *"\`"* ]]; then
+        error "FILE_EXTENSION_PATTERN contains potentially dangerous shell characters"
     fi
 }
 
@@ -31,7 +45,7 @@ validate_file_extension_pattern
 create_temp_file() {
     local prefix="${1:-claude-automation}"
     local suffix="${2:-.log}"
-    
+
     if command -v mktemp >/dev/null 2>&1; then
         mktemp "${TMPDIR:-/tmp}/${prefix}-XXXXXXXXXX${suffix}"
     else
@@ -43,30 +57,20 @@ create_temp_file() {
     fi
 }
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-log() {
-    echo -e "${GREEN}[$(date +'%H:%M:%S')] $1${NC}"
-}
 
 # Sanitize directory path to prevent injection attacks
 sanitize_path() {
     local path="$1"
-    
+
     # Remove any control characters and dangerous sequences
     path=$(printf '%s\n' "$path" | LC_ALL=C sed 's/[[:cntrl:]]//g')
-    
+
     # Validate that the path exists and is a real directory
     if [ ! -d "$path" ]; then
         warn "Invalid or non-existent directory path: $path"
         return 1
     fi
-    
+
     # Get the absolute, canonical path to prevent relative path attacks
     if command -v realpath >/dev/null 2>&1; then
         realpath "$path"
@@ -78,15 +82,6 @@ sanitize_path() {
     fi
 }
 
-warn() {
-    echo -e "${YELLOW}[$(date +'%H:%M:%S')] WARNING: $1${NC}"
-}
-
-error() {
-    echo -e "${RED}[$(date +'%H:%M:%S')] ERROR: $1${NC}"
-    exit 1
-}
-
 # Check if podman-compose is available
 check_podman() {
     if ! command -v podman-compose &> /dev/null; then
@@ -94,21 +89,22 @@ check_podman() {
     fi
 }
 
+
 # Start Foreman containers
 start_foreman() {
     log "Starting Foreman containers..."
     check_podman
-    
+
     if [ ! -f "$FOREMAN_DIR/docker-compose.yml" ]; then
         error "Foreman docker-compose.yml not found at $FOREMAN_DIR"
     fi
-    
+
     cd "$FOREMAN_DIR"
     podman-compose -f docker-compose.yml up -d
-    
+
     log "Waiting for Foreman to be ready..."
     sleep 10
-    
+
     # Check if Foreman is responding
     for i in {1..30}; do
         if curl -s http://localhost:3000/api/status > /dev/null 2>&1; then
@@ -126,16 +122,16 @@ get_instance_port() {
     local workspace_dir="${1:-$(pwd)}"
     local base_port=3001
     local base_dir="$(dirname "$PROJECT_ROOT")"
-    
+
     # Extract worktree suffix to determine port offset
     local worktree_name=$(basename "$workspace_dir")
-    
+
     # Default to base port for main worktree
     if [ "$worktree_name" = "foreman-ui" ]; then
         echo $base_port
         return
     fi
-    
+
     # For other worktrees, calculate port based on alphabetical order
     local port_offset=0
     for dir in "$base_dir"/foreman-ui*; do
@@ -149,7 +145,7 @@ get_instance_port() {
             fi
         fi
     done
-    
+
     echo $((base_port + port_offset))
 }
 
@@ -157,7 +153,7 @@ get_instance_port() {
 check_active_dev_servers() {
     local active_servers=0
     local base_dir="$(dirname "$PROJECT_ROOT")"
-    
+
     # Check for active Vite dev servers (typically on ports 3001, 3002, etc.)
     for port in 3001 3002 3003 3004 3005; do
         if netstat -tuln 2>/dev/null | grep -q ":$port "; then
@@ -171,7 +167,7 @@ check_active_dev_servers() {
             fi
         fi
     done
-    
+
     # Also check for any yarn dev processes in worktree directories using more efficient pgrep
     for worktree_dir in "$base_dir"/foreman-ui*; do
         if [ -d "$worktree_dir" ] && [ "$worktree_dir" != "$PROJECT_ROOT" ]; then
@@ -187,7 +183,7 @@ check_active_dev_servers() {
             fi
         fi
     done
-    
+
     return $active_servers
 }
 
@@ -195,7 +191,7 @@ check_active_dev_servers() {
 open_terminal_tab() {
     local title="$1"
     local command="$2"
-    
+
     # Try different terminal emulators
     if command -v gnome-terminal &> /dev/null; then
         gnome-terminal --tab --title="$title" -- bash -c "$command; exec bash"
@@ -212,35 +208,19 @@ open_terminal_tab() {
     fi
 }
 
-# Launch browser with debugging tools
+# Launch browser with debugging tools and remote access
 launch_browser_debug() {
     local workspace_dir="${2:-$(pwd)}"
     local port=$(get_instance_port "$workspace_dir")
     local url="${1:-http://localhost:$port}"
-    local browser="${BROWSER:-firefox}"
-    
+    local browser="${BROWSER:-chrome}"
+    local debug_port="${DEBUG_PORT:-9222}"
+
     log "Launching browser with debugging tools for $url..."
-    
+
     case "$browser" in
-        "firefox")
-            # Launch Firefox with developer tools open
-            if command -v firefox &> /dev/null; then
-                log "Opening Firefox with developer console..."
-                firefox --new-window --devtools "$url" &
-                local browser_pid=$!
-                info "Firefox launched with PID: $browser_pid"
-                local pid_file
-                if pid_file=$(create_temp_file "foreman-browser-debug" ".pid"); then
-                    echo $browser_pid > "$pid_file"
-                    info "Browser PID saved to: $pid_file"
-                fi
-            else
-                warn "Firefox not found, trying Chrome/Chromium..."
-                browser="chrome"
-            fi
-            ;;
-        "chrome"|"chromium"|"google-chrome")
-            # Launch Chrome/Chromium with developer tools open
+        "chrome"|"chromium"|"google-chrome"|*)
+            # Launch Chrome/Chromium with remote debugging enabled
             local chrome_cmd=""
             for cmd in google-chrome chromium-browser chromium chrome; do
                 if command -v $cmd &> /dev/null; then
@@ -248,48 +228,126 @@ launch_browser_debug() {
                     break
                 fi
             done
-            
+
             if [ -n "$chrome_cmd" ]; then
-                log "Opening Chrome/Chromium with developer console..."
-                $chrome_cmd --new-window --auto-open-devtools-for-tabs "$url" &
+                # Create unique user data dir to avoid conflicts
+                local user_data_dir="/tmp/foreman-chrome-debug-$$"
+                mkdir -p "$user_data_dir"
+
+                log "Opening Chrome with remote debugging on port $debug_port..."
+                log "Developer tools will auto-open for debugging"
+
+                $chrome_cmd \
+                    --new-window \
+                    --auto-open-devtools-for-tabs \
+                    --remote-debugging-port="$debug_port" \
+                    --user-data-dir="$user_data_dir" \
+                    --disable-web-security \
+                    --disable-features=VizDisplayCompositor \
+                    --no-first-run \
+                    --no-default-browser-check \
+                    "$url" &
+
                 local browser_pid=$!
-                info "Chrome/Chromium launched with PID: $browser_pid"
+                info "Chrome launched with PID: $browser_pid"
+                info "Remote debugging available at: http://localhost:$debug_port"
+
                 local pid_file
                 if pid_file=$(create_temp_file "foreman-browser-debug" ".pid"); then
                     echo $browser_pid > "$pid_file"
-                    info "Browser PID saved to: $pid_file"
+                    echo "$user_data_dir" >> "$pid_file"
+                    echo "$debug_port" >> "$pid_file"
+                    info "Browser debug info saved to: $pid_file"
                 fi
+
+                # Wait a moment for Chrome to start
+                sleep 2
+
+                # Set up remote console monitoring
+                setup_remote_debugging "$debug_port" "$url" &
+                local monitor_pid=$!
+                info "Console monitor started with PID: $monitor_pid"
+
             else
-                error "No supported browser found. Install Firefox or Chrome/Chromium."
+                error "No supported browser found. Install Chrome/Chromium for debugging support."
+                return 1
             fi
             ;;
-        *)
-            warn "Browser '$browser' not specifically supported, trying default open..."
-            xdg-open "$url" &
-            ;;
     esac
-    
-    # Monitor browser console (if possible with automation tools)
-    if command -v node &> /dev/null && [ -f "$PROJECT_ROOT/package.json" ]; then
-        info "Setting up console monitoring (requires browser automation tools)..."
-        # Note: This would require additional setup with tools like Puppeteer
-        # For now, just open the browser - full automation can be added later
+}
+
+# Set up remote debugging and console monitoring
+setup_remote_debugging() {
+    local debug_port="$1"
+    local url="$2"
+
+    # Wait for Chrome remote debugging to be available
+    local max_attempts=10
+    local attempt=1
+
+    while [ $attempt -le $max_attempts ]; do
+        if curl -s "http://localhost:$debug_port/json" >/dev/null 2>&1; then
+            info "Remote debugging is ready!"
+            break
+        fi
+        log "Waiting for remote debugging ($attempt/$max_attempts)..."
+        sleep 1
+        ((attempt++))
+    done
+
+    if [ $attempt -gt $max_attempts ]; then
+        warn "Remote debugging setup timed out"
+        return 1
     fi
+
+    # Monitor console logs
+    monitor_browser_console "$debug_port" &
+}
+
+# Monitor browser console logs via remote debugging
+monitor_browser_console() {
+    local debug_port="$1"
+
+    info "Starting console log monitoring..."
+    info "Console logs will appear below (Ctrl+C to stop monitoring):"
+    echo "==================== BROWSER CONSOLE ===================="
+
+    # Use a simple approach to monitor console logs
+    while true; do
+        # Get list of tabs
+        local tabs=$(curl -s "http://localhost:$debug_port/json" 2>/dev/null)
+
+        if [ $? -eq 0 ] && [ -n "$tabs" ]; then
+            # Extract websocket URL for the first tab
+            local ws_url=$(echo "$tabs" | grep -o '"webSocketDebuggerUrl":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+            if [ -n "$ws_url" ]; then
+                # Log that we found the debugging endpoint
+                if [ ! -f "/tmp/debug-session-started" ]; then
+                    info "Found debug session: $ws_url"
+                    info "You can also access Chrome DevTools at: http://localhost:$debug_port"
+                    touch "/tmp/debug-session-started"
+                fi
+            fi
+        fi
+
+        sleep 5
+    done
 }
 
 # Monitor and auto-fix common development issues
 monitor_and_autofix() {
     local workspace_dir="${1:-$(pwd)}"
     local fix_interval="${2:-30}"  # Check every 30 seconds
-    
+
     log "Starting continuous monitoring and auto-fixing for $workspace_dir..."
     log "Checking for issues every $fix_interval seconds (Ctrl+C to stop)"
-    
+
     cd "$workspace_dir"
-    
+
     while true; do
         local fixed_something=false
-        
+
         # Check for TypeScript errors
         info "Checking TypeScript compilation..."
         if ! yarn build > /dev/null 2>&1; then
@@ -299,7 +357,7 @@ monitor_and_autofix() {
                 info "Linting auto-fix applied"
                 fixed_something=true
             fi
-            
+
             # Check if that fixed the TS issues
             if yarn build > /dev/null 2>&1; then
                 log "✅ TypeScript compilation fixed!"
@@ -308,7 +366,7 @@ monitor_and_autofix() {
                 warn "TypeScript errors persist - manual intervention needed"
             fi
         fi
-        
+
         # Check for linting issues
         info "Checking linting..."
         if ! yarn lint > /dev/null 2>&1; then
@@ -320,7 +378,7 @@ monitor_and_autofix() {
                 warn "Some linting issues require manual fixing"
             fi
         fi
-        
+
         # Check for test failures
         info "Checking tests..."
         if ! yarn test > /dev/null 2>&1; then
@@ -328,7 +386,7 @@ monitor_and_autofix() {
             # For now, just report - auto-fixing tests is complex
             info "Test failures require manual review"
         fi
-        
+
         # If we fixed something, commit the changes
         if [ "$fixed_something" = true ]; then
             if ! git diff-index --quiet HEAD --; then
@@ -337,7 +395,7 @@ monitor_and_autofix() {
                 # Use git ls-files to find explicit file paths rather than glob patterns
                 local files_to_add
                 files_to_add=$(git ls-files -m -o --exclude-standard | grep -E "$FILE_EXTENSION_PATTERN" 2>/dev/null)
-                
+
                 if [ -n "$files_to_add" ]; then
                     echo "$files_to_add" | xargs git add 2>/dev/null || warn "Failed to stage some files"
                 else
@@ -353,7 +411,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
             fi
         fi
-        
+
         sleep $fix_interval
     done
 }
@@ -362,11 +420,11 @@ EOF
 stop_foreman() {
     log "Checking if it's safe to stop Foreman containers..."
     check_podman
-    
+
     # Check for active development servers
     check_active_dev_servers
     local active_count=$?
-    
+
     if [ $active_count -gt 0 ]; then
         warn "Found $active_count active development server(s) that may be using Foreman backend"
         warn "Stopping Foreman containers could break active development sessions"
@@ -381,7 +439,7 @@ stop_foreman() {
             return 1
         fi
     fi
-    
+
     log "Stopping Foreman containers..."
     cd "$FOREMAN_DIR"
     podman-compose -f docker-compose.yml down
@@ -393,15 +451,15 @@ setup_worktree() {
     local worktree_name="${2:-$(echo $branch_name | sed 's/feature\///')}"
     local base_dir="$(dirname "$PROJECT_ROOT")"
     local worktree_dir="$base_dir/foreman-ui-$worktree_name"
-    
+
     if [ -z "$branch_name" ]; then
         error "Branch name required. Usage: setup_worktree <branch_name> [worktree_name]"
     fi
-    
+
     log "Setting up worktree for branch: $branch_name"
-    
+
     cd "$PROJECT_ROOT"
-    
+
     # Check if branch exists
     if git show-ref --verify --quiet refs/heads/"$branch_name"; then
         log "Branch $branch_name exists, creating worktree..."
@@ -410,16 +468,16 @@ setup_worktree() {
         log "Creating new branch $branch_name and worktree..."
         git worktree add "$worktree_dir" -b "$branch_name"
     fi
-    
+
     # Setup the worktree
     cd "$worktree_dir"
-    
+
     log "Installing dependencies..."
     yarn install
-    
+
     log "Building shared package..."
     yarn build:shared
-    
+
     log "Worktree ready at: $worktree_dir"
     echo ""
     echo "To start development:"
@@ -433,21 +491,21 @@ setup_worktree() {
 start_dev() {
     local workspace_dir="${1:-$PROJECT_ROOT}"
     local service="${2:-user}"
-    
+
     log "Starting development environment in: $workspace_dir"
-    
+
     cd "$workspace_dir"
-    
+
     # Ensure dependencies are installed
     if [ ! -d "node_modules" ]; then
         log "Installing dependencies..."
         yarn install
     fi
-    
+
     # Build shared package if needed
     log "Building shared package..."
     yarn build:shared
-    
+
     # Start Foreman if not running
     if ! curl -s http://localhost:3000/api/status > /dev/null 2>&1; then
         if ! start_foreman; then
@@ -456,7 +514,7 @@ start_dev() {
     else
         log "Foreman already running"
     fi
-    
+
     # Start the requested service
     case $service in
         "user")
@@ -483,26 +541,26 @@ start_dev() {
 test_debug() {
     local workspace_dir="${1:-$PROJECT_ROOT}"
     local test_type="${2:-watch}"
-    
+
     log "Running tests with debugging in: $workspace_dir"
     cd "$workspace_dir"
-    
+
     # Start Foreman if not running (for integration tests)
     if ! curl -s http://localhost:3000/api/status > /dev/null 2>&1; then
         warn "Foreman not running, starting containers..."
         start_foreman
     fi
-    
+
     case $test_type in
         "debug")
             log "Starting test UI with browser debugging..."
             yarn test:ui &
-            
+
             log "Monitoring Foreman logs..."
             open_terminal_tab "Foreman Logs" "cd $FOREMAN_DIR; podman-compose logs -f --tail=50" 2>/dev/null || {
                 warn "Could not open terminal for logs. Use 'yarn logs:foreman' manually"
             }
-            
+
             wait
             ;;
         "watch")
@@ -523,7 +581,7 @@ test_debug() {
 # Monitor logs from various sources
 monitor_logs() {
     local source="${1:-all}"
-    
+
     case $source in
         "foreman")
             log "Monitoring Foreman container logs..."
@@ -552,19 +610,19 @@ monitor_logs() {
 # Build and validate the project
 build_validate() {
     local workspace_dir="${1:-$PROJECT_ROOT}"
-    
+
     log "Building and validating project in: $workspace_dir"
     cd "$workspace_dir"
-    
+
     log "Running linter..."
     yarn lint || error "Linting failed"
-    
+
     log "Running TypeScript compilation..."
     yarn build || error "Build failed"
-    
+
     log "Running tests..."
     yarn test || error "Tests failed"
-    
+
     log "✅ All validation checks passed!"
 }
 
@@ -573,12 +631,12 @@ complete_workflow() {
     local workspace_dir="${1:-$PROJECT_ROOT}"
     local submit_pr="${2:-false}"
     local base_branch="${3:-main}"
-    
+
     log "Running complete development workflow in: $workspace_dir"
-    
+
     # Validate project
     build_validate "$workspace_dir"
-    
+
     if [ "$submit_pr" = "true" ]; then
         log "Initiating PR submission workflow..."
         "$SCRIPT_DIR/pr-automation.sh" submit "$workspace_dir" "$base_branch"
@@ -591,22 +649,22 @@ complete_workflow() {
 # Clean up development environment (current worktree only)
 cleanup() {
     log "Cleaning up development environment for current worktree..."
-    
+
     # Kill any development servers running in current directory
     local current_dir
     if ! current_dir=$(sanitize_path "$(pwd)"); then
         error "Failed to sanitize current directory path"
         return 1
     fi
-    
+
     log "Stopping development servers in $current_dir..."
-    
+
     # Find and kill processes specific to current directory (much safer than global pkill)
     local killed_any=false
-    
+
     # Find yarn dev processes specific to current directory using more efficient pgrep
     local dev_pids=$(pgrep -a "yarn" 2>/dev/null | grep -E "(yarn.*dev|lerna.*run.*dev)" | grep -F "$current_dir" | awk '{print $1}')
-    
+
     if [ -n "$dev_pids" ]; then
         echo "$dev_pids" | while read pid; do
             if [ -n "$pid" ]; then
@@ -616,10 +674,10 @@ cleanup() {
             fi
         done
     fi
-    
+
     # Find vite processes specific to current directory using more efficient pgrep
     local vite_pids=$(pgrep -a "vite" 2>/dev/null | grep "vite.*serve" | grep -F "$current_dir" | awk '{print $1}')
-    
+
     if [ -n "$vite_pids" ]; then
         echo "$vite_pids" | while read pid; do
             if [ -n "$pid" ]; then
@@ -629,15 +687,15 @@ cleanup() {
             fi
         done
     fi
-    
+
     # Check for remaining active servers in other worktrees
     check_active_dev_servers
     local active_count=$?
-    
+
     if [ $active_count -gt 0 ]; then
         info "Found $active_count active development server(s) in other worktrees (left running)"
     fi
-    
+
     # Attempt to stop Foreman containers (with safety check)
     info "Checking if Foreman containers should be stopped..."
     local foreman_stopped=true
@@ -645,7 +703,7 @@ cleanup() {
         foreman_stopped=false
         info "Foreman containers were left running due to active development servers"
     fi
-    
+
     log "✅ Current worktree development environment cleaned up!"
     if [ $active_count -gt 0 ] || [ "$foreman_stopped" = "false" ]; then
         info "Some services were left running to avoid breaking other active development sessions"
@@ -663,21 +721,21 @@ force_cleanup() {
         warn "Force cleanup cancelled"
         return 1
     fi
-    
+
     log "Force stopping all development processes..."
-    
+
     # Kill all development processes globally (only user's own processes)
     local current_user=$(whoami)
     pkill -u "$current_user" -f "yarn.*dev" 2>/dev/null || true
     pkill -u "$current_user" -f "vite.*serve" 2>/dev/null || true
     pkill -u "$current_user" -f "lerna.*run.*dev" 2>/dev/null || true
-    
+
     # Force stop Foreman containers
     log "Force stopping Foreman containers..."
     check_podman
     cd "$FOREMAN_DIR"
     podman-compose -f docker-compose.yml down
-    
+
     log "✅ Force cleanup complete - all development processes stopped"
     warn "You may need to restart development servers in other worktrees"
 }
