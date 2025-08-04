@@ -238,8 +238,16 @@ launch_browser_debug() {
                     # Set up cleanup trap to remove temp directory on script exit
                     cleanup_chrome_temp() {
                         if [ -d "$user_data_dir" ]; then
-                            log "Cleaning up temporary Chrome user data directory: $user_data_dir"
-                            rm -rf "$user_data_dir" 2>/dev/null || warn "Failed to clean up temp directory: $user_data_dir"
+                            # Security validation: ensure we're only cleaning up our own temp directories
+                            case "$user_data_dir" in
+                                "${TMPDIR:-/tmp}"/foreman-chrome-debug-*|/tmp/foreman-chrome-debug-*)
+                                    log "Cleaning up temporary Chrome user data directory: $user_data_dir"
+                                    rm -rf "$user_data_dir" 2>/dev/null || warn "Failed to clean up temp directory: $user_data_dir"
+                                    ;;
+                                *)
+                                    warn "Refusing to clean up directory outside expected temp path: $user_data_dir"
+                                    ;;
+                            esac
                         fi
                     }
                     trap cleanup_chrome_temp EXIT INT TERM
@@ -268,7 +276,7 @@ launch_browser_debug() {
                     warn "   This disables Same-Origin Policy, CORS, and other critical browser security features"
                     warn "   This should ONLY be used for local development debugging against localhost"
                     warn "   DO NOT browse to external websites with this Chrome instance"
-                    warn "   Close this browser instance immediately after debugging"
+                    warn "   Close this browser instance immediately after debugging."
                     chrome_args+=(--disable-web-security)
                 fi
                 
