@@ -22,7 +22,8 @@
     "paths": {
       "@foreman/shared": ["packages/shared/src"],
       "@foreman/shared/*": ["packages/shared/src/*"]
-    }
+    },
+    "types": ["vitest/globals"]
   },
   "include": [
     "packages/*/src"

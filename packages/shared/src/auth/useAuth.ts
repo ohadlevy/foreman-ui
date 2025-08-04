@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from './store';
 import { createDefaultClient } from '../api/client';
 import { AuthAPI } from '../api/auth';
@@ -67,27 +67,7 @@ export const useAuth = () => {
     },
   });
 
-  // Verify token query (runs on app startup if token exists or user is supposedly authenticated)
-  const verifyTokenQuery = useQuery({
-    queryKey: ['verifyToken'],
-    queryFn: () => {
-      // Only run if we actually have a token
-      if (!authStore.token) {
-        throw new Error('No token available for verification');
-      }
-      return authAPI.verifyToken();
-    },
-    enabled: !!authStore.token || authStore.isAuthenticated,
-    retry: false,
-    onSuccess: (user) => {
-      authStore.setUser(user);
-    },
-    onError: (error: unknown) => {
-      console.error('Token verification failed:', (error as AxiosErrorResponse)?.message);
-      // Logout for any token verification failure to prevent auth bypass
-      authStore.logout();
-    },
-  });
+  // Note: Token verification moved to AuthProvider to run only once on app startup
   
 
   // Removed redundant current user query to prevent auth bypass issues
@@ -105,9 +85,8 @@ export const useAuth = () => {
     logoutMutation.mutate();
   }, [logoutMutation]);
 
-  // Calculate loading state properly
-  const queryEnabled = !!authStore.token && !authStore.user;
-  const isLoadingCalculated = authStore.isLoading || (verifyTokenQuery.isLoading && queryEnabled);
+  // Calculate loading state from auth store only
+  const isLoadingCalculated = authStore.isLoading;
   
 
   return {

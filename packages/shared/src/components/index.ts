@@ -6,3 +6,5 @@ export * from './Branding';
 export * from './UserProfile';
 export * from './Notifications';
 export * from './Plugin';
+export * from './RecentActivity';
+export * from './QuickNav';

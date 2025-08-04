@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PageSection,
   Title,
@@ -12,6 +12,12 @@ import {
   EmptyState,
   EmptyStateIcon,
   EmptyStateBody,
+  Dropdown,
+  DropdownList,
+  DropdownItem,
+  MenuToggle,
+  MenuToggleElement,
+  Divider,
 } from '@patternfly/react-core';
 import {
   Table,
@@ -27,9 +33,19 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   TimesCircleIcon,
+  HistoryIcon,
 } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { useMyHosts, formatDateTime, formatRelativeTime, LoadingSpinner, usePermissions } from '@foreman/shared';
+import { 
+  useMyHosts, 
+  formatDateTime, 
+  formatRelativeTime, 
+  LoadingSpinner, 
+  usePermissions,
+  RecentHosts,
+  RecentSearches,
+  useActivityStore,
+} from '@foreman/shared';
 import { Host } from '@foreman/shared';
 
 export const HostsList: React.FC = () => {
@@ -38,12 +54,40 @@ export const HostsList: React.FC = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
+  const [recentDropdownOpen, setRecentDropdownOpen] = useState(false);
+  const { addActivity } = useActivityStore();
 
   const { data, isLoading, error } = useMyHosts({
     search,
     page,
     per_page: perPage,
   });
+
+  // Track page visit
+  useEffect(() => {
+    addActivity({
+      type: 'page_visit',
+      title: 'My Hosts',
+      subtitle: 'Host management',
+      url: '/hosts',
+    });
+  }, [addActivity]);
+
+  // Track search activities
+  useEffect(() => {
+    if (search && !isLoading && data) {
+      // No need to sanitize search input for XSS here, as it is not rendered as HTML
+      if (search.trim()) {
+        addActivity({
+          type: 'search',
+          title: search.trim(),
+          subtitle: `${data.total} results`,
+          url: `/hosts?search=${encodeURIComponent(search.trim())}`,
+          metadata: { query: search.trim(), resultCount: data.total },
+        });
+      }
+    }
+  }, [search, isLoading, data, addActivity]);
 
   const getStatusIcon = (host: Host) => {
     if (host.build) {
@@ -110,6 +154,36 @@ export const HostsList: React.FC = () => {
                   onClear={() => setSearch('')}
                 />
               </ToolbarItem>
+              
+              <ToolbarItem>
+                <Dropdown
+                  isOpen={recentDropdownOpen}
+                  onOpenChange={setRecentDropdownOpen}
+                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      onClick={() => setRecentDropdownOpen(!recentDropdownOpen)}
+                      variant="secondary"
+                      icon={<HistoryIcon />}
+                    >
+                      Recent
+                    </MenuToggle>
+                  )}
+                >
+                  <DropdownList>
+                    <DropdownItem isDisabled>
+                      <strong>Recent Hosts</strong>
+                    </DropdownItem>
+                    <RecentHosts onItemSelect={() => setRecentDropdownOpen(false)} />
+                    <Divider />
+                    <DropdownItem isDisabled>
+                      <strong>Recent Searches</strong>
+                    </DropdownItem>
+                    <RecentSearches onItemSelect={() => setRecentDropdownOpen(false)} />
+                  </DropdownList>
+                </Dropdown>
+              </ToolbarItem>
+
               {canCreateHosts() && (
                 <ToolbarItem align={{ default: 'alignRight' }}>
                   <Button
@@ -157,7 +231,21 @@ export const HostsList: React.FC = () => {
                 </Thead>
                 <Tbody>
                   {hosts.map((host) => (
-                    <Tr key={host.id} isRowSelected={false} isClickable onClick={() => navigate(`/hosts/${host.id}`)}>
+                    <Tr 
+                      key={host.id} 
+                      isRowSelected={false} 
+                      isClickable 
+                      onClick={() => {
+                        addActivity({
+                          type: 'host_view',
+                          title: host.name,
+                          subtitle: 'Host details',
+                          url: `/hosts/${host.id}`,
+                          metadata: { hostId: host.id },
+                        });
+                        navigate(`/hosts/${host.id}`);
+                      }}
+                    >
                       <Td>
                         <div className="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-sm">
                           <ServerIcon />
