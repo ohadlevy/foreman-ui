@@ -28,15 +28,15 @@ interface NotificationDrawerProps {
 }
 
 export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ children }) => {
-  const { 
-    isDrawerOpen, 
-    setDrawerOpen, 
-    getGroupedNotifications, 
+  const {
+    isDrawerOpen,
+    setDrawerOpen,
+    getGroupedNotifications,
     unreadCount,
     error,
-    isLoading 
+    isLoading
   } = useNotificationStore();
-  
+
   const { refetch } = useNotifications();
   const { clearGroup } = useNotificationActions();
 
@@ -93,7 +93,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ children
                 {error}
               </Alert>
             )}
-            
+
             {isLoading && !hasNotifications && (
               <div style={{ textAlign: 'center', padding: '2rem' }}>
                 <Spinner size="lg" />

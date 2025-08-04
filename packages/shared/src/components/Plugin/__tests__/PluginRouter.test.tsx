@@ -27,16 +27,16 @@ const createWrapper = (initialEntries = ['/']) => {
       {children}
     </MemoryRouter>
   );
-  
+
   TestWrapper.displayName = 'TestWrapper';
-  
+
   return TestWrapper;
 };
 
 describe('PluginRouter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default mock implementations
     mockAuthStore.useAuthStore.mockReturnValue({
       user: {
@@ -56,7 +56,7 @@ describe('PluginRouter', () => {
         locations: []
       }
     });
-    
+
     mockUtils.hasPluginPermissions.mockReturnValue(true);
   });
 
@@ -218,7 +218,7 @@ describe('PluginRouter', () => {
 
     // Should not render any route content
     expect(screen.queryByTestId('test-route')).not.toBeInTheDocument();
-    
+
     // Verify that the usePluginRoutes hook was called
     expect(mockHooks.usePluginRoutes).toHaveBeenCalled();
   });

@@ -273,7 +273,7 @@ describe('useSystemInfo', () => {
 
   it('refetches data at specified intervals', async () => {
     vi.useFakeTimers();
-    
+
     const mockSystemInfo = { hostname: 'test.com', uptime: 100, load: [], memory: {}, disk: {} };
     const mockFetch = vi.mocked(fetch);
     mockFetch.mockResolvedValue({
@@ -332,7 +332,7 @@ describe('SystemInfoWidget', () => {
     });
 
     render(<SystemInfoWidget title="Test Widget" />);
-    
+
     expect(screen.getByText('Test Widget')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
@@ -345,7 +345,7 @@ describe('SystemInfoWidget', () => {
     });
 
     render(<SystemInfoWidget title="Test Widget" />);
-    
+
     expect(screen.getByText('Test Widget')).toBeInTheDocument();
     expect(screen.getByText(/Error loading system information/)).toBeInTheDocument();
   });
@@ -366,7 +366,7 @@ describe('SystemInfoWidget', () => {
     });
 
     render(<SystemInfoWidget title="System Info" />);
-    
+
     expect(screen.getByText('System Info')).toBeInTheDocument();
     expect(screen.getByText('test.example.com')).toBeInTheDocument();
     expect(screen.getByText(/Uptime: 1d 0h/)).toBeInTheDocument();
@@ -390,7 +390,7 @@ describe('SystemInfoWidget', () => {
     });
 
     render(<SystemInfoWidget />);
-    
+
     // Check that progress bars are rendered
     const progressBars = screen.getAllByRole('progressbar');
     expect(progressBars).toHaveLength(2); // Memory and disk
@@ -410,7 +410,7 @@ describe('SystemInfoWidget', () => {
     });
 
     render(<SystemInfoWidget />);
-    
+
     expect(screen.getByText('System Information')).toBeInTheDocument();
   });
 });
@@ -473,7 +473,7 @@ describe('ServerMonitorPage', () => {
         <ServerMonitorPage {...defaultProps} />
       </RouterWrapper>
     );
-    
+
     expect(screen.getByText('Test Monitor')).toBeInTheDocument();
     expect(screen.getByText('Home')).toBeInTheDocument();
     expect(screen.getByText(/Monitor system performance/)).toBeInTheDocument();
@@ -485,7 +485,7 @@ describe('ServerMonitorPage', () => {
         <ServerMonitorPage {...defaultProps} />
       </RouterWrapper>
     );
-    
+
     expect(screen.getByTestId('system-info-widget')).toBeInTheDocument();
   });
 
@@ -503,10 +503,10 @@ describe('ServerMonitorPage', () => {
         <ServerMonitorPage {...defaultProps} />
       </RouterWrapper>
     );
-    
+
     const refreshButton = screen.getByRole('button', { name: /refresh/i });
     fireEvent.click(refreshButton);
-    
+
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
@@ -523,7 +523,7 @@ describe('ServerMonitorPage', () => {
         <ServerMonitorPage {...defaultProps} />
       </RouterWrapper>
     );
-    
+
     const refreshButton = screen.getByRole('button', { name: /refresh/i });
     expect(refreshButton).toHaveAttribute('aria-disabled', 'true');
   });
@@ -534,7 +534,7 @@ describe('ServerMonitorPage', () => {
         <ServerMonitorPage {...defaultProps} />
       </RouterWrapper>
     );
-    
+
     expect(screen.getByText('View Detailed Metrics')).toBeInTheDocument();
     expect(screen.getByText('Configure Alerts')).toBeInTheDocument();
     expect(screen.getByText('Export Report')).toBeInTheDocument();
@@ -562,14 +562,14 @@ describe('Plugin Integration', () => {
 
   it('registers plugin successfully', async () => {
     await registry.register(serverMonitorPlugin);
-    
+
     expect(registry.isRegistered('foreman_server_monitor')).toBe(true);
     expect(registry.getPlugin('foreman_server_monitor')).toEqual(serverMonitorPlugin);
   });
 
   it('provides dashboard widgets', async () => {
     await registry.register(serverMonitorPlugin);
-    
+
     const widgets = registry.getPluginsWithWidgets();
     expect(widgets).toHaveLength(1);
     expect(widgets[0].id).toBe('system-info-widget');
@@ -578,7 +578,7 @@ describe('Plugin Integration', () => {
 
   it('registers permissions correctly', async () => {
     await registry.register(serverMonitorPlugin);
-    
+
     const plugin = registry.getPlugin('foreman_server_monitor');
     expect(plugin?.permissions).toHaveLength(1);
     expect(plugin?.permissions?.[0].name).toBe('view_server_monitor');
@@ -586,9 +586,9 @@ describe('Plugin Integration', () => {
 
   it('handles plugin initialization', async () => {
     const initializeSpy = vi.spyOn(serverMonitorPlugin, 'initialize');
-    
+
     await registry.register(serverMonitorPlugin);
-    
+
     expect(initializeSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         pluginRegistry: registry,
@@ -599,10 +599,10 @@ describe('Plugin Integration', () => {
 
   it('handles plugin destruction', async () => {
     const destroySpy = vi.spyOn(serverMonitorPlugin, 'destroy');
-    
+
     await registry.register(serverMonitorPlugin);
     await registry.unregister('foreman_server_monitor');
-    
+
     expect(destroySpy).toHaveBeenCalled();
     expect(registry.isRegistered('foreman_server_monitor')).toBe(false);
   });
@@ -656,7 +656,7 @@ describe('Plugin with Services', () => {
 
   it('integrates with user authentication', () => {
     renderWithProviders(<SystemInfoWidget />);
-    
+
     // Widget should render since user has permissions
     expect(screen.getByText('System Information')).toBeInTheDocument();
   });
@@ -798,7 +798,7 @@ test.describe('Server Monitor Plugin', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the application
     await page.goto('/');
-    
+
     // Login if required
     await page.fill('[data-testid="username"]', 'admin');
     await page.fill('[data-testid="password"]', 'password');
@@ -813,7 +813,7 @@ test.describe('Server Monitor Plugin', () => {
   test('navigates to plugin page', async ({ page }) => {
     // Click on plugin menu item
     await page.click('text=Server Monitor');
-    
+
     // Verify we're on the plugin page
     await expect(page).toHaveURL('/server-monitor');
     await expect(page.locator('h1:has-text("Server Monitor")')).toBeVisible();
@@ -822,7 +822,7 @@ test.describe('Server Monitor Plugin', () => {
   test('displays system information widget on dashboard', async ({ page }) => {
     // Navigate to dashboard
     await page.goto('/dashboard');
-    
+
     // Check if widget is present
     await expect(page.locator('[data-testid="system-info-widget"]')).toBeVisible();
     await expect(page.locator('text=System Information')).toBeVisible();
@@ -830,16 +830,16 @@ test.describe('Server Monitor Plugin', () => {
 
   test('refreshes data when refresh button is clicked', async ({ page }) => {
     await page.goto('/server-monitor');
-    
+
     // Wait for initial load
     await page.waitForLoadState('networkidle');
-    
+
     // Click refresh button
     await page.click('button:has-text("Refresh")');
-    
+
     // Check for loading state
     await expect(page.locator('button:has-text("Refresh")[aria-disabled="true"]')).toBeVisible();
-    
+
     // Wait for loading to complete
     await expect(page.locator('button:has-text("Refresh")[aria-disabled="true"]')).not.toBeVisible();
   });
@@ -855,7 +855,7 @@ test.describe('Server Monitor Plugin', () => {
     });
 
     await page.goto('/server-monitor');
-    
+
     // Check that error is displayed gracefully
     await expect(page.locator('text=Error loading system information')).toBeVisible();
   });
@@ -892,12 +892,12 @@ describe('Performance Tests', () => {
     }));
 
     const startTime = performance.now();
-    
+
     render(<SystemInfoWidget />);
-    
+
     const endTime = performance.now();
     const renderTime = endTime - startTime;
-    
+
     // Widget should render in less than 100ms
     expect(renderTime).toBeLessThan(100);
   });
@@ -920,19 +920,19 @@ describe('Performance Tests', () => {
     }));
 
     const renderTimes: number[] = [];
-    
+
     // Simulate multiple re-renders
     for (let i = 0; i < 10; i++) {
       mockSystemInfo.uptime = i * 1000;
-      
+
       const startTime = performance.now();
       const { rerender } = render(<SystemInfoWidget />);
       rerender(<SystemInfoWidget />);
       const endTime = performance.now();
-      
+
       renderTimes.push(endTime - startTime);
     }
-    
+
     // Average render time should be reasonable
     const averageTime = renderTimes.reduce((a, b) => a + b, 0) / renderTimes.length;
     expect(averageTime).toBeLessThan(50);
@@ -947,23 +947,23 @@ describe('Memory Leak Tests', () => {
   it('cleans up timers on unmount', () => {
     vi.useFakeTimers();
     const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
-    
+
     const { unmount } = render(<SystemInfoWidget />);
-    
+
     unmount();
-    
+
     expect(clearIntervalSpy).toHaveBeenCalled();
-    
+
     vi.useRealTimers();
   });
 
   it('cleans up event listeners', () => {
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
-    
+
     const { unmount } = render(<SystemInfoWidget />);
-    
+
     unmount();
-    
+
     // Verify cleanup if your component adds event listeners
     // expect(removeEventListenerSpy).toHaveBeenCalled();
   });
@@ -1042,12 +1042,12 @@ import userEvent from '@testing-library/user-event';
 
 test('handles user interactions', async () => {
   const user = userEvent.setup();
-  
+
   render(<MyComponent />);
-  
+
   await user.click(screen.getByRole('button', { name: 'Submit' }));
   await user.type(screen.getByLabelText('Input'), 'test value');
-  
+
   expect(screen.getByDisplayValue('test value')).toBeInTheDocument();
 });
 ```
@@ -1070,37 +1070,37 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    
+
     - name: Install dependencies
       run: npm ci
-    
+
     - name: Run linting
       run: npm run lint
-    
+
     - name: Run type checking
       run: npm run type-check
-    
+
     - name: Run unit tests
       run: npm run test:coverage
-    
+
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage/coverage-final.json
-    
+
     - name: Run E2E tests
       run: npm run test:e2e
       env:
@@ -1109,22 +1109,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18.x'
         cache: 'npm'
-    
+
     - name: Install dependencies
       run: npm ci
-    
+
     - name: Build plugin
       run: npm run build
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:

@@ -50,14 +50,14 @@ export const SimpleLogin: React.FC = () => {
             {/* Header with branding */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <div style={{ marginBottom: '1rem' }}>
-                <img 
-                  src="/assets/foreman-logo.svg" 
-                  alt="Foreman" 
-                  style={{ 
-                    height: '80px', 
+                <img
+                  src="/assets/foreman-logo.svg"
+                  alt="Foreman"
+                  style={{
+                    height: '80px',
                     width: 'auto',
                     maxWidth: '100%'
-                  }} 
+                  }}
                 />
               </div>
               <Title headingLevel="h1" size="xl" style={{ marginBottom: '0.5rem' }}>

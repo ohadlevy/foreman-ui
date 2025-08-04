@@ -16,38 +16,38 @@ interface DashboardWidgetsProps {
 /**
  * Component that renders plugin-provided dashboard widgets in a responsive grid
  */
-export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ 
-  columns = 3, 
-  className 
+export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({
+  columns = 3,
+  className
 }) => {
   const { t } = useTranslation();
   const widgets = usePluginDashboardWidgets();
   const { user } = useAuthStore();
-  
+
   // Get user permissions for filtering
   const userPermissions = user?.roles?.flatMap(role => role.permissions || []) || [];
-  
+
   // Filter widgets by permissions
-  const filteredWidgets = widgets.filter(widget => 
+  const filteredWidgets = widgets.filter(widget =>
     hasPluginPermissions(widget.permissions, userPermissions)
   );
-  
+
   if (filteredWidgets.length === 0) {
     return null;
   }
-  
+
   // Calculate grid span based on widget size using utility function
   const getGridSpan = (size: string | undefined): GridSpan => {
     return calculateWidgetGridSpan(size, columns);
   };
-  
+
   return (
     <Grid hasGutter className={className}>
       {filteredWidgets.map((widget) => {
         const WidgetComponent = widget.component;
         const title = widget.titleKey ? t(widget.titleKey) : widget.title;
         const span = getGridSpan(widget.size);
-        
+
         return (
           <GridItem key={widget.id} span={span}>
             <Card isFullHeight>
@@ -55,7 +55,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({
                 <CardTitle>{title}</CardTitle>
               )}
               <CardBody>
-                <WidgetComponent 
+                <WidgetComponent
                   widgetId={widget.id}
                   title={title}
                   size={widget.size}

@@ -60,7 +60,7 @@ describe('QuickNav', () => {
   describe('rendering', () => {
     it('should render the QuickNav button', () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       expect(button).toBeInTheDocument();
       expect(button).toHaveTextContent('Quick Nav');
@@ -68,7 +68,7 @@ describe('QuickNav', () => {
 
     it('should apply custom className when provided', () => {
       renderWithRouter(<QuickNav className="custom-class" />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       expect(button).toHaveClass('custom-class');
     });
@@ -77,7 +77,7 @@ describe('QuickNav', () => {
   describe('popover functionality', () => {
     it('should show popover when button is clicked', async () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       fireEvent.click(button);
 
@@ -89,7 +89,7 @@ describe('QuickNav', () => {
 
     it('should display quick links in the popover', async () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       fireEvent.click(button);
 
@@ -105,7 +105,7 @@ describe('QuickNav', () => {
   describe('recent activity display', () => {
     it('should display recent activity items', async () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       fireEvent.click(button);
 
@@ -120,7 +120,7 @@ describe('QuickNav', () => {
     it('should show empty state when no recent activity', async () => {
       mockUseActivityStore.mockReturnValue({ recentActivity: [] });
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       fireEvent.click(button);
 
@@ -140,7 +140,7 @@ describe('QuickNav', () => {
 
       mockUseActivityStore.mockReturnValue({ recentActivity: manyActivities });
       renderWithRouter(<QuickNav maxRecentItems={3} />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       fireEvent.click(button);
 
@@ -156,7 +156,7 @@ describe('QuickNav', () => {
   describe('navigation functionality', () => {
     it('should navigate to quick link when clicked', async () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       fireEvent.click(button);
 
@@ -170,7 +170,7 @@ describe('QuickNav', () => {
 
     it('should navigate to recent activity item when clicked', async () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       fireEvent.click(button);
 
@@ -184,7 +184,7 @@ describe('QuickNav', () => {
 
     it('should close popover after navigation', async () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       fireEvent.click(button);
 
@@ -201,7 +201,7 @@ describe('QuickNav', () => {
   describe('activity item icons', () => {
     it('should display correct icons for different activity types', async () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       fireEvent.click(button);
 
@@ -216,16 +216,16 @@ describe('QuickNav', () => {
   describe('accessibility', () => {
     it('should have proper ARIA labels', () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
       expect(button).toHaveAttribute('aria-label', 'Quick navigation');
     });
 
     it('should support keyboard navigation', async () => {
       renderWithRouter(<QuickNav />);
-      
+
       const button = screen.getByRole('button', { name: /quick navigation/i });
-      
+
       // Test that button is focusable and has proper ARIA attributes
       button.focus();
       expect(document.activeElement).toBe(button);

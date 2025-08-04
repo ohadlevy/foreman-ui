@@ -132,10 +132,10 @@ import userEvent from '@testing-library/user-event';
 test('should handle form submission', async () => {
   const user = userEvent.setup();
   render(<LoginForm onSubmit={mockSubmit} />);
-  
+
   await user.type(screen.getByLabelText('Username'), 'testuser');
   await user.click(screen.getByRole('button', { name: 'Login' }));
-  
+
   expect(mockSubmit).toHaveBeenCalledWith({ username: 'testuser' });
 });
 ```
@@ -189,7 +189,7 @@ View HTML reports by opening `coverage/index.html` in your browser.
    ```typescript
    // Good
    it('should show error message when login fails with invalid credentials')
-   
+
    // Bad
    it('should handle login error')
    ```
@@ -199,12 +199,12 @@ View HTML reports by opening `coverage/index.html` in your browser.
    it('should update user state after successful login', () => {
      // Arrange
      const mockUser = { id: 1, login: 'testuser' };
-     
+
      // Act
      act(() => {
        store.getState().login(mockUser, 'token');
      });
-     
+
      // Assert
      expect(store.getState().user).toEqual(mockUser);
    });

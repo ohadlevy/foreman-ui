@@ -120,16 +120,16 @@ const createWrapper = () => {
   const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
-  
+
   TestWrapper.displayName = 'TestWrapper';
-  
+
   return TestWrapper;
 };
 
 describe('SystemStatus', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default mock implementations
     mockHooks.usePlugins.mockReturnValue([]);
     mockHooks.usePluginLoadState.mockReturnValue({
@@ -139,16 +139,16 @@ describe('SystemStatus', () => {
     });
     mockHooks.usePluginDashboardWidgets.mockReturnValue([]);
     mockHooks.usePluginMenuItems.mockReturnValue([]);
-    mockHooks.useCurrentUserData.mockReturnValue({ 
-      data: { 
-        id: 1, 
-        login: 'test', 
-        admin: false, 
-        disabled: false, 
-        auth_source_id: 1, 
-        roles: [], 
-        organizations: [], 
-        locations: [] 
+    mockHooks.useCurrentUserData.mockReturnValue({
+      data: {
+        id: 1,
+        login: 'test',
+        admin: false,
+        disabled: false,
+        auth_source_id: 1,
+        roles: [],
+        organizations: [],
+        locations: []
       },
       isLoading: false,
       error: null,
@@ -223,7 +223,7 @@ describe('SystemStatus', () => {
   it('should show loading state for version', () => {
     const mockPlugins = [{ name: 'test_plugin' }];
     mockHooks.usePlugins.mockReturnValue(mockPlugins as never);
-    
+
     mockHooks.usePing.mockReturnValue(createPingMock({
       isLoading: true,
       isFetching: true,
@@ -240,7 +240,7 @@ describe('SystemStatus', () => {
   it('should show unknown version on error', () => {
     const mockPlugins = [{ name: 'test_plugin' }];
     mockHooks.usePlugins.mockReturnValue(mockPlugins as never);
-    
+
     mockHooks.usePing.mockReturnValue(createPingMock({
       error: new Error('API Error'),
       isError: true,
@@ -345,7 +345,7 @@ describe('SystemStatus', () => {
   it('should display system components status', () => {
     // Need to have plugins for the main status page to render
     mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-    
+
     const mockStatuses = {
       db: { status: 'ok', label: 'Database', description: 'PostgreSQL connection' },
       cache: { status: 'warning', label: 'Cache', description: 'Redis connection slow' },
@@ -371,7 +371,7 @@ describe('SystemStatus', () => {
   it('should show loading state for system statuses', () => {
     // Need to have plugins for the main status page to render
     mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-    
+
     mockHooks.useStatuses.mockReturnValue(createStatusesMock({
       data: undefined,
       isLoading: true,
@@ -385,7 +385,7 @@ describe('SystemStatus', () => {
   it('should handle system statuses API error', () => {
     // Need to have plugins for the main status page to render
     mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-    
+
     mockHooks.useStatuses.mockReturnValue(createStatusesMock({
       data: undefined,
       isError: true,
@@ -401,7 +401,7 @@ describe('SystemStatus', () => {
   it('should show message when no system statuses available', () => {
     // Need to have plugins for the main status page to render
     mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-    
+
     mockHooks.useStatuses.mockReturnValue(createStatusesMock({
       data: {},
       isSuccess: true,
@@ -415,11 +415,11 @@ describe('SystemStatus', () => {
   describe('Edge Cases and Error Handling', () => {
     it('should handle malformed status data with undefined status values', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-      
+
       // Mock statuses with undefined status values
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: {
-          database: { 
+          database: {
             message: 'Database connection',
             // status is undefined - this caused the original crash
           },
@@ -444,7 +444,7 @@ describe('SystemStatus', () => {
 
     it('should handle empty status objects', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-      
+
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: {
           database: {}, // completely empty status object
@@ -455,14 +455,14 @@ describe('SystemStatus', () => {
 
       // Should not crash
       render(<SystemStatus />, { wrapper: createWrapper() });
-      
+
       // Should handle gracefully - empty/null objects are filtered out, so no status info available
       expect(screen.getByText('No system status information available')).toBeInTheDocument();
     });
 
     it('should handle status data with mixed valid and invalid entries', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-      
+
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: {
           database: { label: 'Database', description: 'Database OK', status: 'ok' }, // valid
@@ -476,7 +476,7 @@ describe('SystemStatus', () => {
 
       // Should not crash and should handle valid entries
       render(<SystemStatus />, { wrapper: createWrapper() });
-      
+
       expect(screen.getByText('Database OK')).toBeInTheDocument();
       expect(screen.getByText('OK')).toBeInTheDocument();
       expect(screen.getByText('ERROR')).toBeInTheDocument();
@@ -485,7 +485,7 @@ describe('SystemStatus', () => {
 
     it('should handle completely malformed statuses data', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-      
+
       // Mock with completely wrong data structure
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: 'not-an-object' as unknown as Record<string, unknown>,
@@ -494,13 +494,13 @@ describe('SystemStatus', () => {
 
       // Should not crash
       render(<SystemStatus />, { wrapper: createWrapper() });
-      
+
       expect(screen.getByText('No system status information available')).toBeInTheDocument();
     });
 
     it('should handle array instead of object for statuses', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-      
+
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: [{ name: 'database', status: 'ok' }] as unknown as Record<string, unknown>, // array instead of object
         isSuccess: true,
@@ -508,13 +508,13 @@ describe('SystemStatus', () => {
 
       // Should not crash
       render(<SystemStatus />, { wrapper: createWrapper() });
-      
+
       expect(screen.getByText('No system status information available')).toBeInTheDocument();
     });
 
     it('should handle empty string status values safely', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
-      
+
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: {
           database: { label: 'Database', description: 'Database service', status: '' }, // empty string status
@@ -525,7 +525,7 @@ describe('SystemStatus', () => {
 
       // Should not crash and should show UNKNOWN for empty/whitespace status
       render(<SystemStatus />, { wrapper: createWrapper() });
-      
+
       expect(screen.getAllByText('UNKNOWN')).toHaveLength(2); // Both empty and whitespace status should show UNKNOWN
     });
   });

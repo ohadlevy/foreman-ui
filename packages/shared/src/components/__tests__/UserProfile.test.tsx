@@ -15,10 +15,10 @@ vi.mock('../../hooks/usePersonalAccessTokens', () => ({
 }));
 
 import { useAuth } from '../../auth/useAuth';
-import { 
-  usePersonalAccessTokens, 
+import {
+  usePersonalAccessTokens,
   useRevokePersonalAccessToken,
-  useCurrentToken 
+  useCurrentToken
 } from '../../hooks/usePersonalAccessTokens';
 
 const mockUseAuth = useAuth as ReturnType<typeof vi.fn>;
@@ -33,7 +33,7 @@ const createWrapper = () => {
       mutations: { retry: false },
     },
   });
-  
+
   const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       {children}
@@ -46,7 +46,7 @@ const createWrapper = () => {
 describe('UserProfile', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default mock implementations
     mockUseAuth.mockReturnValue({
       user: {

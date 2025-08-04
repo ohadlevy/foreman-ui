@@ -41,7 +41,7 @@ location /api {
     add_header Access-Control-Allow-Credentials true always;
     add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
     add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
-    
+
     if ($request_method = 'OPTIONS') {
         add_header Access-Control-Allow-Origin "http://localhost:3001";
         add_header Access-Control-Allow-Credentials true;

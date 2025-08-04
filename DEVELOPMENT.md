@@ -229,7 +229,7 @@ const HostDetails = lazy(() => import('./pages/HostDetails'));
    // packages/shared/src/api/newResource.ts
    export class NewResourceAPI {
      constructor(private client: ForemanAPIClient) {}
-     
+
      async list() {
        return this.client.get('/new-resources');
      }

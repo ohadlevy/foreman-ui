@@ -27,39 +27,39 @@ export const ExtensionPointRenderer: React.FC<ExtensionPointRendererProps> = ({
 }) => {
   const extensions = usePluginExtensions(extensionPoint);
   const { user } = useAuthStore();
-  
+
   // Get user permissions for filtering
   const userPermissions = user?.roles?.flatMap(role => role.permissions || []) || [];
-  
+
   // Filter extensions by permissions and conditions
   const filteredExtensions = filterExtensionsByPermissions(
-    extensions, 
-    userPermissions, 
+    extensions,
+    userPermissions,
     context
   );
-  
+
   if (filteredExtensions.length === 0) {
     return null;
   }
-  
+
   const renderExtension = (extension: typeof extensions[0]) => {
     const ExtensionComponent = extension.component;
-    
+
     // Create unique key from extension point and component properties
     const extensionKey = `${extensionPoint}-${extension.title || extension.order || extension.component.name}`;
-    
+
     // Prepare props for the extension component
     const props = {
       context,
       extensionPoint,
       ...extensionProps
     };
-    
+
     const element = <ExtensionComponent key={extensionKey} {...props} />;
-    
+
     return Wrapper ? <Wrapper key={`wrapper-${extensionKey}`}>{element}</Wrapper> : element;
   };
-  
+
   return (
     <>
       {filteredExtensions.map((extension) => renderExtension(extension))}

@@ -22,7 +22,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       mutations: { retry: false },
     },
   });
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       {children}
@@ -38,7 +38,7 @@ describe('NotificationDrawer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockUseNotificationStore.mockReturnValue({
       isDrawerOpen: false,
       setDrawerOpen: mockSetDrawerOpen,
@@ -87,7 +87,7 @@ describe('NotificationDrawer', () => {
         </NotificationDrawer>
       </TestWrapper>
     );
-    
+
     expect(screen.getByText('Test Content')).toBeInTheDocument();
   });
 
@@ -123,7 +123,7 @@ describe('NotificationDrawer', () => {
         </NotificationDrawer>
       </TestWrapper>
     );
-    
+
     // Check for the PatternFly notification drawer specifically
     expect(screen.getByText('All read')).toBeInTheDocument();
   });
@@ -160,7 +160,7 @@ describe('NotificationDrawer', () => {
         </NotificationDrawer>
       </TestWrapper>
     );
-    
+
     expect(screen.getByText('No notifications to display.')).toBeInTheDocument();
   });
 
@@ -196,7 +196,7 @@ describe('NotificationDrawer', () => {
         </NotificationDrawer>
       </TestWrapper>
     );
-    
+
     expect(screen.getByText('Loading notifications...')).toBeInTheDocument();
   });
 
@@ -232,7 +232,7 @@ describe('NotificationDrawer', () => {
         </NotificationDrawer>
       </TestWrapper>
     );
-    
+
     expect(screen.getByText('Error loading notifications')).toBeInTheDocument();
     expect(screen.getByText('Failed to load notifications')).toBeInTheDocument();
   });
@@ -269,10 +269,10 @@ describe('NotificationDrawer', () => {
         </NotificationDrawer>
       </TestWrapper>
     );
-    
+
     const closeButton = screen.getByLabelText(/close/i);
     fireEvent.click(closeButton);
-    
+
     expect(mockSetDrawerOpen).toHaveBeenCalledWith(false);
   });
 
@@ -308,10 +308,10 @@ describe('NotificationDrawer', () => {
         </NotificationDrawer>
       </TestWrapper>
     );
-    
+
     const refreshButton = screen.getByText('Refresh');
     fireEvent.click(refreshButton);
-    
+
     expect(mockRefetch).toHaveBeenCalledOnce();
   });
 });

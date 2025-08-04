@@ -48,7 +48,7 @@ export const CreateHost: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -59,7 +59,7 @@ export const CreateHost: React.FC = () => {
       navigate(`/hosts/${result.id}`);
     } catch (err: unknown) {
       console.error('Failed to create host:', err);
-      
+
       // Handle different types of errors
       const error = err as { status?: number; message?: string }; // Type assertion for error handling
       if (error.status === 401) {
@@ -94,9 +94,9 @@ export const CreateHost: React.FC = () => {
         <Card>
           <CardBody>
             {submitError && (
-              <Alert 
-                variant="danger" 
-                title="Failed to create host" 
+              <Alert
+                variant="danger"
+                title="Failed to create host"
                 isInline
                 className="pf-v5-u-mb-md"
               >
@@ -156,7 +156,7 @@ export const CreateHost: React.FC = () => {
                     />
                     <FormHelperText>Whether this host should be enabled</FormHelperText>
                   </div>
-                  
+
                   <div>
                     <Switch
                       id="host-managed"
@@ -167,7 +167,7 @@ export const CreateHost: React.FC = () => {
                     />
                     <FormHelperText>Whether Foreman should manage this host&apos;s configuration</FormHelperText>
                   </div>
-                  
+
                   <div>
                     <Switch
                       id="host-build"
@@ -182,16 +182,16 @@ export const CreateHost: React.FC = () => {
               </FormGroup>
 
               <ActionGroup>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   variant="primary"
                   isLoading={createHostMutation.isPending}
                   isDisabled={createHostMutation.isPending}
                 >
                   {createHostMutation.isPending ? 'Creating...' : 'Create Host'}
                 </Button>
-                <Button 
-                  variant="link" 
+                <Button
+                  variant="link"
                   onClick={() => navigate('/hosts')}
                   isDisabled={createHostMutation.isPending}
                 >

@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for suggesting a new feature! 
-        
+        Thanks for suggesting a new feature!
+
         **Note**: This project is in early development. We're focusing on core functionality first.
 
   - type: textarea

@@ -67,7 +67,7 @@ export const useNotificationStore = create<NotificationStore>()(
       addNotification: (notification: NotificationRecipient) => {
         const { notifications } = get();
         const existingIndex = notifications.findIndex(n => n.id === notification.id);
-        
+
         if (existingIndex >= 0) {
           // Update existing notification
           const updatedNotifications = [...notifications];
@@ -147,7 +147,7 @@ export const useNotificationStore = create<NotificationStore>()(
 
         notifications.forEach(notification => {
           const groupName = notification.group || 'General';
-          
+
           if (!grouped[groupName]) {
             grouped[groupName] = {
               name: groupName,
@@ -164,7 +164,7 @@ export const useNotificationStore = create<NotificationStore>()(
 
         // Sort notifications within each group by created_at (newest first)
         Object.values(grouped).forEach(group => {
-          group.notifications.sort((a, b) => 
+          group.notifications.sort((a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           );
         });

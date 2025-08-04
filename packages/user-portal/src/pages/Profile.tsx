@@ -20,13 +20,13 @@ import {
   DescriptionListDescription,
   Label,
 } from '@patternfly/react-core';
-import { 
-  useCurrentUserData, 
-  useUpdateCurrentUser, 
+import {
+  useCurrentUserData,
+  useUpdateCurrentUser,
   useChangePassword,
   formatUserFriendlyDate,
   LoadingSpinner,
-  UserProfile 
+  UserProfile
 } from '@foreman/shared';
 
 export const Profile: React.FC = () => {
@@ -94,7 +94,7 @@ export const Profile: React.FC = () => {
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validatePassword() || !user) {
       return;
     }
@@ -105,7 +105,7 @@ export const Profile: React.FC = () => {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       });
-      
+
       setIsChangingPassword(false);
       setPasswordData({
         currentPassword: '',
@@ -156,8 +156,8 @@ export const Profile: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   Profile Information
                   {!isEditing && (
-                    <Button 
-                      variant="link" 
+                    <Button
+                      variant="link"
                       onClick={() => setIsEditing(true)}
                     >
                       Edit
@@ -167,9 +167,9 @@ export const Profile: React.FC = () => {
               </CardTitle>
               <CardBody>
                 {!!updateUserMutation.error && (
-                  <Alert 
-                    variant="danger" 
-                    title="Failed to update profile" 
+                  <Alert
+                    variant="danger"
+                    title="Failed to update profile"
                     isInline
                     style={{ marginBottom: '1rem' }}
                   >
@@ -178,9 +178,9 @@ export const Profile: React.FC = () => {
                 )}
 
                 {updateUserMutation.isSuccess && !isEditing && (
-                  <Alert 
-                    variant="success" 
-                    title="Profile updated successfully" 
+                  <Alert
+                    variant="success"
+                    title="Profile updated successfully"
                     isInline
                     style={{ marginBottom: '1rem' }}
                   />
@@ -192,7 +192,7 @@ export const Profile: React.FC = () => {
                       <TextInput
                         id="firstname"
                         value={profileData.firstname}
-                        onChange={(_event, value) => 
+                        onChange={(_event, value) =>
                           setProfileData(prev => ({ ...prev, firstname: value }))
                         }
                       />
@@ -202,7 +202,7 @@ export const Profile: React.FC = () => {
                       <TextInput
                         id="lastname"
                         value={profileData.lastname}
-                        onChange={(_event, value) => 
+                        onChange={(_event, value) =>
                           setProfileData(prev => ({ ...prev, lastname: value }))
                         }
                       />
@@ -213,22 +213,22 @@ export const Profile: React.FC = () => {
                         id="email"
                         type="email"
                         value={profileData.mail}
-                        onChange={(_event, value) => 
+                        onChange={(_event, value) =>
                           setProfileData(prev => ({ ...prev, mail: value }))
                         }
                       />
                     </FormGroup>
 
                     <ActionGroup>
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         variant="primary"
                         isLoading={updateUserMutation.isPending}
                       >
                         Save Changes
                       </Button>
-                      <Button 
-                        variant="link" 
+                      <Button
+                        variant="link"
                         onClick={() => {
                           setIsEditing(false);
                           setProfileData({
@@ -285,7 +285,7 @@ export const Profile: React.FC = () => {
                     <DescriptionListGroup>
                       <DescriptionListTerm>Last login</DescriptionListTerm>
                       <DescriptionListDescription>
-                        {user.last_login_on 
+                        {user.last_login_on
                           ? formatUserFriendlyDate(user.last_login_on)
                           : 'Never'
                         }
@@ -303,8 +303,8 @@ export const Profile: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   Change Password
                   {!isChangingPassword && (
-                    <Button 
-                      variant="link" 
+                    <Button
+                      variant="link"
                       onClick={() => setIsChangingPassword(true)}
                     >
                       Change
@@ -314,9 +314,9 @@ export const Profile: React.FC = () => {
               </CardTitle>
               <CardBody>
                 {!!changePasswordMutation.error && (
-                  <Alert 
-                    variant="danger" 
-                    title="Failed to change password" 
+                  <Alert
+                    variant="danger"
+                    title="Failed to change password"
                     isInline
                     style={{ marginBottom: '1rem' }}
                   >
@@ -325,9 +325,9 @@ export const Profile: React.FC = () => {
                 )}
 
                 {changePasswordMutation.isSuccess && !isChangingPassword && (
-                  <Alert 
-                    variant="success" 
-                    title="Password changed successfully" 
+                  <Alert
+                    variant="success"
+                    title="Password changed successfully"
                     isInline
                     style={{ marginBottom: '1rem' }}
                   />
@@ -335,9 +335,9 @@ export const Profile: React.FC = () => {
 
                 {isChangingPassword ? (
                   <Form onSubmit={handlePasswordChange}>
-                    <FormGroup 
-                      label="Current password" 
-                      isRequired 
+                    <FormGroup
+                      label="Current password"
+                      isRequired
                       fieldId="current-password"
                     >
                       <TextInput
@@ -345,7 +345,7 @@ export const Profile: React.FC = () => {
                         type="password"
                         id="current-password"
                         value={passwordData.currentPassword}
-                        onChange={(_event, value) => 
+                        onChange={(_event, value) =>
                           setPasswordData(prev => ({ ...prev, currentPassword: value }))
                         }
                         />
@@ -354,9 +354,9 @@ export const Profile: React.FC = () => {
                       )}
                     </FormGroup>
 
-                    <FormGroup 
-                      label="New password" 
-                      isRequired 
+                    <FormGroup
+                      label="New password"
+                      isRequired
                       fieldId="new-password"
                     >
                       <TextInput
@@ -364,7 +364,7 @@ export const Profile: React.FC = () => {
                         type="password"
                         id="new-password"
                         value={passwordData.newPassword}
-                        onChange={(_event, value) => 
+                        onChange={(_event, value) =>
                           setPasswordData(prev => ({ ...prev, newPassword: value }))
                         }
                         />
@@ -375,9 +375,9 @@ export const Profile: React.FC = () => {
                       )}
                     </FormGroup>
 
-                    <FormGroup 
-                      label="Confirm new password" 
-                      isRequired 
+                    <FormGroup
+                      label="Confirm new password"
+                      isRequired
                       fieldId="confirm-password"
                     >
                       <TextInput
@@ -385,7 +385,7 @@ export const Profile: React.FC = () => {
                         type="password"
                         id="confirm-password"
                         value={passwordData.confirmPassword}
-                        onChange={(_event, value) => 
+                        onChange={(_event, value) =>
                           setPasswordData(prev => ({ ...prev, confirmPassword: value }))
                         }
                         />
@@ -395,15 +395,15 @@ export const Profile: React.FC = () => {
                     </FormGroup>
 
                     <ActionGroup>
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         variant="primary"
                         isLoading={changePasswordMutation.isPending}
                       >
                         Change Password
                       </Button>
-                      <Button 
-                        variant="link" 
+                      <Button
+                        variant="link"
                         onClick={() => {
                           setIsChangingPassword(false);
                           setPasswordData({

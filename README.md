@@ -10,7 +10,7 @@ This project is in active early development. Expect breaking changes and incompl
 
 This project consists of main packages:
 
-- **@foreman/shared** - Shared components, API clients, hooks, and utilities  
+- **@foreman/shared** - Shared components, API clients, hooks, and utilities
 - **@foreman/user-portal** - Self-service portal for end users ✅
 - **@foreman/admin-portal** - Full-featured admin interface (planned)
 
@@ -18,7 +18,7 @@ This project consists of main packages:
 
 ### Prerequisites
 
-- Node.js 20+ 
+- Node.js 20+
 - Yarn 1.22+
 - Access to a Foreman instance with API v2
 
@@ -62,8 +62,8 @@ yarn lint
 
 ## Current Status
 
-✅ **User Portal**: Functional with authentication, host management, profile  
-✅ **Shared Library**: API clients, components, hooks, auth system  
+✅ **User Portal**: Functional with authentication, host management, profile
+✅ **Shared Library**: API clients, components, hooks, auth system
 ⚠️ **Admin Portal**: Planned for future release
 
 ### Environment Configuration
@@ -103,7 +103,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines and workflow
 
 ## Documentation
 
-- **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Detailed development guide and best practices  
+- **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Detailed development guide and best practices
 - **[TESTING.md](./TESTING.md)** - Testing strategies and examples
 - **[SECURITY.md](./SECURITY.md)** - Security policy and vulnerability reporting
 

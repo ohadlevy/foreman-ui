@@ -10,7 +10,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 
 export const NotificationBell: React.FC = () => {
   const { toggleDrawer, unreadCount, isDrawerOpen } = useNotificationStore();
-  
+
   // Initialize notifications on mount
   useNotifications();
 

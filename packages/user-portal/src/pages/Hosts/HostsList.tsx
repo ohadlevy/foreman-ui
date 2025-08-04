@@ -36,11 +36,11 @@ import {
   HistoryIcon,
 } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
-import { 
-  useMyHosts, 
-  formatDateTime, 
-  formatRelativeTime, 
-  LoadingSpinner, 
+import {
+  useMyHosts,
+  formatDateTime,
+  formatRelativeTime,
+  LoadingSpinner,
   usePermissions,
   RecentHosts,
   RecentSearches,
@@ -154,7 +154,7 @@ export const HostsList: React.FC = () => {
                   onClear={() => setSearch('')}
                 />
               </ToolbarItem>
-              
+
               <ToolbarItem>
                 <Dropdown
                   isOpen={recentDropdownOpen}
@@ -205,7 +205,7 @@ export const HostsList: React.FC = () => {
                 No hosts found
               </Title>
               <EmptyStateBody>
-                {search 
+                {search
                   ? 'No hosts match your search criteria.'
                   : 'You don\'t have any hosts yet. Create your first host to get started.'
                 }
@@ -231,10 +231,10 @@ export const HostsList: React.FC = () => {
                 </Thead>
                 <Tbody>
                   {hosts.map((host) => (
-                    <Tr 
-                      key={host.id} 
-                      isRowSelected={false} 
-                      isClickable 
+                    <Tr
+                      key={host.id}
+                      isRowSelected={false}
+                      isClickable
                       onClick={() => {
                         addActivity({
                           type: 'host_view',
@@ -261,7 +261,7 @@ export const HostsList: React.FC = () => {
                       <Td>{host.operatingsystem_name || 'Unknown'}</Td>
                       <Td>{host.ip || 'Not assigned'}</Td>
                       <Td>
-                        {host.last_report 
+                        {host.last_report
                           ? formatRelativeTime(host.last_report)
                           : 'Never'
                         }

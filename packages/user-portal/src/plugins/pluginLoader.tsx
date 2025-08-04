@@ -34,9 +34,9 @@ export class PluginLoader {
       // 1. Fetch plugin list from Foreman API
       // 2. Check which plugins are enabled
       // 3. Load plugin assets dynamically
-      
+
       const availablePlugins = await this.discoverPlugins();
-      
+
       for (const pluginInfo of availablePlugins) {
         // Skip if we've already attempted to load this plugin
         if (this.attemptedPlugins.has(pluginInfo.name)) {
@@ -64,7 +64,7 @@ export class PluginLoader {
 
       this.initialized = true;
       console.log('🎉 Plugin system initialization complete');
-      
+
     } catch (error) {
       console.error('❌ Plugin system initialization failed:', error);
     }
@@ -77,9 +77,9 @@ export class PluginLoader {
   private async discoverPlugins(): Promise<PluginInfo[]> {
     // Simulate plugin discovery
     // In real implementation: GET /api/plugins or similar
-    
+
     const enabledPlugins = this.getEnabledPluginsFromConfig();
-    
+
     return enabledPlugins.map(name => ({
       name,
       version: '1.0.0',
@@ -95,7 +95,7 @@ export class PluginLoader {
   private async loadPlugin(pluginInfo: PluginInfo): Promise<ForemanPlugin | null> {
     // For demo purposes, we'll create some sample plugins here
     // In production, this would be: import(pluginInfo.path)
-    
+
     switch (pluginInfo.name) {
       case 'foreman_demo':
         return this.createDemoPlugin();
@@ -109,18 +109,18 @@ export class PluginLoader {
 
   /**
    * Get enabled plugins from configuration
-   * 
+   *
    * SECURITY NOTE: In production, plugin authorization should come from Foreman API
    * (GET /api/plugins/enabled) rather than environment variables. The API response
    * should include only plugins that the current user is authorized to use.
-   * 
+   *
    * Environment variable support is primarily for development and will be deprecated
    * once the Foreman API integration is complete.
    */
   private getEnabledPluginsFromConfig(): string[] {
     // TODO: Replace with Foreman API call: GET /api/plugins/enabled
     // The API should handle authorization and only return plugins the user can access
-    
+
     // Development-only environment variable support
     const envPlugins = process.env.REACT_APP_ENABLED_PLUGINS;
     if (envPlugins !== undefined) {
@@ -136,7 +136,7 @@ export class PluginLoader {
       const plugins = trimmedEnv.split(',').map(p => p.trim()).filter(p => p);
       return plugins;
     }
-    
+
     // Default demo plugins for development when no env var is set
     return ['foreman_demo', 'foreman_monitoring'];
   }
@@ -160,7 +160,7 @@ export class PluginLoader {
       description: 'Demonstrates the plugin framework capabilities',
       author: 'Foreman Team',
       foremanVersions: ['>=3.0.0'],
-      
+
       dashboardWidgets: [
         {
           id: 'demo-widget',
@@ -169,7 +169,7 @@ export class PluginLoader {
           size: 'medium'
         }
       ],
-      
+
       menuItems: [
         {
           id: 'demo-menu',
@@ -178,7 +178,7 @@ export class PluginLoader {
           order: 100
         }
       ],
-      
+
       routes: [
         {
           path: '/demo',
@@ -191,7 +191,7 @@ export class PluginLoader {
           )
         }
       ],
-      
+
       i18n: {
         domain: 'foreman_demo',
         defaultLocale: 'en',
@@ -225,7 +225,7 @@ export class PluginLoader {
       description: 'System monitoring and status widgets',
       author: 'Foreman Team',
       foremanVersions: ['>=3.0.0'],
-      
+
       dashboardWidgets: [
         {
           id: 'status-widget',
@@ -234,7 +234,7 @@ export class PluginLoader {
           size: 'small'
         }
       ],
-      
+
       i18n: {
         domain: 'foreman_monitoring',
         defaultLocale: 'en',

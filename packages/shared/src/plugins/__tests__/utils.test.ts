@@ -30,35 +30,35 @@ describe('Plugin Utils', () => {
   describe('hasPluginPermissions', () => {
     it('should return true when user has all required permissions', () => {
       const requiredPermissions = ['view_hosts', 'view_users'];
-      
+
       const result = hasPluginPermissions(requiredPermissions, mockPermissions);
-      
+
       expect(result).toBe(true);
     });
 
     it('should return false when user is missing some permissions', () => {
       const requiredPermissions = ['view_hosts', 'delete_hosts'];
-      
+
       const result = hasPluginPermissions(requiredPermissions, mockPermissions);
-      
+
       expect(result).toBe(false);
     });
 
     it('should return true when no permissions are required', () => {
       const result = hasPluginPermissions(undefined, mockPermissions);
-      
+
       expect(result).toBe(true);
     });
 
     it('should return true when required permissions array is empty', () => {
       const result = hasPluginPermissions([], mockPermissions);
-      
+
       expect(result).toBe(true);
     });
 
     it('should return false when user has no permissions but some are required', () => {
       const result = hasPluginPermissions(['view_hosts'], []);
-      
+
       expect(result).toBe(false);
     });
   });
@@ -89,7 +89,7 @@ describe('Plugin Utils', () => {
 
     it('should filter menu items based on user permissions', () => {
       const filtered = filterMenuItemsByPermissions(mockMenuItems, mockPermissions);
-      
+
       expect(filtered).toHaveLength(3);
       expect(filtered.map(item => item.id)).toEqual(['hosts', 'users', 'public']);
     });
@@ -115,7 +115,7 @@ describe('Plugin Utils', () => {
       ];
 
       const filtered = filterMenuItemsByPermissions(nestedMenuItems, mockPermissions);
-      
+
       expect(filtered).toHaveLength(1);
       expect(filtered[0].children).toHaveLength(1);
       expect(filtered[0].children![0].id).toBe('child1');
@@ -131,7 +131,7 @@ describe('Plugin Utils', () => {
       ];
 
       const filtered = filterMenuItemsByPermissions(restrictedItems, mockPermissions);
-      
+
       expect(filtered).toHaveLength(0);
     });
   });
@@ -160,21 +160,21 @@ describe('Plugin Utils', () => {
 
     it('should filter extensions by permissions', () => {
       const filtered = filterExtensionsByPermissions(mockExtensions, mockPermissions);
-      
+
       expect(filtered).toHaveLength(2); // view_hosts and condition-based
     });
 
     it('should filter extensions by condition function', () => {
       const context = { hostId: '123' };
       const filtered = filterExtensionsByPermissions(mockExtensions, mockPermissions, context);
-      
+
       expect(filtered).toHaveLength(2);
     });
 
     it('should filter out extensions when condition returns false', () => {
       const context = { hostId: '456' };
       const filtered = filterExtensionsByPermissions(mockExtensions, mockPermissions, context);
-      
+
       expect(filtered).toHaveLength(1); // Only the one with view_hosts permission
     });
   });
@@ -190,9 +190,9 @@ describe('Plugin Utils', () => {
 
     it('should build hierarchical menu structure', () => {
       const hierarchy = buildMenuHierarchy(flatMenuItems);
-      
+
       expect(hierarchy).toHaveLength(3); // parent2, parent1, orphan
-      
+
       const parent1 = hierarchy.find(item => item.id === 'parent1');
       expect(parent1?.children).toHaveLength(2);
       expect(parent1?.children![0].id).toBe('child2'); // Order 5 comes first
@@ -201,14 +201,14 @@ describe('Plugin Utils', () => {
 
     it('should sort items by order', () => {
       const hierarchy = buildMenuHierarchy(flatMenuItems);
-      
+
       // Items should be sorted by order: parent2 (10), parent1 (20), orphan (undefined = 0)
       expect(hierarchy.map(item => item.id)).toEqual(['orphan', 'parent2', 'parent1']);
     });
 
     it('should handle items with missing parents as root items', () => {
       const hierarchy = buildMenuHierarchy(flatMenuItems);
-      
+
       const orphan = hierarchy.find(item => item.id === 'orphan');
       expect(orphan).toBeDefined();
     });
@@ -220,7 +220,7 @@ describe('Plugin Utils', () => {
       ];
 
       const hierarchy = buildMenuHierarchy(itemsWithoutOrder);
-      
+
       expect(hierarchy).toHaveLength(2);
       expect(hierarchy[0].id).toBe('item1'); // No order (0) comes first
       expect(hierarchy[1].id).toBe('item2'); // Order 5 comes second
@@ -343,14 +343,14 @@ describe('Plugin Utils', () => {
       expect(template.description).toBe('Test Plugin plugin for Foreman');
       expect(template.author).toBe('Plugin Developer');
       expect(template.foremanVersions).toEqual(['>=3.0.0']);
-      
+
       // Check arrays are initialized
       expect(template.routes).toEqual([]);
       expect(template.menuItems).toEqual([]);
       expect(template.permissions).toEqual([]);
       expect(template.componentExtensions).toEqual([]);
       expect(template.dashboardWidgets).toEqual([]);
-      
+
       // Check i18n configuration
       expect(template.i18n?.defaultLocale).toBe('en');
       expect(template.i18n?.supportedLocales).toEqual(['en']);

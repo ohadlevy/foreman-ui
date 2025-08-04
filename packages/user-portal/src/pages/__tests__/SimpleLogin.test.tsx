@@ -10,7 +10,7 @@ import type { User, AuthResponse, LoginCredentials } from '@foreman/shared';
 vi.mock('@foreman/shared', () => ({
   useAuth: vi.fn(),
   LoginForm: vi.fn(({ onSubmit, isLoading, error }) => (
-    <form 
+    <form
       data-testid="login-form"
       onSubmit={(e) => {
         e.preventDefault();
@@ -89,28 +89,28 @@ describe('SimpleLogin', () => {
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      login: vi.fn<[LoginCredentials], Promise<AuthResponse>>().mockResolvedValue({ 
-        user: { 
-          id: 1, 
-          login: 'test', 
-          admin: false, 
-          disabled: false, 
-          auth_source_id: 1, 
-          roles: [], 
-          organizations: [], 
-          locations: [] 
-        }, 
-        token: 'test-token' 
+      login: vi.fn<[LoginCredentials], Promise<AuthResponse>>().mockResolvedValue({
+        user: {
+          id: 1,
+          login: 'test',
+          admin: false,
+          disabled: false,
+          auth_source_id: 1,
+          roles: [],
+          organizations: [],
+          locations: []
+        },
+        token: 'test-token'
       }),
-      loginWithToken: vi.fn<[string], Promise<User>>().mockResolvedValue({ 
-        id: 1, 
-        login: 'test', 
-        admin: false, 
-        disabled: false, 
-        auth_source_id: 1, 
-        roles: [], 
-        organizations: [], 
-        locations: [] 
+      loginWithToken: vi.fn<[string], Promise<User>>().mockResolvedValue({
+        id: 1,
+        login: 'test',
+        admin: false,
+        disabled: false,
+        auth_source_id: 1,
+        roles: [],
+        organizations: [],
+        locations: []
       }),
       logout: vi.fn(),
       clearError: vi.fn(),

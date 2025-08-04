@@ -24,7 +24,7 @@ const createWrapper = () => {
       mutations: { retry: false },
     },
   });
-  
+
   const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
@@ -40,7 +40,7 @@ describe('useNotifications', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       user: null,
@@ -156,7 +156,7 @@ describe('useMarkNotificationAsRead', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockUseNotificationStore.mockReturnValue({
       markAsRead: mockMarkAsRead,
       notifications: [],
@@ -217,7 +217,7 @@ describe('useMarkNotificationAsRead', () => {
       'Failed to mark notification as read:',
       expect.any(Error)
     );
-    
+
     consoleSpy.mockRestore();
   });
 });
@@ -225,7 +225,7 @@ describe('useMarkNotificationAsRead', () => {
 describe('useNotificationActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockUseNotificationStore.mockReturnValue({
       notifications: [],
       isDrawerOpen: false,
@@ -283,7 +283,7 @@ describe('useNotificationActions', () => {
 
     // Start a mutation and check loading state
     result.current.markAsRead(1);
-    
+
     // The loading state is managed by the individual mutation hooks
     // and aggregated in the useNotificationActions hook
     expect(typeof result.current.isLoading).toBe('boolean');

@@ -30,9 +30,9 @@ export interface QuickNavProps {
   className?: string;
 }
 
-export const QuickNav: React.FC<QuickNavProps> = ({ 
-  maxRecentItems = 6, 
-  className 
+export const QuickNav: React.FC<QuickNavProps> = ({
+  maxRecentItems = 6,
+  className
 }) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -82,7 +82,7 @@ export const QuickNav: React.FC<QuickNavProps> = ({
         <div className="pf-v5-u-font-weight-bold pf-v5-u-mb-sm pf-v5-u-px-md pf-v5-u-color-200">
           Recent Activity
         </div>
-        
+
         {recentItems.length === 0 ? (
           <EmptyState variant="xs">
             <EmptyStateIcon icon={HistoryIcon} />
@@ -99,8 +99,8 @@ export const QuickNav: React.FC<QuickNavProps> = ({
                     key={activity.id}
                     onClick={() => handleItemClick(activity.url)}
                     icon={
-                      activity.type.includes('host') ? <ServerIcon /> : 
-                      activity.type === 'search' ? <SearchIcon /> : 
+                      activity.type.includes('host') ? <ServerIcon /> :
+                      activity.type === 'search' ? <SearchIcon /> :
                       <ExternalLinkAltIcon />
                     }
                     description={formatRelativeTime(activity.timestamp)}

@@ -17,15 +17,15 @@ import {
   Spinner,
   Switch,
 } from '@patternfly/react-core';
-import { 
-  TimesIcon, 
+import {
+  TimesIcon,
   CheckCircleIcon
 } from '@patternfly/react-icons';
 import { useAuth } from '../auth/useAuth';
-import { 
-  usePersonalAccessTokens, 
-  useRevokePersonalAccessToken, 
-  useCurrentToken 
+import {
+  usePersonalAccessTokens,
+  useRevokePersonalAccessToken,
+  useCurrentToken
 } from '../hooks/usePersonalAccessTokens';
 import { formatUserFriendlyDate } from '../utils/formatting';
 
@@ -34,9 +34,9 @@ export const UserProfile: React.FC = () => {
   const { tokens, isLoading, error } = usePersonalAccessTokens();
   const { currentToken, isCurrentTokenActive } = useCurrentToken();
   const revokeTokenMutation = useRevokePersonalAccessToken();
-  
+
   const [showInactiveTokens, setShowInactiveTokens] = useState(false);
-  
+
   // Filter tokens based on user preference
   const activeTokens = tokens.filter(token => token['active?'] !== false && token.active !== false);
   const filteredTokens = showInactiveTokens ? tokens : activeTokens;
@@ -117,7 +117,7 @@ export const UserProfile: React.FC = () => {
             <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsMd' }}>
               {/* Current Session Info */}
               <FlexItem>
-                <Alert 
+                <Alert
                   variant={isCurrentTokenActive ? AlertVariant.info : AlertVariant.warning}
                   isInline
                   title="Current Session"
@@ -130,9 +130,9 @@ export const UserProfile: React.FC = () => {
                   ) : (
                     <Text component="small">Session information not available</Text>
                   )}
-                  <Button 
-                    variant="danger" 
-                    size="sm" 
+                  <Button
+                    variant="danger"
+                    size="sm"
                     style={{ marginTop: '8px' }}
                     onClick={() => logout()}
                   >
@@ -161,8 +161,8 @@ export const UserProfile: React.FC = () => {
                 </Flex>
                 {filteredTokens.length === 0 ? (
                   <Text component="small">
-                    {showInactiveTokens 
-                      ? "No personal access tokens found." 
+                    {showInactiveTokens
+                      ? "No personal access tokens found."
                       : "No active personal access tokens found. Toggle 'Show inactive tokens' to see all tokens."}
                   </Text>
                 ) : (
@@ -226,8 +226,8 @@ export const UserProfile: React.FC = () => {
               <FlexItem>
                 <Alert variant={AlertVariant.info} isInline title="Security Notice">
                   <Text component="small">
-                    Personal Access Tokens provide secure access to the Foreman API. 
-                    Keep your tokens secure and revoke any tokens you no longer need. 
+                    Personal Access Tokens provide secure access to the Foreman API.
+                    Keep your tokens secure and revoke any tokens you no longer need.
                     If you suspect a token has been compromised, revoke it immediately.
                   </Text>
                 </Alert>

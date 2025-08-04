@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! 
-        
+        Thanks for taking the time to fill out this bug report!
+
         **Note**: This project is in early development. Some features may be incomplete.
 
   - type: textarea

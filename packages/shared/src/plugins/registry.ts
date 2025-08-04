@@ -1,11 +1,11 @@
 import i18next from 'i18next';
-import { 
-  ForemanPlugin, 
-  PluginRegistry, 
-  PluginLoadState, 
+import {
+  ForemanPlugin,
+  PluginRegistry,
+  PluginLoadState,
   ComponentExtension,
   DashboardWidget,
-  PluginContext 
+  PluginContext
 } from './types';
 import { pluginTranslationService } from './translationService';
 
@@ -43,32 +43,32 @@ export class ForemanPluginRegistry implements PluginRegistry {
     try {
       // Validate plugin
       this.validatePlugin(plugin);
-      
+
       // Store plugin first so we can access it during translation loading
       this.plugins.set(plugin.name, plugin);
-      
+
       // Load translations if provided
       if (plugin.i18n) {
         await this.loadPluginTranslations(plugin.name);
       }
-      
+
       // Initialize plugin if it has an initialization function
       if (plugin.initialize) {
         const context = this.createPluginContext(plugin);
         await plugin.initialize(context);
       }
-      
+
       // Update load state
       this.loadState.loaded.push(plugin.name);
-      
+
       // Notify listeners of registry change
       this.notifyListeners();
-      
+
       console.log(`Plugin ${plugin.name} registered successfully`);
     } catch (error) {
-      this.loadState.failed.push({ 
-        name: plugin.name, 
-        error: error as Error 
+      this.loadState.failed.push({
+        name: plugin.name,
+        error: error as Error
       });
       console.error(`Failed to register plugin ${plugin.name}:`, error);
       throw error;
@@ -90,22 +90,22 @@ export class ForemanPluginRegistry implements PluginRegistry {
       if (plugin.destroy) {
         await plugin.destroy();
       }
-      
+
       // Remove translations
       if (plugin.i18n) {
         pluginTranslationService.removePluginTranslations(pluginName, plugin.i18n);
       }
-      
+
       // Remove from registry
       this.plugins.delete(pluginName);
-      
+
       // Update load state
       this.loadState.loaded = this.loadState.loaded.filter(name => name !== pluginName);
       this.loadState.failed = this.loadState.failed.filter(f => f.name !== pluginName);
-      
+
       // Notify listeners of registry change
       this.notifyListeners();
-      
+
       console.log(`Plugin ${pluginName} unregistered successfully`);
     } catch (error) {
       console.error(`Failed to unregister plugin ${pluginName}:`, error);
@@ -138,7 +138,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
    * Get plugins that provide routes
    */
   getPluginsWithRoutes(): ForemanPlugin[] {
-    return this.getAllPlugins().filter(plugin => 
+    return this.getAllPlugins().filter(plugin =>
       plugin.routes && plugin.routes.length > 0
     );
   }
@@ -147,7 +147,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
    * Get plugins that provide menu items
    */
   getPluginsWithMenuItems(): ForemanPlugin[] {
-    return this.getAllPlugins().filter(plugin => 
+    return this.getAllPlugins().filter(plugin =>
       plugin.menuItems && plugin.menuItems.length > 0
     );
   }
@@ -157,7 +157,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
    */
   getPluginsWithExtensions(extensionPoint: string): ComponentExtension[] {
     const extensions: ComponentExtension[] = [];
-    
+
     this.getAllPlugins().forEach(plugin => {
       if (plugin.componentExtensions) {
         plugin.componentExtensions
@@ -165,7 +165,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
           .forEach(ext => extensions.push(ext));
       }
     });
-    
+
     // Sort by order
     return extensions.sort((a, b) => (a.order || 0) - (b.order || 0));
   }
@@ -175,13 +175,13 @@ export class ForemanPluginRegistry implements PluginRegistry {
    */
   getPluginsWithWidgets(): DashboardWidget[] {
     const widgets: DashboardWidget[] = [];
-    
+
     this.getAllPlugins().forEach(plugin => {
       if (plugin.dashboardWidgets) {
         widgets.push(...plugin.dashboardWidgets);
       }
     });
-    
+
     return widgets;
   }
 
@@ -219,20 +219,20 @@ export class ForemanPluginRegistry implements PluginRegistry {
     if (!plugin.name) {
       throw new Error('Plugin must have a name');
     }
-    
+
     if (!plugin.version) {
       throw new Error('Plugin must have a version');
     }
-    
+
     if (!plugin.displayName) {
       throw new Error('Plugin must have a displayName');
     }
-    
+
     // Check for naming conflicts
     if (this.plugins.has(plugin.name)) {
       throw new Error(`Plugin ${plugin.name} is already registered`);
     }
-    
+
     // Validate routes
     if (plugin.routes) {
       plugin.routes.forEach((route, index) => {
@@ -244,7 +244,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
         }
       });
     }
-    
+
     // Validate menu items
     if (plugin.menuItems) {
       plugin.menuItems.forEach((item, index) => {
@@ -256,7 +256,7 @@ export class ForemanPluginRegistry implements PluginRegistry {
         }
       });
     }
-    
+
     // Validate i18n configuration
     if (plugin.i18n) {
       if (!plugin.i18n.defaultLocale) {

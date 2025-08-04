@@ -6,9 +6,9 @@ interface LoadingSpinnerProps {
   className?: string;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 'lg', 
-  className 
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'lg',
+  className
 }) => {
   return (
     <div className={`pf-v5-u-display-flex pf-v5-u-justify-content-center pf-v5-u-align-items-center ${className || ''}`}>

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { 
-  usePlugins, 
-  usePlugin, 
+import {
+  usePlugins,
+  usePlugin,
   usePluginRegistered,
   usePluginExtensions,
   usePluginMenuItems,
@@ -81,18 +81,18 @@ describe('Plugin Hooks', () => {
   describe('usePlugins', () => {
     it('should return all registered plugins', () => {
       mockPluginRegistry.getAllPlugins.mockReturnValue([mockPlugin]);
-      
+
       const { result } = renderHook(() => usePlugins());
-      
+
       expect(result.current).toEqual([mockPlugin]);
       expect(mockPluginRegistry.getAllPlugins).toHaveBeenCalled();
     });
 
     it('should return empty array when no plugins registered', () => {
       mockPluginRegistry.getAllPlugins.mockReturnValue([]);
-      
+
       const { result } = renderHook(() => usePlugins());
-      
+
       expect(result.current).toEqual([]);
     });
   });
@@ -100,33 +100,33 @@ describe('Plugin Hooks', () => {
   describe('usePlugin', () => {
     it('should return specific plugin by name', () => {
       mockPluginRegistry.getPlugin.mockReturnValue(mockPlugin);
-      
+
       const { result } = renderHook(() => usePlugin('foreman_test'));
-      
+
       expect(result.current).toEqual(mockPlugin);
       expect(mockPluginRegistry.getPlugin).toHaveBeenCalledWith('foreman_test');
     });
 
     it('should return undefined for non-existent plugin', () => {
       mockPluginRegistry.getPlugin.mockReturnValue(undefined);
-      
+
       const { result } = renderHook(() => usePlugin('non_existent'));
-      
+
       expect(result.current).toBeUndefined();
     });
 
     it('should update when plugin name changes', () => {
-      mockPluginRegistry.getPlugin.mockImplementation((name: string) => 
+      mockPluginRegistry.getPlugin.mockImplementation((name: string) =>
         name === 'foreman_test' ? mockPlugin : undefined
       );
-      
+
       const { result, rerender } = renderHook(
         ({ name }) => usePlugin(name),
         { initialProps: { name: 'foreman_test' } }
       );
-      
+
       expect(result.current).toEqual(mockPlugin);
-      
+
       rerender({ name: 'other_plugin' });
       expect(result.current).toBeUndefined();
     });
@@ -135,18 +135,18 @@ describe('Plugin Hooks', () => {
   describe('usePluginRegistered', () => {
     it('should return true for registered plugin', () => {
       mockPluginRegistry.isRegistered.mockReturnValue(true);
-      
+
       const { result } = renderHook(() => usePluginRegistered('foreman_test'));
-      
+
       expect(result.current).toBe(true);
       expect(mockPluginRegistry.isRegistered).toHaveBeenCalledWith('foreman_test');
     });
 
     it('should return false for unregistered plugin', () => {
       mockPluginRegistry.isRegistered.mockReturnValue(false);
-      
+
       const { result } = renderHook(() => usePluginRegistered('non_existent'));
-      
+
       expect(result.current).toBe(false);
     });
   });
@@ -155,11 +155,11 @@ describe('Plugin Hooks', () => {
     it('should return extensions for specific extension point', () => {
       const mockExtensions = [mockPlugin.componentExtensions![0]];
       mockPluginRegistry.getPluginsWithExtensions.mockReturnValue(mockExtensions);
-      
-      const { result } = renderHook(() => 
+
+      const { result } = renderHook(() =>
         usePluginExtensions(EXTENSION_POINTS.HOST_DETAILS_TABS)
       );
-      
+
       expect(result.current).toEqual(mockExtensions);
       expect(mockPluginRegistry.getPluginsWithExtensions).toHaveBeenCalledWith(
         EXTENSION_POINTS.HOST_DETAILS_TABS
@@ -168,11 +168,11 @@ describe('Plugin Hooks', () => {
 
     it('should return empty array when no extensions exist', () => {
       mockPluginRegistry.getPluginsWithExtensions.mockReturnValue([]);
-      
-      const { result } = renderHook(() => 
+
+      const { result } = renderHook(() =>
         usePluginExtensions(EXTENSION_POINTS.DASHBOARD_WIDGETS)
       );
-      
+
       expect(result.current).toEqual([]);
     });
   });
@@ -189,9 +189,9 @@ describe('Plugin Hooks', () => {
         }
       ];
       mockPluginRegistry.getPluginsWithMenuItems.mockReturnValue(plugins);
-      
+
       const { result } = renderHook(() => usePluginMenuItems());
-      
+
       expect(result.current).toHaveLength(2);
       expect(result.current[0].order).toBe(10);
       expect(result.current[1].order).toBe(20);
@@ -199,9 +199,9 @@ describe('Plugin Hooks', () => {
 
     it('should handle plugins without menu items', () => {
       mockPluginRegistry.getPluginsWithMenuItems.mockReturnValue([]);
-      
+
       const { result } = renderHook(() => usePluginMenuItems());
-      
+
       expect(result.current).toEqual([]);
     });
 
@@ -216,9 +216,9 @@ describe('Plugin Hooks', () => {
         }
       ];
       mockPluginRegistry.getPluginsWithMenuItems.mockReturnValue(plugins);
-      
+
       const { result } = renderHook(() => usePluginMenuItems());
-      
+
       expect(result.current).toHaveLength(2);
       // Items without order should default to 0
       expect(result.current[0].order).toBeUndefined();
@@ -230,18 +230,18 @@ describe('Plugin Hooks', () => {
     it('should return all dashboard widgets from plugins', () => {
       const mockWidgets = [mockPlugin.dashboardWidgets![0]];
       mockPluginRegistry.getPluginsWithWidgets.mockReturnValue(mockWidgets);
-      
+
       const { result } = renderHook(() => usePluginDashboardWidgets());
-      
+
       expect(result.current).toEqual(mockWidgets);
       expect(mockPluginRegistry.getPluginsWithWidgets).toHaveBeenCalled();
     });
 
     it('should return empty array when no widgets exist', () => {
       mockPluginRegistry.getPluginsWithWidgets.mockReturnValue([]);
-      
+
       const { result } = renderHook(() => usePluginDashboardWidgets());
-      
+
       expect(result.current).toEqual([]);
     });
   });
@@ -250,9 +250,9 @@ describe('Plugin Hooks', () => {
     it('should return routes with plugin context', () => {
       const plugins = [mockPlugin];
       mockPluginRegistry.getPluginsWithRoutes.mockReturnValue(plugins);
-      
+
       const { result } = renderHook(() => usePluginRoutes());
-      
+
       expect(result.current).toHaveLength(1);
       expect(result.current[0]).toMatchObject({
         path: '/test',
@@ -280,9 +280,9 @@ describe('Plugin Hooks', () => {
         }
       ];
       mockPluginRegistry.getPluginsWithRoutes.mockReturnValue(plugins);
-      
+
       const { result } = renderHook(() => usePluginRoutes());
-      
+
       expect(result.current).toHaveLength(3);
       expect(result.current[0].path).toBe('/test1');
       expect(result.current[1].path).toBe('/test2');
@@ -292,9 +292,9 @@ describe('Plugin Hooks', () => {
 
     it('should return empty array when no routes exist', () => {
       mockPluginRegistry.getPluginsWithRoutes.mockReturnValue([]);
-      
+
       const { result } = renderHook(() => usePluginRoutes());
-      
+
       expect(result.current).toEqual([]);
     });
   });
@@ -303,18 +303,18 @@ describe('Plugin Hooks', () => {
     it('should memoize results and return consistent references', () => {
       const plugins = [mockPlugin];
       mockPluginRegistry.getAllPlugins.mockReturnValue(plugins);
-      
+
       const { result, rerender } = renderHook(() => usePlugins());
       const firstResult = result.current;
-      
+
       // Same plugins data should return same reference due to useMemo
       expect(result.current).toEqual(plugins);
-      
+
       rerender();
-      
-      // After rerender with same data, should get same reference  
+
+      // After rerender with same data, should get same reference
       expect(result.current).toBe(firstResult);
-      
+
       // Registry method should be called (useMemo still calls the function to check dependencies)
       expect(mockPluginRegistry.getAllPlugins).toHaveBeenCalled();
     });

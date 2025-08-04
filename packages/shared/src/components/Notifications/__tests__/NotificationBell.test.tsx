@@ -21,7 +21,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       mutations: { retry: false },
     },
   });
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       {children}
@@ -34,7 +34,7 @@ describe('NotificationBell', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockUseNotificationStore.mockReturnValue({
       unreadCount: 0,
       toggleDrawer: mockToggleDrawer,
@@ -73,7 +73,7 @@ describe('NotificationBell', () => {
         <NotificationBell />
       </TestWrapper>
     );
-    
+
     const bellButton = screen.getByRole('button', { name: /notifications/i });
     expect(bellButton).toBeInTheDocument();
   });
@@ -84,7 +84,7 @@ describe('NotificationBell', () => {
         <NotificationBell />
       </TestWrapper>
     );
-    
+
     const badge = screen.queryByText('0');
     expect(badge).not.toBeInTheDocument();
   });
@@ -119,7 +119,7 @@ describe('NotificationBell', () => {
         <NotificationBell />
       </TestWrapper>
     );
-    
+
     const badge = screen.getByText('5');
     expect(badge).toBeInTheDocument();
   });
@@ -154,7 +154,7 @@ describe('NotificationBell', () => {
         <NotificationBell />
       </TestWrapper>
     );
-    
+
     const badge = screen.getByText('99+');
     expect(badge).toBeInTheDocument();
   });
@@ -165,10 +165,10 @@ describe('NotificationBell', () => {
         <NotificationBell />
       </TestWrapper>
     );
-    
+
     const bellButton = screen.getByRole('button', { name: /notifications/i });
     fireEvent.click(bellButton);
-    
+
     expect(mockToggleDrawer).toHaveBeenCalledOnce();
   });
 
@@ -178,10 +178,10 @@ describe('NotificationBell', () => {
         <NotificationBell />
       </TestWrapper>
     );
-    
+
     const bellButton = screen.getByRole('button', { name: /notifications/i });
     fireEvent.mouseEnter(bellButton);
-    
+
     // PatternFly tooltips are rendered asynchronously
     const tooltip = await screen.findByText('Notifications');
     expect(tooltip).toBeInTheDocument();

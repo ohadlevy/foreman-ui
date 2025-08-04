@@ -1,9 +1,9 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { 
-  EmptyState, 
-  EmptyStateBody, 
-  EmptyStateIcon, 
-  Title, 
+import {
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateIcon,
+  Title,
   Button,
   EmptyStateActions
 } from '@patternfly/react-core';
