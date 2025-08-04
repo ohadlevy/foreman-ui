@@ -35,7 +35,22 @@
     "lint:fix": "lerna run lint:fix",
     "clean": "lerna clean && rm -rf node_modules",
     "storybook": "lerna run storybook --scope=@foreman/shared",
-    "generate-types": "lerna run generate-types --scope=@foreman/shared"
+    "generate-types": "lerna run generate-types --scope=@foreman/shared",
+    "env:setup": "./scripts/dev-environment.sh setup-worktree",
+    "env:start": "./scripts/dev-environment.sh start-dev .",
+    "env:start-user": "./scripts/dev-environment.sh start-dev . user",
+    "env:start-admin": "./scripts/dev-environment.sh start-dev . admin",
+    "env:test-debug": "./scripts/dev-environment.sh test-debug . debug",
+    "env:foreman-start": "./scripts/dev-environment.sh start-foreman",
+    "env:foreman-stop": "./scripts/dev-environment.sh stop-foreman",
+    "env:logs": "./scripts/dev-environment.sh monitor-logs foreman",
+    "env:build-validate": "./scripts/dev-environment.sh build-validate .",
+    "env:complete": "./scripts/dev-environment.sh complete-workflow .",
+    "env:submit-pr": "./scripts/dev-environment.sh submit-pr . main",
+    "pr:validate": "./scripts/pr-automation.sh validate .",
+    "pr:submit": "./scripts/pr-automation.sh submit . main",
+    "pr:draft": "./scripts/pr-automation.sh submit-draft . main",
+    "env:cleanup": "./scripts/dev-environment.sh cleanup"
   },
   "devDependencies": {
     "lerna": "^8.1.8",

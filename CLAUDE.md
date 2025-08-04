@@ -23,6 +23,127 @@ This is a **modern React UI replacement** for Foreman's existing Ruby on Rails w
 - Always run lint/tsc/tests, if you change any file during that cycle, run it again
 - Remove trailing whitespaces
 
+### Enhanced Development Automation
+
+**Git Worktree Workflow:**
+This project uses git worktrees for parallel feature development:
+```bash
+# Main workspace: ~/foreman-ui (main branch - upstream tracking only)
+# Feature workspaces: ~/foreman-ui-{feature-name}
+```
+
+**Automated Environment Setup:**
+Claude Code can automatically handle complete development workflows:
+
+1. **Feature Development Setup:**
+   ```bash
+   yarn env:setup feature/new-component     # Create worktree
+   yarn env:start-user                      # Start dev environment
+   ```
+
+2. **Testing with Enhanced Debugging:**
+   ```bash
+   yarn env:test-debug                      # Tests + browser console + Foreman logs
+   ```
+
+3. **PR Submission with AI Integration:**
+   ```bash
+   yarn pr:submit                           # Full PR workflow with GitHub Copilot
+   ```
+
+**Complete Automation Workflow:**
+When Claude Code works on features, it can execute:
+- ✅ **Worktree Creation** - Isolated development environment
+- ✅ **Dependency Management** - Auto-install and build shared packages  
+- ✅ **Foreman Container Startup** - Podman-compose with health checks
+- ✅ **Development Server** - Auto-detect port conflicts
+- ✅ **Test Execution** - With browser console capture and server log monitoring
+- ✅ **Code Validation** - Lint, TypeScript, and test validation
+- ✅ **PR Submission** - AI-generated descriptions with user confirmation
+- ✅ **GitHub Copilot Integration** - Automated review requests
+- ✅ **CI Monitoring** - Real-time status with auto-fix attempts
+- ✅ **Comment Handling** - Response to review feedback
+
+**Available Automation Scripts:**
+- `./scripts/dev-environment.sh` - Core development automation
+- `./scripts/pr-automation.sh` - GitHub PR workflow with Copilot integration
+
+**Enhanced Automation Features:**
+
+**🔧 Multi-Worktree Safety:**
+- Safe cleanup that only affects current worktree
+- Shared service protection (Foreman backend)
+- Detection of active development servers across worktrees
+
+**🌐 Browser Debugging:**
+```bash
+./scripts/dev-environment.sh launch-browser [url]
+# Launches browser with developer tools open
+# Supports Firefox and Chrome/Chromium
+# Automatically detects appropriate port for current worktree instance
+```
+
+**🔄 Continuous Monitoring:**
+```bash
+# Monitor and auto-fix issues in current worktree
+./scripts/dev-environment.sh monitor-autofix [workspace] [interval]
+
+# Monitor PR for comments and CI failures
+./scripts/pr-automation.sh monitor-continuous <pr_number> [workspace] [interval]
+```
+
+**🛠️ Automated Fixes:**
+- Linting issues (ESLint auto-fix)
+- Code formatting (Prettier)
+- Trailing whitespace removal
+- Automatic commit and push of fixes
+- PR comments when fixes are applied
+
+### Development Workflow Requirements
+
+**⚠️ Important: Work in Correct Worktree Directory**
+When working on features or PRs that exist in git worktrees, Claude MUST work in the appropriate worktree directory:
+- Main development: `/home/ohad/foreman-ui` (main branch, ux-improvements, etc.)
+- Automation features: `/home/ohad/foreman-ui-automation` (dev-automation branch)
+- Other features: `/home/ohad/foreman-ui-{feature-name}` (respective feature branches)
+
+**Always verify the current branch and worktree before making changes:**
+```bash
+git worktree list                    # See all worktrees
+git branch --show-current           # Confirm correct branch
+```
+
+### Claude Code Automation Permissions
+
+**✅ Claude can execute automatically (no confirmation needed):**
+- Worktree creation and management
+- Dependency installation and building
+- Development server startup
+- Test execution and debugging
+- Code validation (lint, typecheck, tests)
+- Log monitoring and CI status checks
+- File reading and code analysis
+- Branch creation and commits to feature branches
+- GitHub read operations (view PRs, comments, CI status, etc.)
+- Adding comments to PRs and issues
+- **CI monitoring and review response** - Monitor CI status, respond to review comments
+- **Automated fixes** - Address common CI failures, linting issues, test failures
+- **Browser debugging** - Launch browsers with developer tools for debugging
+- **Continuous monitoring** - Monitor and auto-fix issues in background
+- **Multi-worktree safety** - Protect shared services from accidental shutdown
+
+**👤 User confirmation required for:**
+- PR creation and submission
+- Force pushing to any branch
+- Deleting branches or worktrees  
+- Modifying main/master branches
+- System-wide configuration changes
+
+**🔒 Merge workflow permissions:**
+- Squashing commits requires user approval ("ready to merge")
+- Force push after squash requires confirmation
+- Final merge to main always requires user action
+
 ## Architecture Overview
 
 **Lerna Monorepo Structure:**
@@ -83,7 +204,7 @@ export const registerPlugin = (plugin: ForemanPlugin) => {
 ### Essential Commands
 ```bash
 yarn install            # Install all dependencies
-yarn dev:user           # Start user portal (port 3001)
+yarn dev:user           # Start user portal (auto-detected port)
 yarn dev                # Start all packages in parallel
 yarn build              # Build all packages
 yarn test               # Run all tests
