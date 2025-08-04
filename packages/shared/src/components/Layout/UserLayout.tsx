@@ -35,6 +35,7 @@ import { usePluginMenuItems } from '../../plugins/hooks';
 import { hasPluginPermissions } from '../../plugins/utils';
 import { ForemanBrand } from '../Branding';
 import { NotificationBell, NotificationDrawer } from '../Notifications';
+import { QuickNav } from '../QuickNav';
 
 interface UserLayoutProps {
   children: ReactNode;
@@ -136,6 +137,9 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     <Toolbar id="toolbar" isFullHeight>
       <ToolbarContent>
         <ToolbarGroup align={{ default: 'alignRight' }}>
+          <ToolbarItem>
+            <QuickNav />
+          </ToolbarItem>
           <ToolbarItem>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <NotificationBell />

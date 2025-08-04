@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   PageSection,
@@ -37,7 +37,8 @@ import {
   formatDateTime, 
   formatRelativeTime, 
   formatUptime,
-  LoadingSpinner 
+  LoadingSpinner,
+  useActivityStore,
 } from '@foreman/shared';
 
 export const HostDetails: React.FC = () => {
@@ -48,6 +49,20 @@ export const HostDetails: React.FC = () => {
   const { data: host, isLoading, error } = useHost(Number(id));
   const powerMutation = useHostPower();
   const deleteMutation = useDeleteHost();
+  const { addActivity } = useActivityStore();
+
+  // Track page visit when host data is loaded
+  useEffect(() => {
+    if (host) {
+      addActivity({
+        type: 'page_visit',
+        title: `Host: ${host.name}`,
+        subtitle: 'Host details',
+        url: `/hosts/${host.id}`,
+        metadata: { hostId: host.id },
+      });
+    }
+  }, [host, addActivity]);
 
   const handlePowerAction = async (action: 'start' | 'stop' | 'restart' | 'reset') => {
     if (!host) return;
@@ -107,7 +122,18 @@ export const HostDetails: React.FC = () => {
       <DropdownItem 
         key="edit"
         icon={<EditIcon />}
-        onClick={() => navigate(`/hosts/${host.id}/edit`)}
+        onClick={() => {
+          if (host) {
+            addActivity({
+              type: 'host_edit',
+              title: host.name,
+              subtitle: 'Host edited',
+              url: `/hosts/${host.id}`,
+              metadata: { hostId: host.id },
+            });
+          }
+          navigate(`/hosts/${host.id}/edit`);
+        }}
       >
         Edit
       </DropdownItem>

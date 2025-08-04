@@ -7,6 +7,7 @@ export const API_ENDPOINTS = {
   LOCATIONS: '/locations',
   AUTH: '/auth',
   DASHBOARD: '/dashboard',
+  GRAPHQL: '/api/graphql',
 } as const;
 
 // Host status constants

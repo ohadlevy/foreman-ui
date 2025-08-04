@@ -2,8 +2,6 @@ import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { AxiosErrorResponse } from '../types';
-import i18next from 'i18next';
-import { initReactI18next } from 'react-i18next';
 
 interface AuthContextType {
   isInitialized: boolean;
@@ -18,15 +16,15 @@ interface AuthProviderProps {
   requireAdmin?: boolean;
 }
 
-const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({ 
-  children, 
+const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
+  children,
   requireAuth = false,
-  requireAdmin = false 
+  requireAdmin = false
 }) => {
   const { isAuthenticated, isAdmin, isLoading, user } = useAuth();
 
   const isInitialized = !isLoading;
-  
+
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -51,11 +49,11 @@ const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
   // Show loading state while initializing
   if (!isInitialized) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
       }}>
         Loading...
       </div>
@@ -65,12 +63,12 @@ const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
   // Show unauthorized message if admin required but user is not admin
   if (requireAdmin && isAuthenticated && !isAdmin()) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
-        flexDirection: 'column' 
+        flexDirection: 'column'
       }}>
         <h1>Unauthorized</h1>
         <p>You don&apos;t have permission to access this application.</p>
@@ -85,30 +83,11 @@ const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
   );
 };
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ 
-  children, 
+export const AuthProvider: React.FC<AuthProviderProps> = ({
+  children,
   queryClient,
-  ...props 
+  ...props
 }) => {
-  // Initialize i18next once for plugin translations
-  React.useEffect(() => {
-    if (!i18next.isInitialized) {
-      i18next
-        .use(initReactI18next)
-        .init({
-          lng: 'en',
-          fallbackLng: 'en',
-          interpolation: {
-            escapeValue: false,
-          },
-          resources: {
-            en: {
-              translation: {}
-            }
-          }
-        });
-    }
-  }, []);
 
   const defaultQueryClient = new QueryClient({
     defaultOptions: {

@@ -36,6 +36,24 @@ export const useAuthStore = create<AuthStore>()(
 
       // Actions
       setUser: (user: User | null) => {
+        const { user: currentUser } = get();
+        
+        // Use last_login_on or updated_at timestamp to determine which user object is more recent
+        // If either user object is missing timestamps, always update
+        if (user && currentUser) {
+          const newUpdatedAt = user.last_login_on ? new Date(user.last_login_on).getTime() : null;
+          const currentUpdatedAt = currentUser.last_login_on ? new Date(currentUser.last_login_on).getTime() : null;
+          
+          // Only skip update if both have timestamps and new data is older
+          if (
+            newUpdatedAt !== null &&
+            currentUpdatedAt !== null &&
+            newUpdatedAt < currentUpdatedAt
+          ) {
+            return;
+          }
+        }
+        
         set({ user, isAuthenticated: !!user });
       },
 
@@ -88,24 +106,19 @@ export const useAuthStore = create<AuthStore>()(
         if (!user) return false;
         if (user.admin) return true;
 
-        // Check if user has the specific permission
-        // Handle users without roles array
+        // Check explicit permissions from roles
         if (!user.roles || !Array.isArray(user.roles)) return false;
         
-        const hasPermission = user.roles.some(role => {
-          // Handle roles without permissions array
+        return user.roles.some(role => {
           if (!role.permissions || !Array.isArray(role.permissions)) return false;
           
           return role.permissions.some(perm => {
-            // Handle malformed permissions gracefully
             if (!perm || typeof perm !== 'object') return false;
             const permissionMatch = perm.name === permission;
             const resourceMatch = !resource || perm.resource_type === resource;
             return permissionMatch && resourceMatch;
           });
         });
-
-        return hasPermission;
       },
 
       isAdmin: () => {

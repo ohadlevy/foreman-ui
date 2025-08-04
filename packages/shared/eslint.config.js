@@ -28,6 +28,9 @@ export default [
         btoa: 'readonly',
         alert: 'readonly',
         setTimeout: 'readonly',
+        fetch: 'readonly',
+        crypto: 'readonly',
+        performance: 'readonly',
         React: 'readonly',
       },
     },
@@ -54,6 +57,20 @@ export default [
   },
   {
     files: ['**/__tests__/**/*.{js,jsx,ts,tsx}', '**/*.test.{js,jsx,ts,tsx}'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        vi: 'readonly',
+        global: 'readonly',
+      },
+    },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'no-empty': 'off',

@@ -5,6 +5,18 @@ import { PluginI18nConfig } from './types';
  * Service for managing plugin translations with Foreman gettext integration
  */
 export class PluginTranslationService {
+  private i18nInstance: typeof i18next;
+
+  constructor(i18nInstance?: typeof i18next) {
+    this.i18nInstance = i18nInstance || i18next;
+  }
+
+  /**
+   * Set the i18next instance for this translation service
+   */
+  setI18nInstance(i18nInstance: typeof i18next): void {
+    this.i18nInstance = i18nInstance;
+  }
   /**
    * Load translations for a plugin
    */
@@ -89,7 +101,16 @@ export class PluginTranslationService {
     namespace: string, 
     translations: Record<string, unknown>
   ): void {
-    i18next.addResourceBundle(locale, namespace, translations, true, true);
+    // Check if i18next is initialized and has addResourceBundle method
+    if (this.i18nInstance && typeof this.i18nInstance.addResourceBundle === 'function') {
+      this.i18nInstance.addResourceBundle(locale, namespace, translations, true, true);
+    } else {
+      console.warn(
+        `Cannot register translations for ${namespace}: i18next is not properly initialized. ` +
+        `Ensure that i18next is initialized before loading translations. ` +
+        `If you are using a custom i18next instance, call configureTranslationService(i18nInstance) to set it.`
+      );
+    }
   }
 
   /**
@@ -109,5 +130,11 @@ export class PluginTranslationService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance (will be configured with proper i18next instance)
 export const pluginTranslationService = new PluginTranslationService();
+
+// Export function to configure the translation service with proper i18next instance
+export const configureTranslationService = (i18nInstance: typeof i18next) => {
+  // Update the singleton to use the provided instance in a type-safe way
+  pluginTranslationService.setI18nInstance(i18nInstance);
+};

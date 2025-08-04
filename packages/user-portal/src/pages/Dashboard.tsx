@@ -25,6 +25,7 @@ export const Dashboard: React.FC = () => {
   const { canCreateHosts, canViewHosts } = usePermissions();
   const navigate = useNavigate();
 
+
   const totalHosts = hostsData?.total || 0;
   const runningHosts = hostsData?.results?.filter(host => host.enabled)?.length || 0;
   const buildingHosts = hostsData?.results?.filter(host => host.build)?.length || 0;
