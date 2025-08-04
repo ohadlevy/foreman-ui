@@ -17,7 +17,7 @@ const mockClient = {
 // Mock localStorage
 const mockLocalStorage = (() => {
   let store: Record<string, string> = {};
-  
+
   return {
     getItem: vi.fn((key: string) => store[key] || null),
     setItem: vi.fn((key: string, value: string) => {
@@ -43,7 +43,7 @@ describe('NotificationAPI', () => {
     vi.clearAllMocks();
     mockCreateForemanClient.mockReturnValue(mockClient as any);
     mockLocalStorage.getItem.mockReturnValue('test-token');
-    
+
     notificationAPI = new NotificationAPI();
   });
 
@@ -57,9 +57,9 @@ describe('NotificationAPI', () => {
 
     it('creates client without token when not in localStorage', () => {
       mockLocalStorage.getItem.mockReturnValue(null);
-      
+
       new NotificationAPI();
-      
+
       expect(mockCreateForemanClient).toHaveBeenCalledWith({
         baseURL: '',
         token: undefined,
@@ -70,17 +70,17 @@ describe('NotificationAPI', () => {
   describe('updateToken', () => {
     it('sets token when available in localStorage', () => {
       mockLocalStorage.getItem.mockReturnValue('new-token');
-      
+
       notificationAPI.updateToken();
-      
+
       expect(mockClient.setToken).toHaveBeenCalledWith('new-token');
     });
 
     it('clears token when not in localStorage', () => {
       mockLocalStorage.getItem.mockReturnValue(null);
-      
+
       notificationAPI.updateToken();
-      
+
       expect(mockClient.clearToken).toHaveBeenCalled();
     });
   });

@@ -15,11 +15,12 @@ vi.mock('../../api/client', () => ({
     baseURL: '/api/v2',
     setToken: vi.fn(),
     clearToken: vi.fn(),
+    setLoggingOut: vi.fn(),
   }))
 }));
 
 // Mock AuthAPI
-vi.mock('../auth', () => ({
+vi.mock('../../api/auth', () => ({
   AuthAPI: vi.fn().mockImplementation(() => ({
     login: vi.fn(),
     logout: vi.fn(),
@@ -117,7 +118,7 @@ describe('useAuth', () => {
   describe('permission helpers', () => {
     it('should expose hasPermission function', () => {
       mockAuthStore.hasPermission.mockReturnValue(true);
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       expect(result.current.hasPermission('view_hosts')).toBe(true);
@@ -126,7 +127,7 @@ describe('useAuth', () => {
 
     it('should expose isAdmin function', () => {
       mockAuthStore.isAdmin.mockReturnValue(false);
-      
+
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       expect(result.current.isAdmin()).toBe(false);

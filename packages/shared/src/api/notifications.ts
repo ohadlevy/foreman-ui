@@ -10,7 +10,7 @@ export class NotificationAPI {
 
   constructor() {
     const token = localStorage.getItem('foreman_auth_token');
-    this.client = createForemanClient({ 
+    this.client = createForemanClient({
       baseURL: '', // Use empty base URL since we're proxying from root
       token: token || undefined,
     });

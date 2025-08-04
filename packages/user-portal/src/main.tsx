@@ -11,10 +11,10 @@ import '@patternfly/patternfly/patternfly.css';
 // Initialize i18next before React renders
 const startApp = async () => {
   await initI18n();
-  
+
   // Configure the shared translation service with our initialized i18next instance
   configureTranslationService(i18next);
-  
+
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <ErrorBoundary>

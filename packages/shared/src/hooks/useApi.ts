@@ -7,7 +7,7 @@ import { AuthAPI } from '../api/auth';
 export const useApi = () => {
   return useMemo(() => {
     const client = createDefaultClient();
-    
+
     return {
       client,
       hosts: new HostsAPI(client),

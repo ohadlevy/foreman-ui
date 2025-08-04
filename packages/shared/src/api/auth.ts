@@ -11,17 +11,17 @@ export class AuthAPI {
       this.client.clearToken();
       localStorage.removeItem('foreman_auth_token');
       sessionStorage.clear();
-      
+
       // Create a temporary client with basic auth for credential validation
       const basicAuthClient = new ForemanAPIClient({
         baseURL: this.client.baseURL,
         username: credentials.login,
         password: credentials.password
       });
-      
+
       // Step 1: Validate credentials by fetching current user info
       const userResponse = await basicAuthClient.get<User>('/current_user');
-      
+
       // CRITICAL: Verify that the authenticated user matches the requested username
       if (userResponse.login !== credentials.login) {
         console.error('🚨 SECURITY VIOLATION: Username mismatch!', {
@@ -30,8 +30,8 @@ export class AuthAPI {
         });
         throw new Error(`Authentication failed: Username mismatch. This may indicate a server security issue.`);
       }
-      
-      
+
+
       // Step 2: Generate a Personal Access Token for secure API access
       // Use the user-scoped endpoint: /api/v2/users/:user_id/personal_access_tokens
       const tokenData = await basicAuthClient.post(`/users/${userResponse.id}/personal_access_tokens`, {
@@ -41,28 +41,28 @@ export class AuthAPI {
           expires_at: null // No expiration, or set a future date
         }
       });
-      
+
       // Extract the generated token - Foreman returns 'token_value' field
       const tokenResponse = tokenData as TokenResponse;
-      const personalAccessToken = tokenResponse.token_value || 
+      const personalAccessToken = tokenResponse.token_value ||
                                  tokenResponse.token ||
                                  tokenResponse.personal_access_token?.token_value ||
                                  tokenResponse.personal_access_token?.token ||
                                  tokenResponse.data?.token_value ||
                                  tokenResponse.data?.token;
-                                 
+
       if (!personalAccessToken) {
         console.error('Failed to extract token from response:', tokenData);
         throw new Error(`Failed to generate authentication token. Response structure: ${JSON.stringify(tokenData)}`);
       }
-      
-      
+
+
       // Store the token immediately for logout purposes
       localStorage.setItem('foreman_auth_token', personalAccessToken);
       // Also store token metadata for easier revocation
       localStorage.setItem('foreman_auth_token_id', tokenResponse.id.toString());
       localStorage.setItem('foreman_auth_user_id', userResponse.id.toString());
-      
+
       // Use the actual user data from the API response
       const user: User = {
         id: userResponse.id,
@@ -78,13 +78,13 @@ export class AuthAPI {
         organizations: userResponse.organizations || [],
         locations: userResponse.locations || []
       };
-      
+
       // Return the user data with the generated Personal Access Token
       const authData = {
         user,
         token: personalAccessToken // Real Foreman Personal Access Token
       };
-      
+
       return authData;
     } catch (error: unknown) {
       const axiosError = error as AxiosErrorResponse;
@@ -96,7 +96,7 @@ export class AuthAPI {
         url: axiosError.config?.url,
         method: axiosError.config?.method
       });
-      
+
       // Provide better error messages based on response status
       if (axiosError.response?.status === 401) {
         throw new Error('Invalid username or password. Please try again.');
@@ -123,14 +123,14 @@ export class AuthAPI {
   async logout(): Promise<void> {
     // Set logout flag to prevent redirects during token revocation
     this.client.setLoggingOut(true);
-    
+
     try {
       // Get the current token and metadata to revoke it
       const token = localStorage.getItem('foreman_auth_token');
       const tokenId = localStorage.getItem('foreman_auth_token_id');
       const userId = localStorage.getItem('foreman_auth_user_id');
-      
-      
+
+
       if (token && tokenId && userId) {
         try {
           // Use stored metadata for direct token revocation
@@ -139,12 +139,12 @@ export class AuthAPI {
           // Fallback: Search for token in user's token list
           try {
             const tokensResponse = await this.client.get(`/users/${userId}/personal_access_tokens`);
-            
+
             const tokensData = tokensResponse as { results?: TokenResponse[] };
-            const currentTokenData = tokensData.results?.find((t: TokenResponse) => 
+            const currentTokenData = tokensData.results?.find((t: TokenResponse) =>
               t.token_value === token || t.token === token || t.name?.includes('Foreman UI')
             );
-            
+
             if (currentTokenData) {
               await this.client.delete(`/users/${userId}/personal_access_tokens/${currentTokenData.id}`);
             }
@@ -158,14 +158,14 @@ export class AuthAPI {
           const currentUser = await this.client.get('/current_user');
           const userData = currentUser as User;
           const currentUserId = userData.id;
-          
+
           if (currentUserId) {
             const tokensResponse = await this.client.get(`/users/${currentUserId}/personal_access_tokens`);
             const tokensData = tokensResponse as { results?: TokenResponse[] };
-            const currentTokenData = tokensData.results?.find((t: TokenResponse) => 
+            const currentTokenData = tokensData.results?.find((t: TokenResponse) =>
               t.token_value === token || t.token === token || t.name?.includes('Foreman UI')
             );
-            
+
             if (currentTokenData) {
               await this.client.delete(`/users/${currentUserId}/personal_access_tokens/${currentTokenData.id}`);
             }
@@ -194,16 +194,16 @@ export class AuthAPI {
     if (!storedToken) {
       throw new Error('No stored token');
     }
-    
+
     // Create client with the Personal Access Token
     const tokenClient = new ForemanAPIClient({
       baseURL: this.client.baseURL,
       token: storedToken
     });
-    
+
     // Test if the stored token still works by calling /current_user
     const userResponse = await tokenClient.get<User>('/current_user');
-    
+
     // Return the actual user data from the API response
     return {
       id: userResponse.id,
@@ -229,10 +229,10 @@ export class AuthAPI {
   async loginWithToken(token: string): Promise<User> {
     this.client.setToken(token);
     localStorage.setItem('foreman_auth_token', token);
-    
+
     // Verify token works by fetching current user info
     const userResponse = await this.client.get<User>('/current_user');
-    
+
     // Return the actual user data from the API response
     return {
       id: userResponse.id,

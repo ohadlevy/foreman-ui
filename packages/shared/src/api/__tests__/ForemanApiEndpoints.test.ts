@@ -29,7 +29,7 @@ describe('Foreman API Endpoints', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(mockedAxios.create).mockReturnValue(mockAxiosInstance);
-    
+
     client = new ForemanAPIClient({
       baseURL: '/api/v2',
       username: 'testuser',

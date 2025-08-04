@@ -31,7 +31,7 @@ describe('AuthStore', () => {
   describe('initial state', () => {
     it('should have correct initial state', () => {
       const state = useAuthStore.getState();
-      
+
       expect(state.user).toBeNull();
       expect(state.token).toBeNull();
       expect(state.isAuthenticated).toBe(false);
@@ -201,18 +201,18 @@ describe('AuthStore', () => {
       act(() => {
         useAuthStore.getState().setUser(null);
       });
-      
+
       expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(false);
       expect(useAuthStore.getState().hasPermission('view_hosts', 'Host')).toBe(false);
     });
 
     it('should handle empty user objects gracefully', () => {
       const emptyUser = {};
-      
+
       act(() => {
         useAuthStore.getState().setUser(emptyUser as unknown as User);
       });
-      
+
       // Should not crash and should return false
       expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(false);
     });
@@ -231,11 +231,11 @@ describe('AuthStore', () => {
         organizations: [],
         locations: []
       };
-      
+
       act(() => {
         useAuthStore.getState().setUser(userWithoutRoles as unknown as User);
       });
-      
+
       // Should not crash and should return false
       expect(useAuthStore.getState().hasPermission('view_hosts')).toBe(false);
     });

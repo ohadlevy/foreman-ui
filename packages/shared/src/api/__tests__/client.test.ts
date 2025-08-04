@@ -49,7 +49,7 @@ describe('ForemanAPIClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(mockedAxios.create).mockReturnValue(mockAxiosInstance);
-    
+
     client = new ForemanAPIClient({
       baseURL: '/api/v2',
       timeout: 30000,
@@ -110,7 +110,7 @@ describe('ForemanAPIClient', () => {
     it('should clear token and localStorage', () => {
       client.setToken('test-token');
       client.clearToken();
-      
+
       expect(client.getToken()).toBeUndefined();
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('foreman_auth_token');
     });
@@ -127,7 +127,7 @@ describe('ForemanAPIClient', () => {
 
     it('should make GET request', async () => {
       const result = await client.get('/test');
-      
+
       expect(mockAxiosInstance.get).toHaveBeenCalledWith('/test', undefined);
       expect(result).toEqual({ result: 'success' });
     });
@@ -135,14 +135,14 @@ describe('ForemanAPIClient', () => {
     it('should make GET request with config', async () => {
       const config = { params: { page: 1 } };
       await client.get('/test', config);
-      
+
       expect(mockAxiosInstance.get).toHaveBeenCalledWith('/test', config);
     });
 
     it('should make POST request', async () => {
       const data = { name: 'test' };
       const result = await client.post('/test', data);
-      
+
       expect(mockAxiosInstance.post).toHaveBeenCalledWith('/test', data, undefined);
       expect(result).toEqual({ result: 'created' });
     });
@@ -150,7 +150,7 @@ describe('ForemanAPIClient', () => {
     it('should make PUT request', async () => {
       const data = { name: 'updated' };
       const result = await client.put('/test/1', data);
-      
+
       expect(mockAxiosInstance.put).toHaveBeenCalledWith('/test/1', data, undefined);
       expect(result).toEqual({ result: 'updated' });
     });
@@ -158,14 +158,14 @@ describe('ForemanAPIClient', () => {
     it('should make PATCH request', async () => {
       const data = { name: 'patched' };
       const result = await client.patch('/test/1', data);
-      
+
       expect(mockAxiosInstance.patch).toHaveBeenCalledWith('/test/1', data, undefined);
       expect(result).toEqual({ result: 'patched' });
     });
 
     it('should make DELETE request', async () => {
       const result = await client.delete('/test/1');
-      
+
       expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/test/1', undefined);
       expect(result).toEqual({ result: 'deleted' });
     });
@@ -181,11 +181,11 @@ describe('ForemanAPIClient', () => {
           per_page: 20,
         }
       };
-      
+
       mockAxiosInstance.get.mockResolvedValue(mockResponse);
-      
+
       const result = await client.getPaginated('/hosts', { page: 1, per_page: 20 });
-      
+
       expect(mockAxiosInstance.get).toHaveBeenCalledWith('/hosts', {
         params: { page: 1, per_page: 20 }
       });
@@ -206,11 +206,11 @@ describe('ForemanAPIClient', () => {
           }
         }
       };
-      
+
       vi.mocked(mockedAxios.isAxiosError).mockReturnValue(true);
-      
+
       const result = client.handleError(axiosError);
-      
+
       expect(result).toEqual({
         error: {
           message: 'Not found',
@@ -227,11 +227,11 @@ describe('ForemanAPIClient', () => {
           data: {}
         }
       };
-      
+
       vi.mocked(mockedAxios.isAxiosError).mockReturnValue(true);
-      
+
       const result = client.handleError(axiosError);
-      
+
       expect(result).toEqual({
         error: {
           message: 'Network Error',
@@ -243,9 +243,9 @@ describe('ForemanAPIClient', () => {
     it('should handle non-axios error', () => {
       const error = new Error('Generic error');
       vi.mocked(mockedAxios.isAxiosError).mockReturnValue(false);
-      
+
       const result = client.handleError(error);
-      
+
       expect(result).toEqual({
         error: {
           message: 'Generic error'
@@ -255,9 +255,9 @@ describe('ForemanAPIClient', () => {
 
     it('should handle unknown error', () => {
       vi.mocked(mockedAxios.isAxiosError).mockReturnValue(false);
-      
+
       const result = client.handleError('string error');
-      
+
       expect(result).toEqual({
         error: {
           message: 'An unknown error occurred'
@@ -272,7 +272,7 @@ describe('createDefaultClient', () => {
     vi.clearAllMocks();
     resetDefaultClient();
     localStorageMock.getItem.mockReturnValue(null);
-    
+
     // Mock environment
     process.env.REACT_APP_API_URL = '/api/v2';
   });
@@ -286,7 +286,7 @@ describe('createDefaultClient', () => {
     } as any);
 
     createDefaultClient();
-    
+
     expect(mockedAxios.create).toHaveBeenCalledWith({
       baseURL: '/api/v2',
       timeout: 30000,
@@ -313,7 +313,7 @@ describe('createDefaultClient', () => {
 
     const client1 = createDefaultClient();
     const client2 = createDefaultClient();
-    
+
     expect(client1).toBe(client2);
     expect(mockedAxios.create).toHaveBeenCalledTimes(1);
   });
@@ -336,20 +336,20 @@ describe('createDefaultClient', () => {
         response: { use: vi.fn() },
       }
     } as unknown as AxiosInstance;
-    
+
     vi.mocked(mockedAxios.create).mockReturnValue(mockAxiosInstance);
 
     // First call with initial token
     localStorageMock.getItem.mockReturnValue('initial-token');
     const client1 = createDefaultClient();
-    
+
     // Spy on the setToken method of the actual client instance
     const setTokenSpy = vi.spyOn(client1, 'setToken');
-    
+
     // Second call with different token - should update existing client instance
     localStorageMock.getItem.mockReturnValue('new-token');
     const client2 = createDefaultClient();
-    
+
     // Should be same instance
     expect(client1).toBe(client2);
     // Should update token on the existing instance
@@ -374,20 +374,20 @@ describe('createDefaultClient', () => {
         response: { use: vi.fn() },
       }
     } as unknown as AxiosInstance;
-    
+
     vi.mocked(mockedAxios.create).mockReturnValue(mockAxiosInstance);
 
     // First call with token
     localStorageMock.getItem.mockReturnValue('existing-token');
     const client1 = createDefaultClient();
-    
+
     // Spy on the clearToken method of the actual client instance
     const clearTokenSpy = vi.spyOn(client1, 'clearToken');
 
     // Second call with no token - should clear token on existing client instance
     localStorageMock.getItem.mockReturnValue(null);
     const client2 = createDefaultClient();
-    
+
     // Should be same instance
     expect(client1).toBe(client2);
     // Should clear token on the existing instance
@@ -404,12 +404,12 @@ describe('createDefaultClient', () => {
     } as any);
 
     createDefaultClient();
-    
+
     // Change environment
     process.env.REACT_APP_API_URL = '/api/v3';
-    
+
     createDefaultClient();
-    
+
     expect(mockedAxios.create).toHaveBeenCalledTimes(2);
   });
 });

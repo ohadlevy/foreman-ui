@@ -108,7 +108,7 @@ describe('Foreman Permissions and Roles', () => {
       const { hasPermission, isAdmin } = useAuthStore.getState();
 
       expect(isAdmin()).toBe(false);
-      
+
       // Manager should have host management permissions
       expect(hasPermission('view_hosts')).toBe(true);
       expect(hasPermission('create_hosts')).toBe(true);
@@ -116,7 +116,7 @@ describe('Foreman Permissions and Roles', () => {
       expect(hasPermission('destroy_hosts')).toBe(true);
       expect(hasPermission('view_hostgroups')).toBe(true);
       expect(hasPermission('view_reports')).toBe(true);
-      
+
       // But not user management
       expect(hasPermission('view_users')).toBe(false);
       expect(hasPermission('create_users')).toBe(false);
@@ -169,7 +169,7 @@ describe('Foreman Permissions and Roles', () => {
       expect(hasPermission('view_hostgroups')).toBe(true);
       expect(hasPermission('view_reports')).toBe(true);
       expect(hasPermission('view_organizations')).toBe(true);
-      
+
       // But no write permissions
       expect(hasPermission('create_hosts')).toBe(false);
       expect(hasPermission('edit_hosts')).toBe(false);
@@ -224,7 +224,7 @@ describe('Foreman Permissions and Roles', () => {
       expect(hasPermission('power_hosts')).toBe(true);
       expect(hasPermission('console_hosts')).toBe(true);
       expect(hasPermission('build_hosts')).toBe(true);
-      
+
       // But not other resources
       expect(hasPermission('view_users')).toBe(false);
       expect(hasPermission('view_organizations')).toBe(false);
@@ -275,7 +275,7 @@ describe('Foreman Permissions and Roles', () => {
       expect(hasPermission('view_config_reports')).toBe(true);
       expect(hasPermission('view_compliance_reports')).toBe(true);
       expect(hasPermission('view_audit_logs')).toBe(true);
-      
+
       // But no write permissions
       expect(hasPermission('create_hosts')).toBe(false);
       expect(hasPermission('edit_hosts')).toBe(false);
@@ -323,11 +323,11 @@ describe('Foreman Permissions and Roles', () => {
       expect(hasPermission('view_users', 'User')).toBe(true);
       expect(hasPermission('edit_hosts', 'Host')).toBe(true);
       expect(hasPermission('view_reports', 'Report')).toBe(true);
-      
+
       // Test wrong resource type
       expect(hasPermission('view_hosts', 'User')).toBe(false);
       expect(hasPermission('view_users', 'Host')).toBe(false);
-      
+
       // Test non-existent permissions
       expect(hasPermission('destroy_hosts', 'Host')).toBe(false);
       expect(hasPermission('create_users', 'User')).toBe(false);
@@ -394,7 +394,7 @@ describe('Foreman Permissions and Roles', () => {
       expect(hasPermission('edit_environments')).toBe(true);
       expect(hasPermission('view_puppetclasses')).toBe(true);
       expect(hasPermission('view_external_variables')).toBe(true);
-      
+
       // Should not have permissions not granted by any role
       expect(hasPermission('destroy_hosts')).toBe(false);
       expect(hasPermission('create_puppetclasses')).toBe(false);
