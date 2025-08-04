@@ -1,17 +1,24 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { UserLayout, FOREMAN_BRANDING, PluginRouter } from '@foreman/shared';
-import { Dashboard } from './pages/Dashboard';
-import { HostsList } from './pages/Hosts/HostsList';
-import { HostDetails } from './pages/Hosts/HostDetails';
-import { CreateHost } from './pages/Hosts/CreateHost';
-import { Profile } from './pages/Profile';
-import { Settings } from './pages/Settings';
-import { SystemStatus } from './pages/SystemStatus';
-import { SimpleLogin } from './pages/SimpleLogin';
-import { useAuth } from '@foreman/shared';
+import { FOREMAN_BRANDING, useAuth, ModeProvider } from '@foreman/shared';
+import { StandaloneLogin } from './pages/StandaloneLogin';
+import { UserApp } from './UserApp';
 import { pluginLoader } from './plugins/pluginLoader';
 
+// Import admin portal - for now, just show a placeholder
+const AdminApp = React.lazy(() => 
+  Promise.resolve({
+    default: () => (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h1>Admin Portal</h1>
+        <p>The admin portal is currently under development.</p>
+        <p>This will contain the full Foreman administrative interface.</p>
+      </div>
+    )
+  })
+);
+
+// App component that has access to auth context (wrapped by AuthProvider in main.tsx)
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -41,26 +48,42 @@ function App() {
   }
 
   if (!isAuthenticated) {
-    return <SimpleLogin />;
+    return <StandaloneLogin />;
   }
 
   return (
-    <UserLayout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/hosts" element={<HostsList />} />
-        <Route path="/hosts/new" element={<CreateHost />} />
-        <Route path="/hosts/:id" element={<HostDetails />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/system-status" element={<SystemStatus />} />
-        <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-        {/* Plugin Routes */}
-        <Route path="/*" element={<PluginRouter />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </UserLayout>
+    <ModeProvider>
+      <React.Suspense fallback={
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh'
+        }}>
+          <div>Loading...</div>
+        </div>
+      }>
+        <Routes>
+          {/* Default redirect to user mode */}
+          <Route path="/" element={<Navigate to="/user/dashboard" replace />} />
+          <Route path="/dashboard" element={<Navigate to="/user/dashboard" replace />} />
+          <Route path="/hosts" element={<Navigate to="/user/hosts" replace />} />
+          <Route path="/profile" element={<Navigate to="/user/profile" replace />} />
+          <Route path="/settings" element={<Navigate to="/user/settings" replace />} />
+          <Route path="/system-status" element={<Navigate to="/user/system-status" replace />} />
+          <Route path="/login" element={<Navigate to="/user/dashboard" replace />} />
+          
+          {/* User mode routes */}
+          <Route path="/user/*" element={<UserApp />} />
+          
+          {/* Admin mode routes */}
+          <Route path="/admin/*" element={<AdminApp />} />
+          
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/user/dashboard" replace />} />
+        </Routes>
+      </React.Suspense>
+    </ModeProvider>
   );
 }
 

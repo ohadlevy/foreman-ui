@@ -7,6 +7,8 @@ export const API_ENDPOINTS = {
   LOCATIONS: '/locations',
   AUTH: '/auth',
   DASHBOARD: '/dashboard',
+  SMART_PROXIES: '/smart_proxies',
+  SETTINGS: '/settings',
 } as const;
 
 // Host status constants

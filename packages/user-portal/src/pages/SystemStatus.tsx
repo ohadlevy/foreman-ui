@@ -198,13 +198,13 @@ export const SystemStatus: React.FC = () => {
             <Card>
               <CardTitle>
                 <Flex>
-                  <FlexItem>{getHealthIcon(systemHealth.overall)}</FlexItem>
+                  <FlexItem>{getHealthIcon(systemHealth?.overall || 0)}</FlexItem>
                   <FlexItem>
                     <Title headingLevel="h2" size="lg">Overall System Health</Title>
                   </FlexItem>
                   <FlexItem align={{ default: 'alignRight' }}>
-                    <Label color={getHealthColor(systemHealth.overall) === 'success' ? 'green' : getHealthColor(systemHealth.overall) === 'warning' ? 'orange' : 'red'}>
-                      {systemHealth.status.toUpperCase()} - {systemHealth.overall}%
+                    <Label color={getHealthColor(systemHealth?.overall || 0) === 'success' ? 'green' : getHealthColor(systemHealth?.overall || 0) === 'warning' ? 'orange' : 'red'}>
+                      {(systemHealth?.status || 'unknown').toUpperCase()} - {systemHealth?.overall || 0}%
                     </Label>
                   </FlexItem>
                 </Flex>
@@ -219,10 +219,10 @@ export const SystemStatus: React.FC = () => {
                           <Text component={TextVariants.small}>API Connection</Text>
                         </div>
                         <Progress 
-                          value={systemHealth.api} 
+                          value={systemHealth?.api || 0} 
                           measureLocation={ProgressMeasureLocation.outside}
-                          variant={getHealthColor(systemHealth.api)}
-                          aria-label={`API Connection health: ${systemHealth.api}%`}
+                          variant={getHealthColor(systemHealth?.api || 0)}
+                          aria-label={`API Connection health: ${systemHealth?.api || 0}%`}
                         />
                       </CardBody>
                     </Card>
@@ -235,10 +235,10 @@ export const SystemStatus: React.FC = () => {
                           <Text component={TextVariants.small}>Authentication</Text>
                         </div>
                         <Progress 
-                          value={systemHealth.auth} 
+                          value={systemHealth?.auth || 0} 
                           measureLocation={ProgressMeasureLocation.outside}
-                          variant={getHealthColor(systemHealth.auth)}
-                          aria-label={`Authentication health: ${systemHealth.auth}%`}
+                          variant={getHealthColor(systemHealth?.auth || 0)}
+                          aria-label={`Authentication health: ${systemHealth?.auth || 0}%`}
                         />
                       </CardBody>
                     </Card>
@@ -251,10 +251,10 @@ export const SystemStatus: React.FC = () => {
                           <Text component={TextVariants.small}>Extensions</Text>
                         </div>
                         <Progress 
-                          value={systemHealth.plugins} 
+                          value={systemHealth?.plugins || 0} 
                           measureLocation={ProgressMeasureLocation.outside}
-                          variant={getHealthColor(systemHealth.plugins)}
-                          aria-label={`Extensions health: ${systemHealth.plugins}%`}
+                          variant={getHealthColor(systemHealth?.plugins || 0)}
+                          aria-label={`Extensions health: ${systemHealth?.plugins || 0}%`}
                         />
                       </CardBody>
                     </Card>
@@ -466,41 +466,48 @@ export const SystemStatus: React.FC = () => {
                   </div>
                 ) : statuses && Object.keys(statuses).length > 0 ? (
                   <Grid hasGutter>
-                    {Object.entries(statuses).map(([key, statusItem]) => (
-                      <GridItem key={key} span={6} xl={4}>
-                        <Card isCompact>
-                          <CardBody>
-                            <Flex>
-                              <FlexItem>
-                                {statusItem.status === 'ok' ? (
-                                  <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
-                                ) : statusItem.status === 'warning' ? (
-                                  <ExclamationTriangleIcon style={{ color: 'var(--pf-global--warning-color--100)' }} />
-                                ) : (
-                                  <ExclamationTriangleIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
-                                )}
-                              </FlexItem>
-                              <FlexItem>
-                                <div>
-                                  <Text component={TextVariants.small}>{statusItem.label}</Text>
-                                  <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-                                    {statusItem.description || key}
-                                  </Text>
-                                </div>
-                              </FlexItem>
-                              <FlexItem align={{ default: 'alignRight' }}>
-                                <Label 
-                                  color={statusItem.status === 'ok' ? 'green' : statusItem.status === 'warning' ? 'orange' : 'red'}
-                                  isCompact
-                                >
-                                  {statusItem.status.toUpperCase()}
-                                </Label>
-                              </FlexItem>
-                            </Flex>
-                          </CardBody>
-                        </Card>
-                      </GridItem>
-                    ))}
+                    {Object.entries(statuses).map(([key, statusItem]) => {
+                      // Add null/undefined checks
+                      const status = statusItem?.status || 'unknown';
+                      const label = statusItem?.label || key;
+                      const description = statusItem?.description || 'No description available';
+                      
+                      return (
+                        <GridItem key={key} span={6} xl={4}>
+                          <Card isCompact>
+                            <CardBody>
+                              <Flex>
+                                <FlexItem>
+                                  {status === 'ok' ? (
+                                    <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
+                                  ) : status === 'warning' ? (
+                                    <ExclamationTriangleIcon style={{ color: 'var(--pf-global--warning-color--100)' }} />
+                                  ) : (
+                                    <ExclamationTriangleIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
+                                  )}
+                                </FlexItem>
+                                <FlexItem>
+                                  <div>
+                                    <Text component={TextVariants.small}>{label}</Text>
+                                    <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
+                                      {description}
+                                    </Text>
+                                  </div>
+                                </FlexItem>
+                                <FlexItem align={{ default: 'alignRight' }}>
+                                  <Label 
+                                    color={status === 'ok' ? 'green' : status === 'warning' ? 'orange' : 'red'}
+                                    isCompact
+                                  >
+                                    {status.toUpperCase()}
+                                  </Label>
+                                </FlexItem>
+                              </Flex>
+                            </CardBody>
+                          </Card>
+                        </GridItem>
+                      );
+                    })}
                   </Grid>
                 ) : (
                   <div style={{ textAlign: 'center', padding: '2rem' }}>

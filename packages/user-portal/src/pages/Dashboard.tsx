@@ -16,7 +16,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from '@patternfly/react-icons';
-import { useMyHosts, useCurrentUserData, usePermissions, DashboardWidgets } from '@foreman/shared';
+import { useMyHosts, useCurrentUserData, usePermissions } from '@foreman/shared';
 import { useNavigate } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
@@ -38,7 +38,7 @@ export const Dashboard: React.FC = () => {
     quickActions.push({
       title: 'Create New Host',
       description: 'Provision a new host from available templates',
-      onClick: () => navigate('/hosts/new'),
+      onClick: () => navigate('/user/hosts/new'),
     });
   }
 
@@ -46,7 +46,7 @@ export const Dashboard: React.FC = () => {
     quickActions.push({
       title: 'Manage Hosts',
       description: 'View and manage your existing hosts',
-      onClick: () => navigate('/hosts'),
+      onClick: () => navigate('/user/hosts'),
     });
   }
 
@@ -54,7 +54,7 @@ export const Dashboard: React.FC = () => {
   quickActions.push({
     title: 'Update Profile',
     description: 'Manage your account settings and preferences',
-    onClick: () => navigate('/profile'),
+    onClick: () => navigate('/user/profile'),
   });
 
   const statsCards = [
@@ -142,10 +142,10 @@ export const Dashboard: React.FC = () => {
         </PageSection>
       )}
 
-      {/* Plugin Dashboard Widgets */}
-      <PageSection>
+      {/* Plugin Dashboard Widgets - temporarily disabled due to i18next initialization issues */}
+      {/* <PageSection>
         <DashboardWidgets />
-      </PageSection>
+      </PageSection> */}
     </>
   );
 };

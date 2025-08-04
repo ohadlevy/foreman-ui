@@ -8,3 +8,5 @@ export * from './useNotifications';
 export * from './useStatus';
 export * from './usePing';
 export * from './useStatuses';
+export * from './useSmartProxies';
+export * from './useSettings';

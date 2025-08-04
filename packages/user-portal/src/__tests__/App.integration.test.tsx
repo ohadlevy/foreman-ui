@@ -12,6 +12,13 @@ const mockLogoutGlobal = vi.fn();
 vi.mock('@foreman/shared', () => {
   return {
     useAuth: vi.fn(),
+    useAuthStore: vi.fn(() => ({
+      isAuthenticated: false,
+      user: null,
+      token: null,
+      login: vi.fn(),
+      logout: vi.fn(),
+    })),
     UserLayout: vi.fn(({ children }) => (
       <div data-testid="user-layout">
         <button data-testid="logout-button" onClick={mockLogoutGlobal}>
@@ -35,8 +42,14 @@ vi.mock('@foreman/shared', () => {
         secondary: '#0187b6',
       }
     },
+    FOREMAN_URLS: {
+      website: 'https://theforeman.org',
+      documentation: 'https://theforeman.org/manuals',
+      community: 'https://theforeman.org/support',
+    },
     AuthProvider: vi.fn(({ children }) => <div data-testid="auth-provider">{children}</div>),
     ErrorBoundary: vi.fn(({ children }) => <div data-testid="error-boundary">{children}</div>),
+    ModeProvider: vi.fn(({ children }) => <div data-testid="mode-provider">{children}</div>),
   };
 });
 

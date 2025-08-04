@@ -35,6 +35,7 @@ import { usePluginMenuItems } from '../../plugins/hooks';
 import { hasPluginPermissions } from '../../plugins/utils';
 import { ForemanBrand } from '../Branding';
 import { NotificationBell, NotificationDrawer } from '../Notifications';
+import { ModeSwitcher } from '../ModeSwitcher';
 
 interface UserLayoutProps {
   children: ReactNode;
@@ -74,19 +75,19 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
   const navigation = (
     <Nav>
       <NavList>
-        <NavItem isActive={location.pathname === '/dashboard'}>
-          <Link to="/dashboard">Dashboard</Link>
+        <NavItem isActive={location.pathname === '/user/dashboard'}>
+          <Link to="/user/dashboard">Dashboard</Link>
         </NavItem>
         {canViewHosts() && (
-          <NavItem isActive={location.pathname.startsWith('/hosts')}>
-            <Link to="/hosts">My Hosts</Link>
+          <NavItem isActive={location.pathname.startsWith('/user/hosts')}>
+            <Link to="/user/hosts">My Hosts</Link>
           </NavItem>
         )}
-        <NavItem isActive={location.pathname === '/profile'}>
-          <Link to="/profile">Profile</Link>
+        <NavItem isActive={location.pathname === '/user/profile'}>
+          <Link to="/user/profile">Profile</Link>
         </NavItem>
-        <NavItem isActive={location.pathname === '/system-status'}>
-          <Link to="/system-status">System Status</Link>
+        <NavItem isActive={location.pathname === '/user/system-status'}>
+          <Link to="/user/system-status">System Status</Link>
         </NavItem>
         
         {/* Plugin Menu Items */}
@@ -111,14 +112,14 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
       <DropdownItem 
         key="profile"
         icon={<UserIcon />}
-        onClick={() => navigate('/profile')}
+        onClick={() => navigate('/user/profile')}
       >
         Profile
       </DropdownItem>
       <DropdownItem 
         key="settings"
         icon={<CogIcon />}
-        onClick={() => navigate('/settings')}
+        onClick={() => navigate('/user/settings')}
       >
         Settings
       </DropdownItem>
@@ -136,6 +137,9 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     <Toolbar id="toolbar" isFullHeight>
       <ToolbarContent>
         <ToolbarGroup align={{ default: 'alignRight' }}>
+          <ToolbarItem>
+            <ModeSwitcher />
+          </ToolbarItem>
           <ToolbarItem>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <NotificationBell />

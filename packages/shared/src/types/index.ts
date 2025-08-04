@@ -96,6 +96,33 @@ export interface Location {
   ancestry?: string;
 }
 
+export interface SmartProxy {
+  id: number;
+  name: string;
+  url: string;
+  features: SmartProxyFeature[];
+  version?: string;
+  last_report?: string;
+  created_at: string;
+  updated_at: string;
+  organizations: Organization[];
+  locations: Location[];
+}
+
+export interface SmartProxyFeature {
+  id: number;
+  name: string;
+  capabilities: string[];
+  settings?: Record<string, unknown>;
+}
+
+export interface SmartProxyStatus {
+  proxy_id: number;
+  status: 'working' | 'failed' | 'pending';
+  message?: string;
+  last_check?: string;
+}
+
 // API Response types
 export interface ApiResponse<T> {
   total: number;
@@ -212,6 +239,13 @@ export interface UserFormData {
   password_confirmation?: string;
   admin?: boolean;
   role_ids?: number[];
+  organization_ids?: number[];
+  location_ids?: number[];
+}
+
+export interface SmartProxyFormData {
+  name: string;
+  url: string;
   organization_ids?: number[];
   location_ids?: number[];
 }

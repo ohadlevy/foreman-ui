@@ -3,3 +3,5 @@ export * from './hosts';
 export * from './users';
 export * from './auth';
 export * from './status';
+export * from './smartProxies';
+export * from './settings';
