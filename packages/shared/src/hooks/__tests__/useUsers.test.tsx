@@ -62,7 +62,7 @@ describe('useUsers', () => {
 
     // Re-render will call hasPermission again (no memoization)
     rerender();
-    
+
     // hasPermission should be called again on re-render
     expect(mockHasPermission).toHaveBeenCalledTimes(2);
   });

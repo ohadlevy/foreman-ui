@@ -3,3 +3,7 @@ export * from './hosts';
 export * from './users';
 export * from './auth';
 export * from './status';
+export * from './hostgroups';
+export * from './smartproxies';
+export * from './registration';
+export * from './registrationForm';

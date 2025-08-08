@@ -216,6 +216,57 @@ export interface UserFormData {
   location_ids?: number[];
 }
 
+// Host registration types
+export interface RegistrationParams {
+  hostgroup_id?: number;
+  smart_proxy_id?: number;
+  organization_id?: number;
+  location_id?: number;
+  insecure?: boolean;
+}
+
+export interface GeneratedRegistrationCommand {
+  script: string; // The actual script content from Foreman
+  parameters: RegistrationParams;
+}
+
+// Host Groups types
+export interface HostGroup {
+  id: number;
+  name: string;
+  title: string;
+  description?: string;
+  puppet_class_ids?: number[];
+  environment_id?: number;
+  operatingsystem_id?: number;
+  architecture_id?: number;
+  medium_id?: number;
+  ptable_id?: number;
+  realm_id?: number;
+  subnet_id?: number;
+  domain_id?: number;
+  ancestry?: string;
+  parent_id?: number;
+  parent_name?: string;
+}
+
+// Smart Proxies types
+export interface SmartProxy {
+  id: number;
+  name: string;
+  url: string;
+  features?: Feature[];
+  version?: string;
+  expired_logs?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Feature {
+  id: number;
+  name: string;
+}
+
 // Export generated API types when available
 // Note: Run 'yarn generate-types' to create generated/api.ts
 // For now, we'll use a conditional export

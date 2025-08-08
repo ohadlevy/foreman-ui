@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 import { HostsList } from './pages/Hosts/HostsList';
 import { HostDetails } from './pages/Hosts/HostDetails';
 import { CreateHost } from './pages/Hosts/CreateHost';
+import { Registration } from './pages/Registration';
 import { Profile } from './pages/Profile';
 import { Settings } from './pages/Settings';
 import { SystemStatus } from './pages/SystemStatus';
@@ -52,6 +53,7 @@ function App() {
         <Route path="/hosts" element={<HostsList />} />
         <Route path="/hosts/new" element={<CreateHost />} />
         <Route path="/hosts/:id" element={<HostDetails />} />
+        <Route path="/register" element={<Registration />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/system-status" element={<SystemStatus />} />

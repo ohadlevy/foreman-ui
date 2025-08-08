@@ -45,7 +45,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-  const { canViewHosts } = usePermissions();
+  const { canViewHosts, canCreateHosts } = usePermissions();
   const pluginMenuItems = usePluginMenuItems();
 
   const [isNavOpen, setIsNavOpen] = React.useState(true);
@@ -81,6 +81,11 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
         {canViewHosts() && (
           <NavItem isActive={location.pathname.startsWith('/hosts')}>
             <Link to="/hosts">My Hosts</Link>
+          </NavItem>
+        )}
+        {canCreateHosts() && (
+          <NavItem isActive={location.pathname === '/register'}>
+            <Link to="/register">Register Host</Link>
           </NavItem>
         )}
         <NavItem isActive={location.pathname === '/profile'}>
