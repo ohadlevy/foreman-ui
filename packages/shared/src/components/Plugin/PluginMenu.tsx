@@ -1,7 +1,7 @@
 import React from 'react';
 import { Nav, NavItem, NavList } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../utils/useTranslation';
 import { usePluginMenuItems } from '../../plugins/hooks';
 import { useAuthStore } from '../../auth/store';
 import { filterMenuItemsByPermissions, buildMenuHierarchy } from '../../plugins/utils';

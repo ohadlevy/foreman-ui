@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../utils/useTranslation';
 import { pluginRegistry } from './registry';
 import {
   ForemanPlugin,

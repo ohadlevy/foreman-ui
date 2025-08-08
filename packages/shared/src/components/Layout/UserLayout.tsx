@@ -36,6 +36,7 @@ import { hasPluginPermissions } from '../../plugins/utils';
 import { ForemanBrand } from '../Branding';
 import { NotificationBell, NotificationDrawer } from '../Notifications';
 import { QuickNav } from '../QuickNav';
+import { SkipToContent } from './SkipToContent';
 
 interface UserLayoutProps {
   children: ReactNode;
@@ -211,7 +212,11 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
         header={header}
         sidebar={sidebar}
         isManagedSidebar
-        skipToContent={<a href="#main-content">Skip to content</a>}
+        skipToContent={
+          <SkipToContent href="#main-content">
+            Skip to content
+          </SkipToContent>
+        }
       >
         <div id="main-content">
           {children}

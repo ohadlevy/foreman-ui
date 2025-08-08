@@ -30,7 +30,7 @@ const createWrapper = () => {
     </QueryClientProvider>
   );
   QueryClientWrapper.displayName = 'QueryClientWrapper';
-  
+
   return QueryClientWrapper;
 };
 

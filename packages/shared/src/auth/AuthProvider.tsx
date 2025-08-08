@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, ReactNode, useRef } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
+import { useAuthStore } from './store';
+import { createDefaultClient } from '../api/client';
+import { UsersAPI } from '../api/users';
 import { AxiosErrorResponse } from '../types';
 
 interface AuthContextType {
@@ -21,10 +24,68 @@ const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
   requireAuth = false,
   requireAdmin = false
 }) => {
+  const authStore = useAuthStore();
+  const isCompleteRef = useRef(false);
+  const isInProgressRef = useRef(false);
+
+  // Perform token verification once at the top level
+  useEffect(() => {
+    const performTokenVerification = async () => {
+      // Prevent duplicate verification (especially in React.StrictMode)
+      if (isCompleteRef.current || isInProgressRef.current) {
+        return;
+      }
+
+      const storedToken = localStorage.getItem('foreman_auth_token');
+
+      // If no token exists, ensure we're logged out
+      if (!storedToken) {
+        authStore.logout();
+        isCompleteRef.current = true;
+        return;
+      }
+
+      // If we already have a user and are authenticated, don't re-verify
+      if (authStore.isAuthenticated && authStore.user) {
+        isCompleteRef.current = true;
+        return;
+      }
+
+      // Set loading immediately if we have a token to prevent login page flash
+      if (storedToken) {
+        authStore.setLoading(true);
+      }
+
+      // Mark as in progress to prevent duplicate calls
+      isInProgressRef.current = true;
+      try {
+        const apiClient = createDefaultClient();
+        const usersAPI = new UsersAPI(apiClient);
+        const user = await usersAPI.getCurrent();
+        authStore.login(user, storedToken);
+      } catch (error) {
+        console.warn('Stored token verification failed, logging out:', error);
+        authStore.logout();
+      } finally {
+        authStore.setLoading(false);
+        isInProgressRef.current = false;
+        isCompleteRef.current = true;
+      }
+    };
+
+    performTokenVerification();
+    
+    // Return cleanup function to reset refs on unmount
+    return () => {
+      isCompleteRef.current = false;
+      isInProgressRef.current = false;
+    };
+  }, []); // Only run once on mount
+
   const { isAuthenticated, isAdmin, isLoading, user } = useAuth();
 
-  const isInitialized = !isLoading;
-
+  // Only consider initialized after token verification is complete
+  const isInitialized = !isLoading && isCompleteRef.current;
 
   useEffect(() => {
     if (!isInitialized) return;

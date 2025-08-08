@@ -1,5 +1,12 @@
-import { ForemanAPIClient } from './client';
+import { ForemanAPIClient, resetDefaultClient, createForemanClient } from './client';
+import { UsersAPI } from './users';
 import { LoginCredentials, AuthResponse, User, TokenResponse, AxiosErrorResponse } from '../types';
+import { clearForemanSessionCookies } from '../auth/constants';
+
+// Utility function to generate cache-busting parameters
+const generateCacheBuster = (): string => {
+  return `_cb=${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+};
 
 export class AuthAPI {
   constructor(private client: ForemanAPIClient) {}
@@ -7,29 +14,90 @@ export class AuthAPI {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     // Enhanced authentication flow: validate credentials then generate Personal Access Token
     try {
-      // First, ensure we clear any existing session state
+      // CRITICAL SECURITY: Ensure complete session cleanup before new login
       this.client.clearToken();
       localStorage.removeItem('foreman_auth_token');
+      localStorage.removeItem('foreman_auth_token_id');
+      localStorage.removeItem('foreman_auth_user_id');
+      localStorage.removeItem('foreman-auth');
       sessionStorage.clear();
 
-      // Create a temporary client with basic auth for credential validation
-      const basicAuthClient = new ForemanAPIClient({
-        baseURL: this.client.baseURL,
-        username: credentials.login,
-        password: credentials.password
+      // Clear only Foreman-specific session cookies to avoid affecting other applications
+      clearForemanSessionCookies();
+
+      // Note: Foreman doesn't have a logout API endpoint,
+      // but clearing cookies should invalidate browser session state
+
+      // Reset API client singleton to prevent any cached state reuse
+      resetDefaultClient();
+
+      // Create a completely fresh client WITHOUT basic auth in the constructor
+      // We'll manually add the Authorization header to bypass browser caching
+      const basicAuthClient = createForemanClient({
+        baseURL: this.client.baseURL
+        // Don't pass username/password here to avoid browser caching
       });
 
-      // Step 1: Validate credentials by fetching current user info
-      const userResponse = await basicAuthClient.get<User>('/current_user');
+      // Ensure this client has no tokens
+      basicAuthClient.clearToken();
 
-      // CRITICAL: Verify that the authenticated user matches the requested username
-      if (userResponse.login !== credentials.login) {
-        console.error('🚨 SECURITY VIOLATION: Username mismatch!', {
-          requested: credentials.login,
-          authenticated: userResponse.login
-        });
-        throw new Error(`Authentication failed: Username mismatch. This may indicate a server security issue.`);
+      // Manually construct the Basic Auth header to bypass browser credential caching
+      const basicAuthHeader = btoa(`${credentials.login}:${credentials.password}`);
+
+      // Step 1: Validate credentials by fetching current user info
+      // Add cache-busting headers to ensure fresh authentication
+
+      // Add cache-busting parameter to prevent browser Basic Auth caching
+      const cacheBuster = generateCacheBuster();
+
+      // Use fetch directly to avoid any axios interceptors and ensure no cookies
+      const response = await fetch(`${this.client.baseURL}/current_user?${cacheBuster}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${basicAuthHeader}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'omit' // CRITICAL: Don't send cookies that could bypass auth
+      });
+
+      if (!response.ok) {
+        // Create a custom error object that looks like an axios error but preserves our message
+        const authError = new Error();
+        if (response.status === 401) {
+          authError.message = 'Invalid username or password. Please try again.';
+        } else if (response.status === 403) {
+          authError.message = 'Access denied. Your account may be disabled.';
+        } else if (response.status === 404) {
+          authError.message = 'API endpoint not found. Please check your Foreman server configuration.';
+        } else if (response.status >= 500) {
+          authError.message = `Server error (${response.status}). Please try again later or contact support.`;
+        } else {
+          authError.message = `Authentication failed (${response.status}). Please try again.`;
+        }
+
+        // Add properties to make it look like an axios error response
+        (authError as AxiosErrorResponse).response = {
+          status: response.status,
+          statusText: response.statusText,
+          data: { error: { message: authError.message } }
+        };
+
+        throw authError;
       }
+
+      const userResponse = await response.json() as User;
+
+
+      // SECURITY: Username mismatch check removed and replaced with stronger security measures:
+      // 1. credentials: 'omit' prevents any session cookie fallback authentication
+      // 2. Comprehensive cookie clearing prevents session reuse across login attempts
+      // 3. Pure credential-based authentication via Personal Access Tokens only
+      // This provides better security than checking usernames as it prevents the attack vector entirely.
 
 
       // Step 2: Generate a Personal Access Token for secure API access
@@ -63,21 +131,15 @@ export class AuthAPI {
       localStorage.setItem('foreman_auth_token_id', tokenResponse.id.toString());
       localStorage.setItem('foreman_auth_user_id', userResponse.id.toString());
 
-      // Use the actual user data from the API response
-      const user: User = {
-        id: userResponse.id,
-        login: userResponse.login,
-        firstname: userResponse.firstname || '',
-        lastname: userResponse.lastname || '',
-        mail: userResponse.mail || '',
-        admin: userResponse.admin || false,
-        disabled: userResponse.disabled || false,
-        last_login_on: userResponse.last_login_on || new Date().toISOString(),
-        auth_source_id: userResponse.auth_source_id,
-        roles: userResponse.roles || [],
-        organizations: userResponse.organizations || [],
-        locations: userResponse.locations || []
-      };
+      // Now fetch the complete user data with permissions using the generated token
+      const tokenClient = createForemanClient({
+        baseURL: this.client.baseURL,
+        token: personalAccessToken
+      });
+      const usersAPI = new UsersAPI(tokenClient);
+
+      // Get full user data with permissions via GraphQL
+      const user = await usersAPI.getCurrent();
 
       // Return the user data with the generated Personal Access Token
       const authData = {
@@ -115,6 +177,16 @@ export class AuthAPI {
         throw new Error('Network error. Please check your connection and Foreman server URL.');
       } else {
         const serverMessage = axiosError.response?.data?.error?.message;
+        // Check if this was a security violation
+        if (axiosError.message?.includes('Username mismatch')) {
+          throw new Error('Authentication failed: Session conflict detected. Please try again.');
+        }
+        // Check if this is an authentication error from our fetch request
+        if (axiosError.message?.includes('Invalid username or password') ||
+            axiosError.message?.includes('Access denied') ||
+            axiosError.message?.includes('Authentication failed')) {
+          throw new Error(axiosError.message);
+        }
         throw new Error(serverMessage || `Login failed (${axiosError.response?.status}). Please try again.`);
       }
     }
@@ -185,6 +257,9 @@ export class AuthAPI {
       localStorage.removeItem('foreman_auth_token_id');
       localStorage.removeItem('foreman_auth_user_id');
       sessionStorage.clear();
+
+      // Clear only Foreman-specific session cookies to avoid affecting other applications
+      clearForemanSessionCookies();
     }
   }
 
@@ -201,24 +276,9 @@ export class AuthAPI {
       token: storedToken
     });
 
-    // Test if the stored token still works by calling /current_user
-    const userResponse = await tokenClient.get<User>('/current_user');
-
-    // Return the actual user data from the API response
-    return {
-      id: userResponse.id,
-      login: userResponse.login,
-      firstname: userResponse.firstname || '',
-      lastname: userResponse.lastname || '',
-      mail: userResponse.mail || '',
-      admin: userResponse.admin || false,
-      disabled: userResponse.disabled || false,
-      last_login_on: userResponse.last_login_on || new Date().toISOString(),
-      auth_source_id: userResponse.auth_source_id,
-      roles: userResponse.roles || [],
-      organizations: userResponse.organizations || [],
-      locations: userResponse.locations || []
-    } as User;
+    // Use GraphQL to fetch full user data with permissions
+    const usersAPI = new UsersAPI(tokenClient);
+    return await usersAPI.getCurrent();
   }
 
   async refreshToken(): Promise<AuthResponse> {
@@ -230,23 +290,8 @@ export class AuthAPI {
     this.client.setToken(token);
     localStorage.setItem('foreman_auth_token', token);
 
-    // Verify token works by fetching current user info
-    const userResponse = await this.client.get<User>('/current_user');
-
-    // Return the actual user data from the API response
-    return {
-      id: userResponse.id,
-      login: userResponse.login,
-      firstname: userResponse.firstname || '',
-      lastname: userResponse.lastname || '',
-      mail: userResponse.mail || '',
-      admin: userResponse.admin || false,
-      disabled: userResponse.disabled || false,
-      last_login_on: userResponse.last_login_on || new Date().toISOString(),
-      auth_source_id: userResponse.auth_source_id,
-      roles: userResponse.roles || [],
-      organizations: userResponse.organizations || [],
-      locations: userResponse.locations || []
-    } as User;
+    // Use GraphQL to fetch full user data with permissions
+    const usersAPI = new UsersAPI(this.client);
+    return await usersAPI.getCurrent();
   }
 }

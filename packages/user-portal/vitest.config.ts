@@ -7,6 +7,13 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['../shared/src/test-setup.ts'],
+    // Disable parallelization to prevent resource conflicts
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

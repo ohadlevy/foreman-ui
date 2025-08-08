@@ -31,15 +31,7 @@ export const useUser = (id: number, enabled = true) => {
   });
 };
 
-export const useCurrentUser = () => {
-  const { users } = useApi();
-
-  return useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => users.getCurrent(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-};
+// useCurrentUser hook removed - use useAuth() directly instead for better performance
 
 export const useCreateUser = () => {
   const { users } = useApi();
@@ -63,7 +55,7 @@ export const useUpdateUser = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['users', id] });
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      // Removed: No longer needed since we use auth store directly
     },
   });
 };
@@ -76,10 +68,10 @@ export const useUpdateCurrentUser = () => {
   return useMutation({
     mutationFn: (data: Partial<UserFormData>) => users.updateCurrent(data),
     onSuccess: (updatedUser) => {
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      // Removed: No longer needed since we use auth store directly
       queryClient.invalidateQueries({ queryKey: ['verifyToken'] });
       // Update the cache with the new user data immediately
-      queryClient.setQueryData(['currentUser'], updatedUser);
+      // Removed: No longer needed since we use auth store directly
       // Also update the auth store
       setUser(updatedUser);
     },

@@ -21,13 +21,13 @@ import {
 } from '@patternfly/react-core';
 import {
   useGenerateRegistrationCommand,
-  useCurrentUserData,
   useRegistrationFormData,
-  RegistrationParams
+  RegistrationParams,
+  useAuth
 } from '@foreman/shared';
 
 export const Registration: React.FC = () => {
-  const { data: user } = useCurrentUserData();
+  const { user } = useAuth();
   const generateCommand = useGenerateRegistrationCommand();
   const { data: registrationFormData, isLoading: formDataLoading, error: formDataError } = useRegistrationFormData();
   

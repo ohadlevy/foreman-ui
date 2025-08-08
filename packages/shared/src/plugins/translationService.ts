@@ -81,16 +81,10 @@ export class PluginTranslationService {
       return {};
     }
 
-    try {
-      // TODO: Implement actual remote translation loading
-      // This would typically fetch from Foreman's /api/translations endpoint
-      // For now, return empty object to use fallback translations
-      console.debug(`Remote translation loading not yet implemented for URL: ${i18nConfig.translationUrl}`);
-      return {};
-    } catch (error) {
-      console.warn('Failed to load remote translations, using fallback:', error);
-      return {};
-    }
+    // TODO: Implement actual remote translation loading
+    // This would typically fetch from Foreman's /api/translations endpoint
+    // For now, return empty object to use fallback translations
+    return {};
   }
 
   /**

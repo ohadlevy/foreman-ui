@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
-import { beforeEach, vi } from 'vitest';
+import { beforeEach, afterEach, vi } from 'vitest';
+import { cleanup } from '@testing-library/react';
 
 // Mock environment variables
 process.env.REACT_APP_API_URL = '/api/v2';
@@ -31,4 +32,13 @@ Object.defineProperty(window, 'location', {
 beforeEach(() => {
   vi.clearAllMocks();
   localStorageMock.getItem.mockReturnValue(null);
+});
+
+// Clean up after each test
+afterEach(() => {
+  cleanup();
+  // Clear any pending timers
+  vi.clearAllTimers();
+  // Clear all mocks
+  vi.clearAllMocks();
 });

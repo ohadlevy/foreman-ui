@@ -11,7 +11,7 @@ vi.mock('@foreman/shared', () => ({
   usePluginLoadState: vi.fn(),
   usePluginDashboardWidgets: vi.fn(),
   usePluginMenuItems: vi.fn(),
-  useCurrentUserData: vi.fn(),
+  useAuth: vi.fn(),
   useStatus: vi.fn(),
   usePing: vi.fn(),
   useStatuses: vi.fn(),
@@ -139,8 +139,8 @@ describe('SystemStatus', () => {
     });
     mockHooks.usePluginDashboardWidgets.mockReturnValue([]);
     mockHooks.usePluginMenuItems.mockReturnValue([]);
-    mockHooks.useCurrentUserData.mockReturnValue({
-      data: {
+    mockHooks.useAuth.mockReturnValue({
+      user: {
         id: 1,
         login: 'test',
         admin: false,
@@ -150,9 +150,17 @@ describe('SystemStatus', () => {
         organizations: [],
         locations: []
       },
+      isAuthenticated: true,
       isLoading: false,
       error: null,
-      isSuccess: true
+      login: vi.fn(),
+      loginWithToken: vi.fn(),
+      logout: vi.fn(),
+      clearError: vi.fn(),
+      hasPermission: vi.fn(),
+      isAdmin: vi.fn(),
+      isLoginLoading: false,
+      isLogoutLoading: false,
     });
     mockHooks.useStatus.mockReturnValue(createStatusMock({
       data: { version: '3.12.1', api_version: 2 },

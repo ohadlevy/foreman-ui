@@ -16,7 +16,8 @@ vi.mock('../../api/client', () => ({
     setToken: vi.fn(),
     clearToken: vi.fn(),
     setLoggingOut: vi.fn(),
-  }))
+  })),
+  resetDefaultClient: vi.fn(),
 }));
 
 // Mock AuthAPI
