@@ -3,12 +3,14 @@ import { useCallback } from 'react';
 import { notificationAPI } from '../api/notifications';
 import { useNotificationStore } from '../stores/notificationStore';
 import { useAuth } from '../auth/useAuth';
+import { useWindowFocus } from './useWindowFocus';
 
 const NOTIFICATIONS_QUERY_KEY = ['notifications'];
 const POLLING_INTERVAL = 30000; // 30 seconds
 
 export const useNotifications = () => {
   const { isAuthenticated } = useAuth();
+  const isWindowFocused = useWindowFocus();
   const {
     setNotifications,
     setLoading,
@@ -37,8 +39,8 @@ export const useNotifications = () => {
       }
     },
     enabled: isAuthenticated,
-    refetchInterval: POLLING_INTERVAL,
-    refetchIntervalInBackground: true,
+    refetchInterval: isWindowFocused ? POLLING_INTERVAL : false,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     staleTime: 10000, // 10 seconds
   });
