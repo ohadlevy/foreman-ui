@@ -1,24 +1,35 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  let backendUrl = 'http://localhost:3000';
+  if (env.REACT_APP_API_URL) {
+    try {
+      backendUrl = new URL(env.REACT_APP_API_URL).origin;
+    } catch (error) {
+      console.warn('Invalid REACT_APP_API_URL format, falling back to localhost:3000:', error);
+    }
+  }
+
+  return {
   plugins: [react()],
   server: {
     port: 3001,
-    host: true,
+    host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: backendUrl,
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             // Set headers to match Foreman's expectations
-            proxyReq.setHeader('Origin', 'http://localhost:3000');
-            proxyReq.setHeader('Host', 'localhost:3000');
-            proxyReq.setHeader('Referer', 'http://localhost:3000/');
-
+            proxyReq.setHeader('Origin', backendUrl);
+            proxyReq.setHeader('Host', new URL(backendUrl).host);
+            proxyReq.setHeader('Referer', backendUrl + '/');
+           
             // Ensure proper CORS headers for authentication
             if (req.headers.authorization) {
               proxyReq.setHeader('Authorization', req.headers.authorization);
@@ -38,15 +49,15 @@ export default defineConfig({
         },
       },
       '/notification_recipients': {
-        target: 'http://localhost:3000',
+        target: backendUrl,
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             // Set headers to match Foreman's expectations
-            proxyReq.setHeader('Origin', 'http://localhost:3000');
-            proxyReq.setHeader('Host', 'localhost:3000');
-            proxyReq.setHeader('Referer', 'http://localhost:3000/');
+            proxyReq.setHeader('Origin', backendUrl);
+            proxyReq.setHeader('Host', new URL(backendUrl).host);
+            proxyReq.setHeader('Referer', backendUrl + '/');
 
             // Ensure proper CORS headers for authentication
             if (req.headers.authorization) {
@@ -80,4 +91,5 @@ export default defineConfig({
   define: {
     'process.env': {},
   },
+  };
 });
