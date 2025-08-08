@@ -1,6 +1,6 @@
 import React from 'react';
 import { Grid, GridItem, Card, CardTitle, CardBody } from '@patternfly/react-core';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../utils/useTranslation';
 import { usePluginDashboardWidgets } from '../../plugins/hooks';
 import { useAuthStore } from '../../auth/store';
 import { hasPluginPermissions } from '../../plugins/utils';

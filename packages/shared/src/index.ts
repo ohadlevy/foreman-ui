@@ -9,6 +9,9 @@ export * from './components';
 export * from './types';
 
 // Utils
+export * from './utils/useTranslation';
+
+// Utils
 export * from './utils';
 
 // Auth

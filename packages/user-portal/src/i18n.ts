@@ -22,7 +22,7 @@ const initI18n = async () => {
         },
         // Plugin translations will be added dynamically by the plugin system
         saveMissing: false,
-        debug: process.env.NODE_ENV === 'development',
+        debug: false, // Disable debug to reduce console noise
       });
   }
   return i18next;

@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { PluginMenu } from '../PluginMenu';
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
+// Mock our safe useTranslation wrapper
+vi.mock('../../../utils/useTranslation', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
     i18n: { changeLanguage: vi.fn() }

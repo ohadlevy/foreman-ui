@@ -12,10 +12,19 @@ vi.mock('@foreman/shared', () => ({
     isPending: false,
     error: null,
   }),
-  useCurrentUserData: () => ({
-    data: null,
+  useAuth: () => ({
+    user: null,
+    isAuthenticated: false,
     isLoading: false,
     error: null,
+    login: vi.fn(),
+    loginWithToken: vi.fn(),
+    logout: vi.fn(),
+    clearError: vi.fn(),
+    hasPermission: () => true,
+    isAdmin: vi.fn(),
+    isLoginLoading: false,
+    isLogoutLoading: false,
   }),
   useRegistrationFormData: () => ({
     data: {
@@ -30,9 +39,6 @@ vi.mock('@foreman/shared', () => ({
     },
     isLoading: false,
     error: null,
-  }),
-  useAuth: () => ({
-    hasPermission: () => true,
   }),
 }));
 

@@ -27,12 +27,12 @@ vi.mock('../registry', () => ({
   }
 }));
 
-// Mock react-i18next
-vi.mock('react-i18next', () => ({
-  useTranslation: vi.fn(() => ({
-    t: vi.fn((key: string) => key),
-    i18n: { language: 'en' }
-  }))
+// Mock our safe useTranslation wrapper
+vi.mock('../../utils/useTranslation', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { changeLanguage: vi.fn() }
+  })
 }));
 
 const mockPluginRegistry = pluginRegistry as any;

@@ -37,7 +37,7 @@ import {
   usePluginLoadState,
   usePluginDashboardWidgets,
   usePluginMenuItems,
-  useCurrentUserData,
+  useAuth,
   usePing,
   useStatuses,
   type ForemanStatuses,
@@ -175,7 +175,7 @@ export const SystemStatus: React.FC = () => {
   const loadState = usePluginLoadState();
   const dashboardWidgets = usePluginDashboardWidgets();
   const menuItems = usePluginMenuItems();
-  const { data: currentUser } = useCurrentUserData();
+  const { user: currentUser } = useAuth();
   const { data: ping, isLoading: pingLoading, error: pingError } = usePing();
   const { data: statuses, isLoading: statusesLoading, error: statusesError } = useStatuses();
 

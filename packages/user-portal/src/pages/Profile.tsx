@@ -21,16 +21,16 @@ import {
   Label,
 } from '@patternfly/react-core';
 import {
-  useCurrentUserData,
   useUpdateCurrentUser,
   useChangePassword,
   formatUserFriendlyDate,
   LoadingSpinner,
-  UserProfile
+  UserProfile,
+  useAuth
 } from '@foreman/shared';
 
 export const Profile: React.FC = () => {
-  const { data: user, isLoading } = useCurrentUserData();
+  const { user, isLoading } = useAuth();
   const updateUserMutation = useUpdateCurrentUser();
   const changePasswordMutation = useChangePassword();
 

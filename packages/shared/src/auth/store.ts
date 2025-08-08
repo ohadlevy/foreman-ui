@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User } from '../types';
+import { resetDefaultClient } from '../api/client';
+import { clearForemanSessionCookies } from './constants';
 
 interface AuthState {
   user: User | null;
@@ -98,6 +100,13 @@ export const useAuthStore = create<AuthStore>()(
         // Clear Zustand persisted state
         localStorage.removeItem('foreman-auth');
         sessionStorage.clear();
+
+        // Clear only Foreman-specific session cookies to avoid affecting other applications
+        clearForemanSessionCookies();
+
+        // CRITICAL: Reset API client singleton to prevent token reuse
+        resetDefaultClient();
+
       },
 
       hasPermission: (permission: string, resource?: string) => {
