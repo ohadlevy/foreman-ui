@@ -8,3 +8,7 @@ export * from './useNotifications';
 export * from './useStatus';
 export * from './usePing';
 export * from './useStatuses';
+export * from './useRegistration';
+export * from './useRegistrationFormData';
+export * from './useHostGroups';
+export * from './useSmartProxies';

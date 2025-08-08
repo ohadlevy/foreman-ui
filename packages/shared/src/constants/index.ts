@@ -5,9 +5,12 @@ export const API_ENDPOINTS = {
   ROLES: '/roles',
   ORGANIZATIONS: '/organizations',
   LOCATIONS: '/locations',
+  HOSTGROUPS: '/hostgroups',
+  SMART_PROXIES: '/smart_proxies',
   AUTH: '/auth',
   DASHBOARD: '/dashboard',
   GRAPHQL: '/api/graphql',
+  REGISTRATION_COMMANDS: '/registration_commands',
 } as const;
 
 // Host status constants

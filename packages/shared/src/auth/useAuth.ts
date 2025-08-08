@@ -16,7 +16,7 @@ export const useAuth = () => {
   // Simple token verification - only run once on mount and don't loop
   React.useEffect(() => {
     const storedToken = localStorage.getItem('foreman_auth_token');
-    
+
     // If no token exists, ensure we're logged out
     if (!storedToken) {
       authStore.logout();
@@ -30,10 +30,10 @@ export const useAuth = () => {
 
     // Only verify if we have a token but no user data yet
     let isMounted = true; // Track if component is still mounted
-    
+
     const verifyStoredToken = async () => {
       if (!isMounted) return; // Early exit if component unmounted
-      
+
       authStore.setLoading(true);
       try {
         const user = await authAPI.verifyToken();
