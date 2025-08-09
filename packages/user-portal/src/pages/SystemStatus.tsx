@@ -39,9 +39,11 @@ import {
   usePluginMenuItems,
   useAuth,
   useStatuses,
+  pluginRegistry,
+  EXTENSION_POINTS,
   type ForemanStatusesResponse,
   type CacheStatus,
-  type ApiStatusData
+  type ApiStatusData,
 } from '@foreman/shared';
 
 // Status constants
@@ -118,13 +120,13 @@ const getApiStatus = (apiData?: ApiStatusData) => {
   if (apiData?.status) {
     return apiData.status === STATUS.OK ? STATUS.OK : STATUS.ERROR;
   }
-  
+
   // Without explicit status, check version availability as indicator of basic API functionality
   // Robust version validation - exclude invalid/placeholder values
   if (isValidVersion(apiData?.version)) {
     return STATUS.OK;
   }
-  
+
   // No status and no valid version indicates API is not accessible
   return STATUS.ERROR;
 };
@@ -137,20 +139,20 @@ const isValidVersion = (version?: string): boolean => {
   if (!version || typeof version !== 'string') {
     return false;
   }
-  
+
   const trimmedVersion = version.trim().toLowerCase();
-  
+
   // Empty or whitespace-only strings
   if (trimmedVersion.length === 0) {
     return false;
   }
-  
+
   // Common invalid/placeholder values
   const invalidValues = ['unknown', 'n/a', 'na', 'null', 'undefined', 'error', 'unavailable'];
   if (invalidValues.includes(trimmedVersion)) {
     return false;
   }
-  
+
   // Version should contain at least one digit or semantic version pattern
   return /\d/.test(trimmedVersion);
 };
@@ -282,6 +284,18 @@ export const SystemStatus: React.FC = () => {
   const { user: currentUser } = useAuth();
   const { data: statuses, isLoading: statusesLoading, error: statusesError } = useStatuses();
 
+  // Memoize calculations to avoid unnecessary re-renders
+  // Note: pluginRegistry and EXTENSION_POINTS.HOST_TABLE_COLUMNS are static objects
+  const hostTableColumnPlugins = React.useMemo(() => 
+    pluginRegistry.getPluginsWithExtensions(EXTENSION_POINTS.HOST_TABLE_COLUMNS),
+    [plugins] // Only plugins array changes, registry and extension points are static
+  );
+
+  const totalExtensions = React.useMemo(() => 
+    plugins.reduce((total, plugin) => total + (plugin.componentExtensions?.length || 0), 0),
+    [plugins]
+  );
+
 
   // System health metrics based only on what we can observe
   const systemHealth = React.useMemo(() => {
@@ -358,11 +372,20 @@ export const SystemStatus: React.FC = () => {
     const plugin = plugins.find(p => p.name === pluginName);
     if (!plugin) return {};
 
+    // Count component extensions
+    const totalExtensions = plugin.componentExtensions?.length || 0;
+
+    // Count host table column extensions specifically
+    const hostColumnExtensions = plugin.componentExtensions?.filter(
+      ext => ext.extensionPoint === EXTENSION_POINTS.HOST_TABLE_COLUMNS
+    ).length || 0;
+
     return {
       dashboardWidgets: plugin.dashboardWidgets?.length || 0,
       menuItems: plugin.menuItems?.length || 0,
       routes: plugin.routes?.length || 0,
-      extensions: 0,
+      extensions: totalExtensions,
+      hostTableColumns: hostColumnExtensions,
     };
   };
 
@@ -494,7 +517,7 @@ export const SystemStatus: React.FC = () => {
               <CardTitle>Quick Statistics</CardTitle>
               <CardBody>
                 <Grid hasGutter>
-                  <GridItem span={3}>
+                  <GridItem span={2}>
                     <Card isCompact>
                       <CardBody>
                         <Text component={TextVariants.small}>Installed Extensions</Text>
@@ -504,7 +527,7 @@ export const SystemStatus: React.FC = () => {
                       </CardBody>
                     </Card>
                   </GridItem>
-                  <GridItem span={3}>
+                  <GridItem span={2}>
                     <Card isCompact>
                       <CardBody>
                         <Text component={TextVariants.small}>Working Extensions</Text>
@@ -514,7 +537,7 @@ export const SystemStatus: React.FC = () => {
                       </CardBody>
                     </Card>
                   </GridItem>
-                  <GridItem span={3}>
+                  <GridItem span={2}>
                     <Card isCompact>
                       <CardBody>
                         <Text component={TextVariants.small}>Extra Dashboard Items</Text>
@@ -524,12 +547,32 @@ export const SystemStatus: React.FC = () => {
                       </CardBody>
                     </Card>
                   </GridItem>
-                  <GridItem span={3}>
+                  <GridItem span={2}>
                     <Card isCompact>
                       <CardBody>
                         <Text component={TextVariants.small}>Additional Menu Items</Text>
                         <Title headingLevel="h3" size="2xl">
                           {menuItems.length}
+                        </Title>
+                      </CardBody>
+                    </Card>
+                  </GridItem>
+                  <GridItem span={2}>
+                    <Card isCompact>
+                      <CardBody>
+                        <Text component={TextVariants.small}>Plugin Host Columns</Text>
+                        <Title headingLevel="h3" size="2xl">
+                          {hostTableColumnPlugins.length}
+                        </Title>
+                      </CardBody>
+                    </Card>
+                  </GridItem>
+                  <GridItem span={2}>
+                    <Card isCompact>
+                      <CardBody>
+                        <Text component={TextVariants.small}>Total Extensions</Text>
+                        <Title headingLevel="h3" size="2xl">
+                          {totalExtensions}
                         </Title>
                       </CardBody>
                     </Card>
@@ -633,6 +676,12 @@ export const SystemStatus: React.FC = () => {
                                 <ListItem>
                                   <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}
                                   {features.extensions} Extension Point{(features.extensions || 0) !== 1 ? 's' : ''}
+                                </ListItem>
+                              )}
+                              {(features.hostTableColumns || 0) > 0 && (
+                                <ListItem>
+                                  <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}
+                                  {features.hostTableColumns} Host Table Column{(features.hostTableColumns || 0) !== 1 ? 's' : ''}
                                 </ListItem>
                               )}
                               {Object.values(features).every(v => v === 0) && (

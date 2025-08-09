@@ -25,6 +25,19 @@ export interface ExtensionComponentProps {
   extensionPoint?: string;
   [key: string]: unknown;
 }
+
+/**
+ * Props passed to host table column extension components
+ */
+export interface HostTableColumnProps extends ExtensionComponentProps {
+  host: {
+    id?: number;
+    name?: string;
+    enabled?: boolean;
+    build?: boolean;
+    [key: string]: unknown;
+  };
+}
 import { RouteObject } from 'react-router-dom';
 
 /**

@@ -50,7 +50,7 @@ export const SkipToContent: React.FC<SkipToContentProps> = ({ href, children }) 
   };
 
   const currentStyles = useMemo(() => {
-    return isFocused 
+    return isFocused
       ? { ...skipToContentStyles, ...focusedStyles }
       : skipToContentStyles;
   }, [isFocused]);

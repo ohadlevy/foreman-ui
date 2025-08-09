@@ -1,4 +1,5 @@
-import { pluginRegistry, ForemanPlugin } from '@foreman/shared';
+import React from 'react';
+import { pluginRegistry, ForemanPlugin, HostTableColumnProps, ExtensionComponentProps } from '@foreman/shared';
 
 /**
  * Plugin loader that discovers and registers plugins
@@ -153,6 +154,13 @@ export class PluginLoader {
       </div>
     );
 
+    // Demo host table column component
+    const DemoHostColumn: React.FC<HostTableColumnProps> = ({ host }) => (
+      <div style={{ color: '#06c', fontWeight: 'bold' }}>
+        🎯 Demo-{host?.id || 'N/A'}
+      </div>
+    );
+
     return {
       name: 'foreman_demo',
       version: '1.0.0',
@@ -192,6 +200,19 @@ export class PluginLoader {
         }
       ],
 
+      componentExtensions: [
+        {
+          extensionPoint: 'host-table-columns',
+          component: DemoHostColumn as React.ComponentType<ExtensionComponentProps>,
+          title: 'Demo Column',
+          order: 10,
+          props: {
+            key: 'demo_value',
+            label: 'Demo Value'
+          }
+        }
+      ],
+
       i18n: {
         domain: 'foreman_demo',
         defaultLocale: 'en',
@@ -218,6 +239,22 @@ export class PluginLoader {
       </div>
     );
 
+    // Monitoring host table column component
+    const MonitoringHostColumn: React.FC<HostTableColumnProps> = ({ host }) => {
+      // Simulate health status based on host data
+      const isHealthy = host?.enabled && !host?.build;
+      const status = isHealthy ? 'Healthy' : host?.build ? 'Building' : 'Unhealthy';
+      const color = isHealthy ? '#28a745' : host?.build ? '#ffc107' : '#dc3545';
+      const icon = isHealthy ? '🟢' : host?.build ? '🟡' : '🔴';
+
+      return (
+        <div style={{ color, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span>{icon}</span>
+          <span>{status}</span>
+        </div>
+      );
+    };
+
     return {
       name: 'foreman_monitoring',
       version: '1.0.0',
@@ -232,6 +269,19 @@ export class PluginLoader {
           title: 'System Status',
           component: StatusWidget,
           size: 'small'
+        }
+      ],
+
+      componentExtensions: [
+        {
+          extensionPoint: 'host-table-columns',
+          component: MonitoringHostColumn as React.ComponentType<ExtensionComponentProps>,
+          title: 'Health Status',
+          order: 5,
+          props: {
+            key: 'health_status',
+            label: 'Health Status'
+          }
         }
       ],
 

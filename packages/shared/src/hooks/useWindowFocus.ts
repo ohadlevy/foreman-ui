@@ -9,11 +9,11 @@ const getInitialFocusState = (): boolean => {
     if (typeof document === 'undefined') {
       return false;
     }
-    
+
     if (typeof document.hasFocus !== 'function') {
       return false;
     }
-    
+
     return document.hasFocus();
   } catch {
     return false;
@@ -23,8 +23,8 @@ const getInitialFocusState = (): boolean => {
 /**
  * Hook to track window focus state
  * Returns true when the window is focused, false when not focused
- * 
- * Uses document.hasFocus() for initial state (synchronous check) and 
+ *
+ * Uses document.hasFocus() for initial state (synchronous check) and
  * window focus/blur events for ongoing tracking (standard event pattern)
  */
 export const useWindowFocus = (): boolean => {

@@ -57,6 +57,58 @@ create_temp_file() {
     fi
 }
 
+# Set terminal title with worktree/branch information
+set_terminal_title() {
+    local workspace_dir="${1:-$(pwd)}"
+    local current_branch
+    local worktree_name
+    
+    # Create more descriptive worktree name using parent context for nested projects
+    local parent_dir
+    local base_dir
+    parent_dir=$(basename "$(dirname "$workspace_dir")")
+    base_dir=$(basename "$workspace_dir")
+    if [ "$parent_dir" != "." ] && [ "$parent_dir" != "/" ]; then
+        worktree_name="$parent_dir/$base_dir"
+    else
+        worktree_name="$base_dir"
+    fi
+    
+    # Get current branch with better handling for detached HEAD and error capture
+    local git_error
+    current_branch=$(git -C "$workspace_dir" branch --show-current 2>&1)
+    git_error=$?
+    
+    if [ $git_error -ne 0 ] || [ -z "$current_branch" ]; then
+        # Check if we're in detached HEAD state
+        if git -C "$workspace_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            current_branch="detached-head"
+        else
+            current_branch="unknown"
+        fi
+    fi
+    
+    # Create a descriptive title and sanitize it for terminal safety
+    local title="$worktree_name ($current_branch)"
+    # Remove format specifiers and control characters for terminal safety
+    title=$(printf '%s' "$title" | sed 's/%//g' | tr -c '[:alnum:][:space:]()/-_.' '_')
+    
+    # Set terminal title using ANSI escape sequence for setting terminal title (OSC 0)
+    # This works with most modern terminals (xterm, gnome-terminal, konsole, etc.)
+    if [ -n "$TERM" ] && [ "$TERM" != "dumb" ]; then
+        printf '\033]0;%s\007' "$title"
+    fi
+    
+    # Also set tmux window name if running in tmux with improved error handling
+    if [ -n "$TMUX" ]; then
+        if ! tmux rename-window "$title" 2>/dev/null; then
+            warn "Failed to set tmux window name to: $title (possible causes: session permissions, invalid characters, or tmux configuration)"
+        fi
+    fi
+    
+    log "Terminal title set to: $title"
+}
+
 
 # Sanitize directory path to prevent injection attacks
 sanitize_path() {
@@ -521,6 +573,10 @@ setup_worktree() {
     yarn build:shared
 
     log "Worktree ready at: $worktree_dir"
+    
+    # Set terminal title for the new worktree
+    set_terminal_title "$worktree_dir"
+    
     echo ""
     echo "To start development:"
     echo "  cd $worktree_dir"
@@ -535,6 +591,9 @@ start_dev() {
     local service="${2:-user}"
 
     log "Starting development environment in: $workspace_dir"
+    
+    # Set terminal title for this workspace
+    set_terminal_title "$workspace_dir"
 
     cd "$workspace_dir"
 
@@ -801,6 +860,7 @@ show_help() {
     echo "  cleanup                         - Clean up current worktree only (safe)"
     echo "  force-cleanup                   - Force cleanup ALL processes (DANGEROUS)"
     echo "  launch-browser [url]            - Launch browser with developer tools"
+    echo "  set-title [workspace]           - Set terminal title with worktree/branch info"
     echo "  monitor-autofix [workspace] [interval] - Continuous monitoring and auto-fixing"
     echo ""
     echo "Examples:"
@@ -851,6 +911,9 @@ main() {
             ;;
         "launch-browser")
             launch_browser_debug "$2"
+            ;;
+        "set-title")
+            set_terminal_title "$2"
             ;;
         "monitor-autofix")
             monitor_and_autofix "$2" "$3"
