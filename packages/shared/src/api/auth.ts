@@ -31,11 +31,14 @@ export class AuthAPI {
       // Reset API client singleton to prevent any cached state reuse
       resetDefaultClient();
 
-      // Create a completely fresh client WITHOUT basic auth in the constructor
-      // We'll manually add the Authorization header to bypass browser caching
+      // Create a completely fresh client WITH basic auth credentials
+      // This client will be used specifically for creating a Personal Access Token,
+      // which requires basic authentication with username/password credentials.
+      // Once the PAT is created, all subsequent API calls will use the token instead.
       const basicAuthClient = createForemanClient({
-        baseURL: this.client.baseURL
-        // Don't pass username/password here to avoid browser caching
+        baseURL: this.client.baseURL,
+        username: credentials.login,
+        password: credentials.password
       });
 
       // Ensure this client has no tokens
