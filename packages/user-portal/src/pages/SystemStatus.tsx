@@ -38,11 +38,17 @@ import {
   usePluginDashboardWidgets,
   usePluginMenuItems,
   useAuth,
-  usePing,
   useStatuses,
-  type ForemanStatuses,
-  type ForemanStatusItem
+  type ForemanStatusesResponse,
+  type CacheStatus,
+  type ApiStatusData
 } from '@foreman/shared';
+
+// Status constants
+const STATUS = {
+  OK: 'ok',
+  ERROR: 'error'
+} as const;
 
 // Health calculation constants
 // Weight distribution reflects impact on user experience:
@@ -55,22 +61,6 @@ const HEALTH_WEIGHTS = {
   AUTH: 0.1,    // Authentication is binary - either working or user can't see this page
 } as const;
 
-/**
- * Validates and filters status entries to ensure they are valid objects
- * Filters out null, undefined, arrays, empty objects, and non-objects
- */
-const getValidStatusEntries = (statuses: unknown): Array<[string, ForemanStatusItem]> => {
-  if (!statuses || typeof statuses !== 'object' || Array.isArray(statuses)) {
-    return [];
-  }
-
-  return Object.entries(statuses as ForemanStatuses).filter(([_key, statusItem]) =>
-    statusItem &&
-    typeof statusItem === 'object' &&
-    !Array.isArray(statusItem) &&
-    Object.keys(statusItem).length > 0
-  );
-};
 
 const HEALTH_THRESHOLDS = {
   HEALTHY: 90,
@@ -84,10 +74,92 @@ const DEFAULT_HEALTH_VALUES = {
 } as const;
 
 /**
+ * Determines cache system status based on cache server data
+ */
+const getCacheStatus = (cacheData?: CacheStatus) => {
+  if (!Array.isArray(cacheData?.servers) || cacheData.servers.length === 0) {
+    return STATUS.ERROR;
+  }
+  return cacheData.servers.every(s => s.status === STATUS.OK) ? STATUS.OK : STATUS.ERROR;
+};
+
+/**
+ * Calculates comprehensive duration information for cache servers
+ * Returns formatted duration string or undefined if no valid durations
+ */
+const getCacheDuration = (cacheData?: CacheStatus): number | undefined => {
+  if (!Array.isArray(cacheData?.servers) || cacheData.servers.length === 0) {
+    return undefined;
+  }
+
+  const validDurations = cacheData.servers
+    .map(s => s.duration_ms)
+    .filter((duration): duration is number => typeof duration === 'number');
+
+  if (validDurations.length === 0) {
+    return undefined;
+  }
+
+  if (validDurations.length === 1) {
+    return validDurations[0];
+  }
+
+  // For multiple servers, return the average duration
+  const averageDuration = validDurations.reduce((sum, duration) => sum + duration, 0) / validDurations.length;
+  return Math.round(averageDuration);
+};
+
+/**
+ * Determines API service status based on API data
+ * Provides granular logic based on available information
+ */
+const getApiStatus = (apiData?: ApiStatusData) => {
+  // If explicit status is provided, use it (only OK status is considered successful)
+  if (apiData?.status) {
+    return apiData.status === STATUS.OK ? STATUS.OK : STATUS.ERROR;
+  }
+  
+  // Without explicit status, check version availability as indicator of basic API functionality
+  // Robust version validation - exclude invalid/placeholder values
+  if (isValidVersion(apiData?.version)) {
+    return STATUS.OK;
+  }
+  
+  // No status and no valid version indicates API is not accessible
+  return STATUS.ERROR;
+};
+
+/**
+ * Validates if a version string represents a real API version
+ * Excludes common placeholder/invalid values
+ */
+const isValidVersion = (version?: string): boolean => {
+  if (!version || typeof version !== 'string') {
+    return false;
+  }
+  
+  const trimmedVersion = version.trim().toLowerCase();
+  
+  // Empty or whitespace-only strings
+  if (trimmedVersion.length === 0) {
+    return false;
+  }
+  
+  // Common invalid/placeholder values
+  const invalidValues = ['unknown', 'n/a', 'na', 'null', 'undefined', 'error', 'unavailable'];
+  if (invalidValues.includes(trimmedVersion)) {
+    return false;
+  }
+  
+  // Version should contain at least one digit or semantic version pattern
+  return /\d/.test(trimmedVersion);
+};
+
+/**
  * Renders the system status components section with proper error handling
  */
 const SystemStatusComponents: React.FC<{
-  statuses: unknown,
+  statuses: ForemanStatusesResponse | undefined,
   statusesLoading: boolean,
   statusesError: Error | null
 }> = ({
@@ -115,58 +187,90 @@ const SystemStatusComponents: React.FC<{
     );
   }
 
-  const validStatusEntries = getValidStatusEntries(statuses);
-
-  if (validStatusEntries.length > 0) {
+  const foremanData = statuses?.results?.foreman;
+  if (!foremanData) {
     return (
-      <Grid hasGutter>
-        {validStatusEntries.map(([key, statusItem]) => (
-          <GridItem key={key} span={6} xl={4}>
-            <Card isCompact>
-              <CardBody>
-                <Flex>
-                  <FlexItem>
-                    {statusItem?.status === 'ok' ? (
-                      <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
-                    ) : statusItem?.status === 'warning' ? (
-                      <ExclamationTriangleIcon style={{ color: 'var(--pf-global--warning-color--100)' }} />
-                    ) : (
-                      <ExclamationTriangleIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
-                    )}
-                  </FlexItem>
-                  <FlexItem>
-                    <div>
-                      <Text component={TextVariants.small}>{statusItem?.label || key}</Text>
-                      <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-                        {statusItem?.description || key}
-                      </Text>
-                    </div>
-                  </FlexItem>
-                  <FlexItem align={{ default: 'alignRight' }}>
-                    <Label
-                      color={statusItem?.status === 'ok' ? 'green' : statusItem?.status === 'warning' ? 'orange' : 'red'}
-                      isCompact
-                    >
-                      {(statusItem?.status?.trim() || '').toUpperCase() || 'UNKNOWN'}
-                    </Label>
-                  </FlexItem>
-                </Flex>
-              </CardBody>
-            </Card>
-          </GridItem>
-        ))}
-      </Grid>
+      <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <InfoIcon style={{ color: 'var(--pf-global--info-color--100)', marginRight: '0.5rem' }} />
+        <Text>No system status information available</Text>
+        <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
+          The Foreman API did not return any status components to monitor.
+        </Text>
+      </div>
     );
   }
 
+  // Calculate cache duration for display
+  const cacheDuration = getCacheDuration(foremanData.cache);
+
+  const systemComponents = [
+    {
+      key: 'database',
+      label: 'Database',
+      description: 'Database connectivity and performance',
+      status: foremanData.database?.active ? STATUS.OK : STATUS.ERROR,
+      duration: foremanData.database?.duration_ms,
+      icon: <DatabaseIcon />
+    },
+    {
+      key: 'cache',
+      label: 'Cache System',
+      description: 'Cache servers status and performance',
+      status: getCacheStatus(foremanData.cache),
+      duration: cacheDuration,
+      icon: <NetworkIcon />
+    },
+    {
+      key: 'api',
+      label: 'API Service',
+      description: `REST API version ${foremanData.api?.version}`,
+      status: getApiStatus(foremanData.api),
+      icon: <ClockIcon />
+    }
+  ];
+
   return (
-    <div style={{ textAlign: 'center', padding: '2rem' }}>
-      <InfoIcon style={{ color: 'var(--pf-global--info-color--100)', marginRight: '0.5rem' }} />
-      <Text>No system status information available</Text>
-      <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-        The Foreman API did not return any status components to monitor.
-      </Text>
-    </div>
+    <Grid hasGutter>
+      {systemComponents.map((component) => (
+        <GridItem key={component.key} span={6} xl={4}>
+          <Card isCompact>
+            <CardBody>
+              <Flex>
+                <FlexItem>
+                  <div style={{ marginRight: '0.5rem', color: 'var(--pf-global--Color--200)' }}>
+                    {component.icon}
+                  </div>
+                </FlexItem>
+                <FlexItem>
+                  <div>
+                    <Text component={TextVariants.small}>{component.label}</Text>
+                    <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
+                      {component.description}
+                      {component.duration && ` (${component.duration}ms)`}
+                    </Text>
+                  </div>
+                </FlexItem>
+                <FlexItem align={{ default: 'alignRight' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {component.status === STATUS.OK ? (
+                      <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
+                    ) : (
+                      <ExclamationTriangleIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
+                    )}
+                    <Label
+                      color={component.status === STATUS.OK ? 'green' : 'red'}
+                      isCompact
+                    >
+                      {component.status.toUpperCase()}
+                    </Label>
+                  </div>
+                </FlexItem>
+              </Flex>
+            </CardBody>
+          </Card>
+        </GridItem>
+      ))}
+    </Grid>
   );
 };
 
@@ -176,7 +280,6 @@ export const SystemStatus: React.FC = () => {
   const dashboardWidgets = usePluginDashboardWidgets();
   const menuItems = usePluginMenuItems();
   const { user: currentUser } = useAuth();
-  const { data: ping, isLoading: pingLoading, error: pingError } = usePing();
   const { data: statuses, isLoading: statusesLoading, error: statusesError } = useStatuses();
 
 
@@ -372,9 +475,11 @@ export const SystemStatus: React.FC = () => {
                           <ClockIcon style={{ marginRight: '0.5rem' }} />
                           <Text component={TextVariants.small}>Foreman Version</Text>
                         </div>
-                        <Text component={TextVariants.small}>
-                          {pingLoading ? 'Loading...' : pingError ? 'Unknown' : ping?.version || 'Unknown'}
-                        </Text>
+                        <div style={{ minHeight: '24px', display: 'flex', alignItems: 'center' }}>
+                          <Text component={TextVariants.small} style={{ fontWeight: 'bold' }}>
+                            {statusesLoading ? 'Loading...' : statusesError ? 'Unknown' : statuses?.results?.foreman?.version || 'Unknown'}
+                          </Text>
+                        </div>
                       </CardBody>
                     </Card>
                   </GridItem>

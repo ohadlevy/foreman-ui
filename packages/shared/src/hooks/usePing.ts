@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchForemanPing, ForemanPing } from '../api/status';
+import { fetchForemanPing, ForemanPingResponse } from '../api/status';
 
 export const usePing = () => {
-  return useQuery<ForemanPing, Error>({
+  return useQuery<ForemanPingResponse, Error>({
     queryKey: ['ping'],
     queryFn: fetchForemanPing,
     staleTime: 30 * 1000, // 30 seconds

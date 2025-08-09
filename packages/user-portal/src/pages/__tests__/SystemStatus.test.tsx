@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider, UseQueryResult } from '@tanstack/react-query';
 import { SystemStatus } from '../SystemStatus';
-import type { ForemanStatus, ForemanPing, ForemanStatuses } from '@foreman/shared';
+import type { ForemanStatus, ForemanPingResponse, ForemanStatusesResponse } from '@foreman/shared';
 
 // Mock the shared hooks
 vi.mock('@foreman/shared', () => ({
@@ -49,7 +49,7 @@ const createStatusMock = (overrides: Record<string, unknown>): UseQueryResult<Fo
   ...overrides,
 } as unknown as UseQueryResult<ForemanStatus, Error>);
 
-const createPingMock = (overrides: Record<string, unknown>): UseQueryResult<ForemanPing, Error> => ({
+const createPingMock = (overrides: Record<string, unknown>): UseQueryResult<ForemanPingResponse, Error> => ({
   data: undefined,
   error: null,
   isError: false,
@@ -76,9 +76,9 @@ const createPingMock = (overrides: Record<string, unknown>): UseQueryResult<Fore
   isPlaceholderData: false,
   isPreviousData: false,
   ...overrides,
-} as unknown as UseQueryResult<ForemanPing, Error>);
+} as unknown as UseQueryResult<ForemanPingResponse, Error>);
 
-const createStatusesMock = (overrides: Record<string, unknown>): UseQueryResult<ForemanStatuses, Error> => ({
+const createStatusesMock = (overrides: Record<string, unknown>): UseQueryResult<ForemanStatusesResponse, Error> => ({
   data: undefined,
   error: null,
   isError: false,
@@ -105,7 +105,7 @@ const createStatusesMock = (overrides: Record<string, unknown>): UseQueryResult<
   isPlaceholderData: false,
   isPreviousData: false,
   ...overrides,
-} as unknown as UseQueryResult<ForemanStatuses, Error>);
+} as unknown as UseQueryResult<ForemanStatusesResponse, Error>);
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -180,8 +180,17 @@ describe('SystemStatus', () => {
     }));
     mockHooks.useStatuses.mockReturnValue(createStatusesMock({
       data: {
-        db: { status: 'ok', label: 'Database' },
-        cache: { status: 'ok', label: 'Cache' }
+        results: {
+          foreman: {
+            version: '3.12.1',
+            api: { version: 'v2' },
+            plugins: [],
+            smart_proxies: [],
+            compute_resources: [],
+            database: { active: true, duration_ms: 0 },
+            cache: { servers: [{ status: 'ok', duration_ms: 0 }] }
+          }
+        }
       },
       isSuccess: true,
       status: 'success',
@@ -232,7 +241,7 @@ describe('SystemStatus', () => {
     const mockPlugins = [{ name: 'test_plugin' }];
     mockHooks.usePlugins.mockReturnValue(mockPlugins as never);
 
-    mockHooks.usePing.mockReturnValue(createPingMock({
+    mockHooks.useStatuses.mockReturnValue(createStatusesMock({
       isLoading: true,
       isFetching: true,
       status: 'loading',
@@ -249,7 +258,7 @@ describe('SystemStatus', () => {
     const mockPlugins = [{ name: 'test_plugin' }];
     mockHooks.usePlugins.mockReturnValue(mockPlugins as never);
 
-    mockHooks.usePing.mockReturnValue(createPingMock({
+    mockHooks.useStatuses.mockReturnValue(createStatusesMock({
       error: new Error('API Error'),
       isError: true,
       status: 'error',
@@ -355,9 +364,17 @@ describe('SystemStatus', () => {
     mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
 
     const mockStatuses = {
-      db: { status: 'ok', label: 'Database', description: 'PostgreSQL connection' },
-      cache: { status: 'warning', label: 'Cache', description: 'Redis connection slow' },
-      foreman: { status: 'ok', label: 'Foreman Core' }
+      results: {
+        foreman: {
+          version: '3.12.1',
+          api: { version: 'v2' },
+          plugins: [],
+          smart_proxies: [],
+          compute_resources: [],
+          database: { active: true, duration_ms: 5 },
+          cache: { servers: [{ status: 'ok', duration_ms: 2 }] }
+        }
+      }
     };
 
     mockHooks.useStatuses.mockReturnValue(createStatusesMock({
@@ -370,10 +387,9 @@ describe('SystemStatus', () => {
 
     expect(screen.getByText('System Components Status')).toBeInTheDocument();
     expect(screen.getByText('Database')).toBeInTheDocument();
-    expect(screen.getByText('Cache')).toBeInTheDocument();
-    expect(screen.getByText('Foreman Core')).toBeInTheDocument();
-    expect(screen.getAllByText('OK')).toHaveLength(2); // Database and Foreman Core
-    expect(screen.getByText('WARNING')).toBeInTheDocument();
+    expect(screen.getByText('Cache System')).toBeInTheDocument();
+    expect(screen.getByText('API Service')).toBeInTheDocument();
+    expect(screen.getAllByText('OK')).toHaveLength(3); // Database, Cache System, and API Service (has version)
   });
 
   it('should show loading state for system statuses', () => {
@@ -411,7 +427,7 @@ describe('SystemStatus', () => {
     mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
 
     mockHooks.useStatuses.mockReturnValue(createStatusesMock({
-      data: {},
+      data: { results: {} },
       isSuccess: true,
     }));
 
@@ -421,23 +437,22 @@ describe('SystemStatus', () => {
   });
 
   describe('Edge Cases and Error Handling', () => {
-    it('should handle malformed status data with undefined status values', () => {
+    it('should handle database inactive status', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
 
-      // Mock statuses with undefined status values
+      // Mock statuses with database inactive
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: {
-          database: {
-            message: 'Database connection',
-            // status is undefined - this caused the original crash
-          },
-          cache: {
-            message: 'Cache service',
-            status: null // null status
-          },
-          redis: {
-            message: 'Redis service'
-            // missing status field entirely
+          results: {
+            foreman: {
+              version: '3.12.1',
+              api: { version: 'v2' },
+              plugins: [],
+              smart_proxies: [],
+              compute_resources: [],
+              database: { active: false, duration_ms: 0 }, // Database is down
+              cache: { servers: [{ status: 'ok', duration_ms: 0 }] }
+            }
           }
         },
         isSuccess: true,
@@ -446,17 +461,29 @@ describe('SystemStatus', () => {
       // Should not crash
       render(<SystemStatus />, { wrapper: createWrapper() });
 
-      // Should display fallback values for status items with undefined status
-      expect(screen.getAllByText('UNKNOWN')).toHaveLength(3); // Three status items with undefined/null/missing status
+      // Should display database as ERROR and others as OK
+      expect(screen.getByText('Database')).toBeInTheDocument();
+      expect(screen.getByText('Cache System')).toBeInTheDocument();
+      expect(screen.getAllByText('OK')).toHaveLength(2); // Cache System and API Service (has version)
+      expect(screen.getAllByText('ERROR')).toHaveLength(1); // Database inactive
     });
 
-    it('should handle empty status objects', () => {
+    it('should handle cache servers errors', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
 
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: {
-          database: {}, // completely empty status object
-          cache: null, // null status object
+          results: {
+            foreman: {
+              version: '3.12.1',
+              api: { version: 'v2' },
+              plugins: [],
+              smart_proxies: [],
+              compute_resources: [],
+              database: { active: true, duration_ms: 0 },
+              cache: { servers: [{ status: 'error', duration_ms: 1000 }] } // Cache server error
+            }
+          }
         },
         isSuccess: true,
       }));
@@ -464,31 +491,39 @@ describe('SystemStatus', () => {
       // Should not crash
       render(<SystemStatus />, { wrapper: createWrapper() });
 
-      // Should handle gracefully - empty/null objects are filtered out, so no status info available
-      expect(screen.getByText('No system status information available')).toBeInTheDocument();
+      // Should show cache as ERROR
+      expect(screen.getByText('Cache System')).toBeInTheDocument();
+      expect(screen.getAllByText('OK')).toHaveLength(2); // Database and API Service (has version)
+      expect(screen.getAllByText('ERROR')).toHaveLength(1); // Cache system
     });
 
-    it('should handle status data with mixed valid and invalid entries', () => {
+    it('should handle complete system status information', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
 
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: {
-          database: { label: 'Database', description: 'Database OK', status: 'ok' }, // valid
-          cache: { label: 'Cache', description: 'Cache down' }, // missing status
-          redis: { status: 'error' }, // missing label
-          elastic: null, // null entry
-          puppet: undefined, // undefined entry
+          results: {
+            foreman: {
+              version: '3.12.1',
+              api: { version: 'v2' },
+              plugins: [],
+              smart_proxies: [],
+              compute_resources: [],
+              database: { active: true, duration_ms: 5 },
+              cache: { servers: [{ status: 'ok', duration_ms: 1 }] }
+            }
+          }
         },
         isSuccess: true,
       }));
 
-      // Should not crash and should handle valid entries
+      // Should not crash and should display all system components
       render(<SystemStatus />, { wrapper: createWrapper() });
 
-      expect(screen.getByText('Database OK')).toBeInTheDocument();
-      expect(screen.getByText('OK')).toBeInTheDocument();
-      expect(screen.getByText('ERROR')).toBeInTheDocument();
-      expect(screen.getAllByText('UNKNOWN')).toHaveLength(1); // One status item missing status
+      expect(screen.getByText('Database')).toBeInTheDocument();
+      expect(screen.getByText('Cache System')).toBeInTheDocument();
+      expect(screen.getByText('API Service')).toBeInTheDocument();
+      expect(screen.getAllByText('OK')).toHaveLength(3); // Database, Cache System, and API Service (has version)
     });
 
     it('should handle completely malformed statuses data', () => {
@@ -520,21 +555,61 @@ describe('SystemStatus', () => {
       expect(screen.getByText('No system status information available')).toBeInTheDocument();
     });
 
-    it('should handle empty string status values safely', () => {
+    it('should handle database and cache status properly', () => {
       mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
 
       mockHooks.useStatuses.mockReturnValue(createStatusesMock({
         data: {
-          database: { label: 'Database', description: 'Database service', status: '' }, // empty string status
-          cache: { label: 'Cache', description: 'Cache service', status: '   ' }, // whitespace only status
+          results: {
+            foreman: {
+              version: '3.16.0-develop',
+              api: { version: 'v2' },
+              plugins: [],
+              smart_proxies: [],
+              compute_resources: [],
+              database: { active: true, duration_ms: 0 },
+              cache: { servers: [{ status: 'ok', duration_ms: 0 }] }
+            }
+          }
         },
         isSuccess: true,
       }));
 
-      // Should not crash and should show UNKNOWN for empty/whitespace status
+      // Should render system components correctly
       render(<SystemStatus />, { wrapper: createWrapper() });
 
-      expect(screen.getAllByText('UNKNOWN')).toHaveLength(2); // Both empty and whitespace status should show UNKNOWN
+      expect(screen.getByText('Database')).toBeInTheDocument();
+      expect(screen.getByText('Cache System')).toBeInTheDocument();
+      expect(screen.getByText('API Service')).toBeInTheDocument();
+      expect(screen.getAllByText('OK')).toHaveLength(3); // Database, Cache System, and API Service (has version)
+    });
+
+    it('should handle invalid API versions as ERROR', () => {
+      mockHooks.usePlugins.mockReturnValue([{ name: 'test_plugin' }] as never);
+
+      // Test with an invalid version value
+      mockHooks.useStatuses.mockReturnValue(createStatusesMock({
+        data: {
+          results: {
+            foreman: {
+              version: '3.16.0-develop',
+              api: { version: 'unknown' }, // Invalid version
+              plugins: [],
+              smart_proxies: [],
+              compute_resources: [],
+              database: { active: true, duration_ms: 0 },
+              cache: { servers: [{ status: 'ok', duration_ms: 0 }] }
+            }
+          }
+        },
+        isSuccess: true,
+      }));
+
+      render(<SystemStatus />, { wrapper: createWrapper() });
+
+      expect(screen.getByText('API Service')).toBeInTheDocument();
+      expect(screen.getAllByText('OK')).toHaveLength(2); // Database and Cache System only
+      expect(screen.getAllByText('ERROR')).toHaveLength(1); // API Service with invalid version
     });
   });
 });
