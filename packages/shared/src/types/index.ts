@@ -77,6 +77,8 @@ export interface Host {
   organization_name?: string;
   location_id?: number;
   location_name?: string;
+  environment_id?: number;
+  environment_name?: string;
 }
 
 export interface Organization {

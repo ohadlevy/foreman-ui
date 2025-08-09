@@ -4,7 +4,7 @@
  */
 export const FOREMAN_SESSION_COOKIES = [
   '_foreman_session',
-  'foreman_session', 
+  'foreman_session',
   'session_id'
 ] as const;
 

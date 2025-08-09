@@ -15,6 +15,12 @@ vi.mock('@foreman/shared', () => ({
   useStatus: vi.fn(),
   usePing: vi.fn(),
   useStatuses: vi.fn(),
+  pluginRegistry: {
+    getPluginsWithExtensions: vi.fn(() => []),
+  },
+  EXTENSION_POINTS: {
+    HOST_TABLE_COLUMNS: 'host-table-columns',
+  },
 }));
 
 const mockHooks = vi.mocked(await import('@foreman/shared'));

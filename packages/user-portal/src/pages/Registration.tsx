@@ -30,7 +30,7 @@ export const Registration: React.FC = () => {
   const { user } = useAuth();
   const generateCommand = useGenerateRegistrationCommand();
   const { data: registrationFormData, isLoading: formDataLoading, error: formDataError } = useRegistrationFormData();
-  
+
   // Extract data from the combined response
   const hostGroups = registrationFormData?.hostGroups || [];
   const smartProxies = registrationFormData?.smartProxies || [];
