@@ -120,12 +120,25 @@ export class UserContextAPI {
         graphqlUrl = fullUrl;
       }
 
-      return await this.client.post<GraphQLUserContextResponse>(graphqlUrl, { query }, {
+      // Use direct fetch to avoid baseURL being prepended  
+      const baseUrl = this.client.baseURL.replace('/api/v2', '');
+      const fullGraphqlUrl = baseUrl + graphqlUrl;
+      
+      const response = await fetch(fullGraphqlUrl, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'Authorization': this.client.getToken() ? `Bearer ${this.client.getToken()}` : '',
         },
+        body: JSON.stringify({ query }),
       });
+
+      if (!response.ok) {
+        throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.json();
     } catch (error) {
       console.warn('GraphQL user context query failed:', error);
       throw error;

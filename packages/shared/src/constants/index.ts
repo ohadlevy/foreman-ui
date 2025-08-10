@@ -9,7 +9,7 @@ export const API_ENDPOINTS = {
   SMART_PROXIES: '/smart_proxies',
   AUTH: '/auth',
   DASHBOARD: '/dashboard',
-  GRAPHQL: '/graphql',
+  GRAPHQL: '/api/graphql',
   REGISTRATION_COMMANDS: '/registration_commands',
 } as const;
 

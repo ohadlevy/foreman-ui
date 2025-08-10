@@ -75,13 +75,32 @@ export class OrganizationsAPI {
         graphqlUrl = fullUrl;
       }
 
-      return await this.client.post<OrganizationsResponse>(graphqlUrl, { query }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        }
+      // Use direct fetch to avoid baseURL being prepended  
+      const baseUrl = this.client.baseURL.replace('/api/v2', '');
+      const fullGraphqlUrl = baseUrl + graphqlUrl;
+      
+      const token = this.client.getToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(fullGraphqlUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ query }),
       });
+
+      if (!response.ok) {
+        throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.json();
     } catch (error) {
       throw new Error(`GraphQL query failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
