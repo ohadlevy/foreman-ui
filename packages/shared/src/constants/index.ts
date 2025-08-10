@@ -75,3 +75,6 @@ export const VALIDATION_PATTERNS = {
 
 // Export branding constants
 export * from './branding';
+
+// Export taxonomy constants
+export * from './taxonomy';

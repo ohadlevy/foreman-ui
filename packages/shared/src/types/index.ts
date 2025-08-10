@@ -309,6 +309,9 @@ export interface Feature {
   name: string;
 }
 
+// Taxonomy types
+export * from './taxonomy';
+
 // Export generated API types when available
 // Note: Run 'yarn generate-types' to create generated/api.ts
 // For now, we'll use a conditional export
