@@ -358,11 +358,19 @@ export const SystemStatus: React.FC = () => {
     const plugin = plugins.find(p => p.name === pluginName);
     if (!plugin) return {};
 
+    // Count extensions by type for more detailed display
+    const extensionsByType: Record<string, number> = {};
+    plugin.componentExtensions?.forEach(ext => {
+      const extensionType = ext.extensionPoint;
+      extensionsByType[extensionType] = (extensionsByType[extensionType] || 0) + 1;
+    });
+
     return {
       dashboardWidgets: plugin.dashboardWidgets?.length || 0,
       menuItems: plugin.menuItems?.length || 0,
       routes: plugin.routes?.length || 0,
-      extensions: 0,
+      extensions: plugin.componentExtensions?.length || 0,
+      extensionsByType,
     };
   };
 
@@ -629,13 +637,29 @@ export const SystemStatus: React.FC = () => {
                                   {features.routes} Route{(features.routes || 0) !== 1 ? 's' : ''}
                                 </ListItem>
                               )}
-                              {(features.extensions || 0) > 0 && (
-                                <ListItem>
-                                  <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}
-                                  {features.extensions} Extension Point{(features.extensions || 0) !== 1 ? 's' : ''}
-                                </ListItem>
-                              )}
-                              {Object.values(features).every(v => v === 0) && (
+                              {features.extensionsByType && Object.entries(features.extensionsByType).map(([extensionType, count]) => {
+                                // Convert extension point names to user-friendly labels
+                                const getExtensionLabel = (type: string) => {
+                                  switch (type) {
+                                    case 'host-table-columns':
+                                      return 'Host Table Column';
+                                    case 'host-details-tabs':
+                                      return 'Host Details Tab';
+                                    case 'dashboard-widgets':
+                                      return 'Dashboard Widget Extension';
+                                    default:
+                                      return type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                  }
+                                };
+                                
+                                return (
+                                  <ListItem key={extensionType}>
+                                    <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}
+                                    {count} {getExtensionLabel(extensionType)}{count !== 1 ? 's' : ''}
+                                  </ListItem>
+                                );
+                              })}
+                              {Object.values(features).filter(v => typeof v === 'number').every(v => v === 0) && (
                                 <ListItem>
                                   <InfoIcon color="var(--pf-global--info-color--100)" />{' '}
                                   No features detected

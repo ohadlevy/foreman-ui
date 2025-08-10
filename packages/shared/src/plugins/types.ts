@@ -1,4 +1,5 @@
 import { ComponentType } from 'react';
+import { RouteObject } from 'react-router-dom';
 
 /**
  * Props passed to plugin route components
@@ -25,7 +26,19 @@ export interface ExtensionComponentProps {
   extensionPoint?: string;
   [key: string]: unknown;
 }
-import { RouteObject } from 'react-router-dom';
+
+/**
+ * Props passed to host table column extension components
+ */
+export interface HostTableColumnProps extends ExtensionComponentProps {
+  host: {
+    id?: number;
+    name?: string;
+    enabled?: boolean;
+    build?: boolean;
+    [key: string]: unknown;
+  };
+}
 
 /**
  * Core plugin interface - mirrors Foreman's plugin concepts in React

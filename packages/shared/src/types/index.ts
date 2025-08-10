@@ -69,6 +69,8 @@ export interface Host {
   owner_name?: string;
   hostgroup_id?: number;
   hostgroup_name?: string;
+  environment_id?: number;
+  environment_name?: string;
   puppet_proxy_id?: number;
   puppet_ca_proxy_id?: number;
   puppet_proxy_name?: string;
