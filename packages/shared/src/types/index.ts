@@ -247,6 +247,31 @@ export interface BulkAction {
   disabledReason?: string;
 }
 
+export interface BulkOperationResult {
+  success_count: number;
+  failed_count: number;
+  errors?: Array<{
+    host_id: number;
+    host_name?: string;
+    message: string;
+  }>;
+  warnings?: string[];
+  task_id?: string; // For async operations
+  message?: string; // Success/info message
+  missed_hosts?: number[]; // IDs of hosts that couldn't be processed
+  is_async?: boolean; // Whether operation runs in background
+}
+
+// Progress tracking for bulk operations
+export interface BulkOperationProgress {
+  operation_id: string;
+  total_items: number;
+  completed_items: number;
+  failed_items: number;
+  current_status: string;
+  estimated_completion?: string;
+}
+
 // Host Groups types
 export interface HostGroup {
   id: number;
