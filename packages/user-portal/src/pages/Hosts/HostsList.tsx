@@ -40,6 +40,8 @@ import {
   TimesCircleIcon,
   HistoryIcon,
   CogIcon,
+  TrashIcon,
+  EditIcon,
 } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -55,6 +57,14 @@ import {
   EXTENSION_POINTS,
   HostTableColumnProps,
   ExtensionComponentProps,
+  useBulkSelection,
+  BulkActionToolbar,
+  BulkActionModal,
+  useBulkDeleteHosts,
+  useBulkUpdateHostGroup,
+  useHostGroups,
+  BulkAction,
+  BulkOperationResult,
 } from '@foreman/shared';
 import { Host } from '@foreman/shared';
 
@@ -144,6 +154,10 @@ export const HostsList: React.FC = () => {
   const [perPage, setPerPage] = useState(20);
   const [recentDropdownOpen, setRecentDropdownOpen] = useState(false);
   const [columnManagerOpen, setColumnManagerOpen] = useState(false);
+  const [bulkActionModal, setBulkActionModal] = useState<{
+    isOpen: boolean;
+    action?: BulkAction;
+  }>({ isOpen: false });
 
   // Data fetching - moved to top for better readability
   const { data, isLoading, error } = useMyHosts({
@@ -151,6 +165,17 @@ export const HostsList: React.FC = () => {
     page,
     per_page: perPage,
   });
+
+  const hosts = data?.results || [];
+  const total = data?.total || 0;
+
+  // Bulk selection management
+  const bulkSelection = useBulkSelection({ items: hosts });
+
+  // Bulk operation hooks
+  const bulkDeleteMutation = useBulkDeleteHosts();
+  const bulkUpdateHostGroupMutation = useBulkUpdateHostGroup();
+  const { data: hostGroups } = useHostGroups();
 
   // Track plugin registry changes to update columns when plugins are loaded/unloaded
   const [pluginRegistryVersion, setPluginRegistryVersion] = React.useState(0);
@@ -161,6 +186,80 @@ export const HostsList: React.FC = () => {
     });
     return unsubscribe;
   }, []);
+
+  // Core bulk actions
+  const coreBulkActions: BulkAction[] = React.useMemo(() => [
+    {
+      id: 'delete',
+      label: 'Delete',
+      icon: TrashIcon,
+      action: async (selectedIds: number[]) => {
+        return bulkDeleteMutation.mutateAsync(selectedIds);
+      },
+      permissions: ['destroy_hosts'],
+      requiresConfirmation: true,
+      confirmationTitle: 'Delete Hosts',
+      confirmationMessage: 'Are you sure you want to delete the selected hosts? This action cannot be undone.',
+      destructive: true,
+    },
+    {
+      id: 'change-hostgroup',
+      label: 'Change Host Group',
+      icon: EditIcon,
+      action: async (selectedIds: number[], parameters?: Record<string, unknown>) => {
+        const hostgroupId = parameters?.hostgroup_id as number;
+        if (!hostgroupId) {
+          throw new Error('Host group is required');
+        }
+        return bulkUpdateHostGroupMutation.mutateAsync({ hostIds: selectedIds, hostgroupId });
+      },
+      permissions: ['edit_hosts'],
+      requiresConfirmation: true,
+      confirmationTitle: 'Change Host Group',
+      confirmationMessage: 'This will change the host group for all selected hosts.',
+      destructive: false,
+    },
+  ], [bulkDeleteMutation, bulkUpdateHostGroupMutation]);
+
+  // Get plugin bulk actions
+  const pluginBulkActions = React.useMemo(() => {
+    const extensions = pluginRegistry.getPluginsWithExtensions(EXTENSION_POINTS.HOST_BULK_ACTIONS);
+    return extensions.map((ext): BulkAction => ({
+      id: ext.title || 'plugin-action',
+      label: ext.title || 'Plugin Action',
+      action: async (selectedIds: number[]) => {
+        // Plugin actions would be handled through the extension component
+        return { success_count: selectedIds.length, failed_count: 0 };
+      },
+      permissions: ext.permissions || [],
+      ...ext.props,
+    }));
+  }, [pluginRegistryVersion]);
+
+  // Combine all bulk actions
+  const bulkActions = React.useMemo(() => [
+    ...coreBulkActions,
+    ...pluginBulkActions,
+  ], [coreBulkActions, pluginBulkActions]);
+
+  // Bulk action handlers
+  const handleBulkActionClick = (action: BulkAction) => {
+    setBulkActionModal({ isOpen: true, action });
+  };
+
+  const handleBulkActionConfirm = async (parameters?: Record<string, unknown>): Promise<BulkOperationResult> => {
+    if (!bulkActionModal.action) {
+      throw new Error('No action selected');
+    }
+
+    const result = await bulkActionModal.action.action(bulkSelection.selectedIds, parameters);
+    bulkSelection.clearSelection();
+    return result;
+  };
+
+  const handleBulkActionModalClose = () => {
+    setBulkActionModal({ isOpen: false });
+  };
 
   // Memoized plugin columns to avoid expensive calls on every render
   const pluginColumns = React.useMemo(() => {
@@ -399,9 +498,6 @@ export const HostsList: React.FC = () => {
     );
   }
 
-  const hosts = data?.results || [];
-  const total = data?.total || 0;
-
   return (
     <>
       <PageSection variant="light">
@@ -476,6 +572,14 @@ export const HostsList: React.FC = () => {
             </ToolbarContent>
           </Toolbar>
 
+          <BulkActionToolbar
+            selectedCount={bulkSelection.selectedCount}
+            totalCount={total}
+            onClearSelection={bulkSelection.clearSelection}
+            actions={bulkActions}
+            onActionClick={handleBulkActionClick}
+          />
+
           {hosts.length === 0 ? (
             <EmptyState>
               <EmptyStateIcon icon={ServerIcon} />
@@ -499,6 +603,13 @@ export const HostsList: React.FC = () => {
               <Table>
                 <Thead>
                   <Tr>
+                    <Th
+                      select={{
+                        onSelect: bulkSelection.toggleAll,
+                        isSelected: bulkSelection.isAllSelected,
+                        isHeaderSelectDisabled: hosts.length === 0,
+                      }}
+                    />
                     {enabledColumns.map(column => (
                       <Th key={column.key}>
                         {column.label}
@@ -513,6 +624,12 @@ export const HostsList: React.FC = () => {
                       isClickable
                       onClick={() => handleHostClick(host)}
                     >
+                      <Td
+                        select={{
+                          onSelect: () => bulkSelection.toggleItem(host.id),
+                          isSelected: bulkSelection.isSelected(host.id),
+                        }}
+                      />
                       {enabledColumns.map(column => (
                         <Td key={column.key}>
                           {renderColumnData(host, column.key)}
@@ -591,6 +708,36 @@ export const HostsList: React.FC = () => {
           )}
         </Form>
       </Modal>
+
+      {/* Bulk Action Modal */}
+      {bulkActionModal.action && (
+        <BulkActionModal
+          isOpen={bulkActionModal.isOpen}
+          onClose={handleBulkActionModalClose}
+          title={bulkActionModal.action.confirmationTitle || bulkActionModal.action.label}
+          selectedCount={bulkSelection.selectedCount}
+          selectedItems={bulkSelection.selectedObjects.map(host => ({ id: host.id, name: host.name }))}
+          onConfirm={handleBulkActionConfirm}
+          confirmationMessage={bulkActionModal.action.confirmationMessage}
+          requiresConfirmation={bulkActionModal.action.requiresConfirmation}
+          destructive={bulkActionModal.action.destructive}
+          parameters={
+            bulkActionModal.action.id === 'change-hostgroup' ? [
+              {
+                key: 'hostgroup_id',
+                label: 'Host Group',
+                type: 'select' as const,
+                required: true,
+                options: hostGroups?.results?.map(hg => ({
+                  value: hg.id,
+                  label: hg.title || hg.name,
+                })) || [],
+                placeholder: 'Select a host group',
+              },
+            ] : undefined
+          }
+        />
+      )}
     </>
   );
 };

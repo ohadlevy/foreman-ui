@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from './useApi';
 import { useAuth } from '../auth/useAuth';
-import { HostSearchParams, HostFormData } from '../types';
+import { HostSearchParams, HostFormData, BulkOperationRequest } from '../types';
 
 export const useHosts = (params?: HostSearchParams) => {
   const { hosts } = useApi();
@@ -112,6 +112,46 @@ export const useCancelHostBuild = () => {
     mutationFn: (id: number) => hosts.cancelBuild(id),
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['hosts', id] });
+    },
+  });
+};
+
+export const useBulkHostOperation = () => {
+  const { hosts } = useApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: BulkOperationRequest) => hosts.bulkOperation(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
+    },
+  });
+};
+
+export const useBulkDeleteHosts = () => {
+  const { hosts } = useApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (hostIds: number[]) => hosts.bulkDelete(hostIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
+    },
+  });
+};
+
+export const useBulkUpdateHostGroup = () => {
+  const { hosts } = useApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ hostIds, hostgroupId }: { hostIds: number[]; hostgroupId: number }) =>
+      hosts.bulkUpdateHostGroup(hostIds, hostgroupId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
     },
   });
 };

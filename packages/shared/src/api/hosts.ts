@@ -1,5 +1,5 @@
 import { ForemanAPIClient } from './client';
-import { Host, HostSearchParams, HostFormData, ApiResponse } from '../types';
+import { Host, HostSearchParams, HostFormData, ApiResponse, BulkOperationRequest, BulkOperationResult } from '../types';
 import { API_ENDPOINTS } from '../constants';
 
 export class HostsAPI {
@@ -49,5 +49,46 @@ export class HostsAPI {
       search: params?.search ? `${params.search} and ${userFilter}` : userFilter,
     };
     return this.list(searchParams);
+  }
+
+  async bulkOperation(request: BulkOperationRequest): Promise<BulkOperationResult> {
+    return this.client.post<BulkOperationResult>(`${API_ENDPOINTS.HOSTS}/bulk_action`, request);
+  }
+
+  async bulkDelete(hostIds: number[]): Promise<BulkOperationResult> {
+    return this.bulkOperation({
+      operation: 'destroy',
+      host_ids: hostIds,
+    });
+  }
+
+  async bulkUpdateHostGroup(hostIds: number[], hostgroupId: number): Promise<BulkOperationResult> {
+    return this.bulkOperation({
+      operation: 'update',
+      host_ids: hostIds,
+      parameters: {
+        hostgroup_id: hostgroupId,
+      },
+    });
+  }
+
+  async bulkUpdateOrganization(hostIds: number[], organizationId: number): Promise<BulkOperationResult> {
+    return this.bulkOperation({
+      operation: 'update',
+      host_ids: hostIds,
+      parameters: {
+        organization_id: organizationId,
+      },
+    });
+  }
+
+  async bulkUpdateLocation(hostIds: number[], locationId: number): Promise<BulkOperationResult> {
+    return this.bulkOperation({
+      operation: 'update',
+      host_ids: hostIds,
+      parameters: {
+        location_id: locationId,
+      },
+    });
   }
 }

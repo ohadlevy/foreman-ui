@@ -41,6 +41,15 @@ export interface HostTableColumnProps extends ExtensionComponentProps {
 }
 
 /**
+ * Props passed to bulk action extension components
+ */
+export interface BulkActionExtensionProps extends ExtensionComponentProps {
+  selectedItems: number[];
+  allItems: Array<{ id: number; name: string; [key: string]: unknown }>;
+  onComplete: (result?: { success: number; failed: number; errors?: string[] }) => void;
+}
+
+/**
  * Core plugin interface - mirrors Foreman's plugin concepts in React
  */
 export interface ForemanPlugin {
@@ -382,6 +391,7 @@ export const EXTENSION_POINTS = {
   // Table extensions
   HOST_TABLE_COLUMNS: 'host-table-columns',
   HOST_TABLE_ACTIONS: 'host-table-actions',
+  HOST_BULK_ACTIONS: 'host-bulk-actions',
 
   // Form extensions
   HOST_FORM_FIELDS: 'host-form-fields',

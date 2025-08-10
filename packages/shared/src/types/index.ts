@@ -1,3 +1,5 @@
+import React from 'react';
+
 // Core entity types
 export interface User {
   id: number;
@@ -230,6 +232,45 @@ export interface RegistrationParams {
 export interface GeneratedRegistrationCommand {
   script: string; // The actual script content from Foreman
   parameters: RegistrationParams;
+}
+
+// Bulk action types
+export interface BulkAction {
+  id: string;
+  label: string;
+  icon?: React.ComponentType | string;
+  action: (selectedItems: number[]) => Promise<void>;
+  permissions?: string[];
+  requiresConfirmation?: boolean;
+  confirmationTitle?: string;
+  confirmationMessage?: string;
+  destructive?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
+}
+
+export interface BulkActionContext {
+  selectedItems: number[];
+  totalItems: number;
+  allSelected: boolean;
+  onClearSelection: () => void;
+}
+
+export interface BulkOperationRequest {
+  operation: string;
+  host_ids: number[];
+  parameters?: Record<string, unknown>;
+}
+
+export interface BulkOperationResult {
+  success_count: number;
+  failed_count: number;
+  errors?: Array<{
+    host_id: number;
+    host_name?: string;
+    message: string;
+  }>;
+  warnings?: string[];
 }
 
 // Host Groups types

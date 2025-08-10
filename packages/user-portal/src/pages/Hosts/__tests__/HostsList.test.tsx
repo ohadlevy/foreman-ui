@@ -21,7 +21,31 @@ vi.mock('@foreman/shared', () => ({
   },
   EXTENSION_POINTS: {
     HOST_TABLE_COLUMNS: 'host-table-columns',
+    HOST_BULK_ACTIONS: 'host-bulk-actions',
   },
+  useBulkSelection: vi.fn(() => ({
+    selectedIds: [],
+    selectedObjects: [],
+    selectedCount: 0,
+    isSelected: vi.fn(() => false),
+    isAllSelected: false,
+    isPartiallySelected: false,
+    toggleItem: vi.fn(),
+    toggleAll: vi.fn(),
+    selectItems: vi.fn(),
+    deselectItems: vi.fn(),
+    clearSelection: vi.fn(),
+    selectAll: vi.fn(),
+  })),
+  BulkActionToolbar: () => <div data-testid="bulk-action-toolbar">Bulk Actions</div>,
+  BulkActionModal: () => <div data-testid="bulk-action-modal">Bulk Action Modal</div>,
+  useBulkDeleteHosts: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+  })),
+  useBulkUpdateHostGroup: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+  })),
+  useHostGroups: vi.fn(() => ({ data: { results: [] } })),
 }));
 
 // Mock navigation
