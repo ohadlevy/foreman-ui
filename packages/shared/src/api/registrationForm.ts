@@ -1,72 +1,72 @@
 import { ForemanAPIClient } from './client';
+import { GraphQLClient, createGraphQLClient } from './graphqlClient';
 import { HostGroup, SmartProxy } from '../types';
 import { API_ENDPOINTS } from '../constants';
 
-interface GraphQLError {
-  message: string;
-  locations?: Array<{
-    line: number;
-    column: number;
-  }>;
-  path?: Array<string | number>;
-  extensions?: Record<string, unknown>;
-}
 
 export interface RegistrationFormData {
   hostGroups: HostGroup[];
   smartProxies: SmartProxy[];
 }
 
-interface RegistrationFormResponse {
-  data?: {
-    hostgroups?: {
-      nodes: HostGroup[];
-    };
-    smartProxies?: {
-      nodes: SmartProxy[];
-    };
-  };
-  errors?: GraphQLError[];
+interface GraphQLConnection<T> {
+  edges: Array<{
+    node: T;
+  }>;
 }
 
+interface RegistrationFormGraphQLData {
+  hostgroups?: GraphQLConnection<HostGroup>;
+  smartProxies?: GraphQLConnection<SmartProxy>;
+}
+
+
 export class RegistrationFormAPI {
-  constructor(private client: ForemanAPIClient) {}
+  private graphqlClient: GraphQLClient;
+
+  constructor(private client: ForemanAPIClient) {
+    this.graphqlClient = createGraphQLClient(client);
+  }
 
   async getFormData(): Promise<RegistrationFormData> {
     try {
-      // Single GraphQL query to fetch all registration form data
+      // GraphQL query using Foreman's actual schema with connection/pagination structure
       const query = `
         query RegistrationFormData {
           hostgroups {
-            nodes {
-              id
-              name
-              title
-              description
+            edges {
+              node {
+                id
+                name
+                title
+                description
+              }
             }
           }
           smartProxies {
-            nodes {
-              id
-              name
-              url
-              createdAt
-              updatedAt
+            edges {
+              node {
+                id
+                name
+                url
+                createdAt
+                updatedAt
+              }
             }
           }
         }
       `;
 
-      const response = await this.executeGraphQLQuery(query);
+      const response = await this.graphqlClient.query<RegistrationFormGraphQLData>(query);
 
       if (response.data) {
         return {
-          hostGroups: response.data.hostgroups?.nodes || [],
-          smartProxies: response.data.smartProxies?.nodes || [],
+          hostGroups: response.data.hostgroups?.edges?.map(edge => edge.node) || [],
+          smartProxies: response.data.smartProxies?.edges?.map(edge => edge.node) || [],
         };
       }
 
-      if (response.errors && response.errors.length > 0) {
+      if (response.errors?.length) {
         console.warn('GraphQL errors for registration form data:', response.errors);
       }
 
@@ -100,30 +100,4 @@ export class RegistrationFormAPI {
     }
   }
 
-  private async executeGraphQLQuery(query: string): Promise<RegistrationFormResponse> {
-    const token = this.client.getToken();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${this.client.baseURL.replace('/api/v2', '')}${API_ENDPOINTS.GRAPHQL}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ query }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`GraphQL query failed: ${response.status}`);
-    }
-
-    try {
-      return await response.json();
-    } catch (error) {
-      throw new Error(`Failed to parse GraphQL response: ${error}`);
-    }
-  }
 }

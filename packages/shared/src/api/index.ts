@@ -1,4 +1,5 @@
 export * from './client';
+export * from './graphqlClient';
 export * from './hosts';
 export * from './users';
 export * from './auth';

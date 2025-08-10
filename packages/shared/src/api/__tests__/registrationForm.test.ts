@@ -10,6 +10,7 @@ describe('RegistrationFormAPI', () => {
   let mockClient: {
     getPaginated: ReturnType<typeof vi.fn>;
     getToken: ReturnType<typeof vi.fn>;
+    post: ReturnType<typeof vi.fn>;
     baseURL: string;
   };
 
@@ -17,13 +18,11 @@ describe('RegistrationFormAPI', () => {
     mockClient = {
       getPaginated: vi.fn(),
       getToken: vi.fn().mockReturnValue('test-token'),
+      post: vi.fn(),
       baseURL: 'https://foreman.example.com/api/v2',
     };
 
     api = new RegistrationFormAPI(mockClient as any);
-
-    // Mock fetch globally
-    global.fetch = vi.fn();
   });
 
   describe('getFormData', () => {
@@ -36,7 +35,7 @@ describe('RegistrationFormAPI', () => {
       ];
 
       // Mock GraphQL failure
-      (global.fetch as any).mockRejectedValue(new Error('GraphQL failed'));
+      mockClient.post.mockRejectedValue(new Error('GraphQL failed'));
 
       // Mock REST API success
       mockClient.getPaginated
@@ -57,7 +56,7 @@ describe('RegistrationFormAPI', () => {
 
     it('should return empty data when both GraphQL and REST fail', async () => {
       // Mock GraphQL failure
-      (global.fetch as any).mockRejectedValue(new Error('GraphQL failed'));
+      mockClient.post.mockRejectedValue(new Error('GraphQL failed'));
 
       // Mock REST API failure
       mockClient.getPaginated.mockRejectedValue(new Error('REST failed'));
@@ -80,16 +79,17 @@ describe('RegistrationFormAPI', () => {
 
       const mockGraphQLResponse = {
         data: {
-          hostgroups: { nodes: mockHostGroups },
-          smartProxies: { nodes: mockSmartProxies },
+          hostgroups: { 
+            edges: mockHostGroups.map(group => ({ node: group }))
+          },
+          smartProxies: { 
+            edges: mockSmartProxies.map(proxy => ({ node: proxy }))
+          },
         },
       };
 
-      // Mock GraphQL success
-      (global.fetch as any).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockGraphQLResponse),
-      });
+      // Mock GraphQL success via client.post
+      mockClient.post.mockResolvedValue(mockGraphQLResponse);
 
       const result = await api.getFormData();
 
@@ -98,16 +98,9 @@ describe('RegistrationFormAPI', () => {
         smartProxies: mockSmartProxies,
       });
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://foreman.example.com/api/graphql',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer test-token',
-          }),
-        })
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/api/graphql', {
+        query: expect.stringContaining('query RegistrationFormData'),
+      });
     });
   });
 });
