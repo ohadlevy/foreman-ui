@@ -74,7 +74,7 @@ const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
     };
 
     performTokenVerification();
-    
+
     // Return cleanup function to reset refs on unmount
     return () => {
       isCompleteRef.current = false;

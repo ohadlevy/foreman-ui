@@ -118,13 +118,13 @@ const getApiStatus = (apiData?: ApiStatusData) => {
   if (apiData?.status) {
     return apiData.status === STATUS.OK ? STATUS.OK : STATUS.ERROR;
   }
-  
+
   // Without explicit status, check version availability as indicator of basic API functionality
   // Robust version validation - exclude invalid/placeholder values
   if (isValidVersion(apiData?.version)) {
     return STATUS.OK;
   }
-  
+
   // No status and no valid version indicates API is not accessible
   return STATUS.ERROR;
 };
@@ -137,20 +137,20 @@ const isValidVersion = (version?: string): boolean => {
   if (!version || typeof version !== 'string') {
     return false;
   }
-  
+
   const trimmedVersion = version.trim().toLowerCase();
-  
+
   // Empty or whitespace-only strings
   if (trimmedVersion.length === 0) {
     return false;
   }
-  
+
   // Common invalid/placeholder values
   const invalidValues = ['unknown', 'n/a', 'na', 'null', 'undefined', 'error', 'unavailable'];
   if (invalidValues.includes(trimmedVersion)) {
     return false;
   }
-  
+
   // Version should contain at least one digit or semantic version pattern
   return /\d/.test(trimmedVersion);
 };
@@ -651,7 +651,7 @@ export const SystemStatus: React.FC = () => {
                                       return type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                                   }
                                 };
-                                
+
                                 return (
                                   <ListItem key={extensionType}>
                                     <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}

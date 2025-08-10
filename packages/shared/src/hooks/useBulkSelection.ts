@@ -14,20 +14,20 @@ export const useBulkSelection = <T extends { id: number }>({
   );
 
   const selectedIds = useMemo(() => Array.from(selectedItems), [selectedItems]);
-  
-  const selectedObjects = useMemo(() => 
+
+  const selectedObjects = useMemo(() =>
     items.filter(item => selectedItems.has(item.id)),
     [items, selectedItems]
   );
 
   const isSelected = useCallback((id: number) => selectedItems.has(id), [selectedItems]);
-  
-  const isAllSelected = useMemo(() => 
+
+  const isAllSelected = useMemo(() =>
     items.length > 0 && items.every(item => selectedItems.has(item.id)),
     [items, selectedItems]
   );
-  
-  const isPartiallySelected = useMemo(() => 
+
+  const isPartiallySelected = useMemo(() =>
     selectedItems.size > 0 && !isAllSelected,
     [selectedItems.size, isAllSelected]
   );

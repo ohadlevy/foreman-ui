@@ -78,16 +78,16 @@ const createWrapper = () => {
       </BrowserRouter>
     </QueryClientProvider>
   );
-  
+
   TestWrapper.displayName = 'TestWrapper';
-  
+
   return TestWrapper;
 };
 
 describe('HostsList', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock localStorage
     const localStorageMock = {
       getItem: vi.fn(),
@@ -130,7 +130,7 @@ describe('HostsList', () => {
 
   it('should render the hosts list page', () => {
     render(<HostsList />, { wrapper: createWrapper() });
-    
+
     expect(screen.getByText('My Hosts')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Search hosts...')).toBeInTheDocument();
     expect(screen.getByText('Manage columns')).toBeInTheDocument();
@@ -153,7 +153,7 @@ describe('HostsList', () => {
     } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
-    
+
     expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
   });
 
@@ -174,14 +174,14 @@ describe('HostsList', () => {
     } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
-    
+
     expect(screen.getByText('Error loading hosts')).toBeInTheDocument();
     expect(screen.getByText('Failed to load hosts')).toBeInTheDocument();
   });
 
   it('should show empty state when no hosts', () => {
     render(<HostsList />, { wrapper: createWrapper() });
-    
+
     expect(screen.getByText('No hosts found')).toBeInTheDocument();
     expect(screen.getByText('You don\'t have any hosts yet. Create your first host to get started.')).toBeInTheDocument();
   });
@@ -219,7 +219,7 @@ describe('HostsList', () => {
     } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
-    
+
     expect(screen.getByText('test-host-1')).toBeInTheDocument();
     expect(screen.getByText('Ubuntu 20.04')).toBeInTheDocument();
     expect(screen.getByText('192.168.1.10')).toBeInTheDocument();
@@ -227,10 +227,10 @@ describe('HostsList', () => {
 
   it('should open column management modal', async () => {
     render(<HostsList />, { wrapper: createWrapper() });
-    
+
     const manageColumnsButton = screen.getByText('Manage columns');
     fireEvent.click(manageColumnsButton);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Core columns')).toBeInTheDocument();
     });
@@ -256,10 +256,10 @@ describe('HostsList', () => {
     } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
-    
+
     const searchInput = screen.getByPlaceholderText('Search hosts...');
     fireEvent.change(searchInput, { target: { value: 'test-search' } });
-    
+
     expect(searchInput).toHaveValue('test-search');
   });
 
@@ -293,7 +293,7 @@ describe('HostsList', () => {
     } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
-    
+
     const hostRow = screen.getByText('test-host-1').closest('tr');
     if (hostRow) {
       fireEvent.click(hostRow);

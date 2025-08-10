@@ -65,7 +65,7 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
 
   const validateParameters = () => {
     const errors: string[] = [];
-    
+
     parameters.forEach(param => {
       if (param.required && !parameterValues[param.key]) {
         errors.push(`${param.label} is required`);
@@ -151,10 +151,10 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
       {result.success_count > 0 && (
         <Alert variant="success" title={`Successfully processed ${result.success_count} items`} />
       )}
-      
+
       {result.failed_count > 0 && (
-        <Alert 
-          variant="danger" 
+        <Alert
+          variant="danger"
           title={`Failed to process ${result.failed_count} items`}
         >
           {result.errors && result.errors.length > 0 && (
@@ -172,7 +172,7 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
           )}
         </Alert>
       )}
-      
+
       {result.warnings && result.warnings.length > 0 && (
         <Alert variant="warning" title="Warnings">
           <List>
@@ -217,7 +217,7 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
           {isLoading && (
             <Progress size={ProgressSize.sm} title="Processing..." />
           )}
-          
+
           {!isLoading && (
             <>
               {destructive && (

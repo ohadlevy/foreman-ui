@@ -12,7 +12,7 @@ const createBulkActionComponent = (
     // Cast props to the bulk action specific props
     const bulkProps = props as unknown as BulkActionExtensionProps;
     const { selectedItems, allItems, onComplete } = bulkProps;
-    
+
     if (actionConfig.component) {
       const Component = actionConfig.component;
       return (
