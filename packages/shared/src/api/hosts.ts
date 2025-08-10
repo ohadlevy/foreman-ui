@@ -308,7 +308,7 @@ export class HostsAPI {
     let query: string;
     if (hasSearch) {
       // Escape quotes in search string for GraphQL
-      const escapedSearch = searchParams.search.replace(/"/g, '\\"');
+      const escapedSearch = searchParams.search!.replace(/"/g, '\\"');
       query = `
         query GetHostIds {
           hosts(search: "${escapedSearch}") {
