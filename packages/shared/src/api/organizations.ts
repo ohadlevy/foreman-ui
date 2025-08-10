@@ -1,4 +1,5 @@
 import { ForemanAPIClient } from './client';
+import { GraphQLClient, createGraphQLClient } from './graphqlClient';
 import { Organization, SearchParams, ApiResponse } from '../types';
 import { API_ENDPOINTS } from '../constants';
 import { parseGraphQLId } from '../utils/graphql';
@@ -46,7 +47,11 @@ interface OrganizationsResponse {
 }
 
 export class OrganizationsAPI {
-  constructor(private client: ForemanAPIClient) {}
+  private graphqlClient: GraphQLClient;
+
+  constructor(private client: ForemanAPIClient) {
+    this.graphqlClient = createGraphQLClient(client);
+  }
 
   private parseOrganizationIdFromGraphQL(rawId: string): number {
     try {
@@ -58,52 +63,7 @@ export class OrganizationsAPI {
   }
 
   private async executeGraphQLQuery(query: string): Promise<OrganizationsResponse> {
-    try {
-      // Use the API client's post method instead of direct fetch
-      // This ensures proper authentication, error handling, and interceptors
-      // Extract relative path from GraphQL endpoint URL
-      const fullUrl = API_ENDPOINTS.GRAPHQL;
-
-      // Handle both absolute and relative URLs
-      let graphqlUrl: string;
-      if (fullUrl.startsWith('http')) {
-        // Absolute URL - extract path and search
-        const urlObj = new globalThis.URL(fullUrl);
-        graphqlUrl = urlObj.pathname + urlObj.search;
-      } else {
-        // Relative URL - use as is
-        graphqlUrl = fullUrl;
-      }
-
-      // Use direct fetch to avoid baseURL being prepended  
-      const baseUrl = this.client.baseURL.replace('/api/v2', '');
-      const fullGraphqlUrl = baseUrl + graphqlUrl;
-      
-      const token = this.client.getToken();
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(fullGraphqlUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ query }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw new Error(`GraphQL query failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    return await this.graphqlClient.query<OrganizationsResponse['data']>(query);
   }
 
   private convertGraphQLToOrganization(node: {
@@ -154,8 +114,8 @@ export class OrganizationsAPI {
         );
       }
 
-      if (response.errors && response.errors.length > 0) {
-        console.warn('GraphQL errors for user organizations:', response.errors);
+      if (this.graphqlClient.hasErrors(response)) {
+        console.warn('GraphQL errors for user organizations:', this.graphqlClient.getFormattedErrors(response));
       }
 
       // Fall back to REST API if GraphQL fails
@@ -203,8 +163,8 @@ export class OrganizationsAPI {
         };
       }
 
-      if (response.errors && response.errors.length > 0) {
-        console.warn('GraphQL errors for organizations list:', response.errors);
+      if (this.graphqlClient.hasErrors(response)) {
+        console.warn('GraphQL errors for organizations list:', this.graphqlClient.getFormattedErrors(response));
       }
 
       // Fall back to REST API if GraphQL fails

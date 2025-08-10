@@ -1,8 +1,8 @@
 import { ForemanAPIClient } from './client';
+import { GraphQLClient, createGraphQLClient } from './graphqlClient';
 import { OrganizationsAPI } from './organizations';
 import { LocationsAPI } from './locations';
 import { User, Organization, Location, Permission } from '../types';
-import { API_ENDPOINTS } from '../constants';
 import { parseGraphQLId } from '../utils/graphql';
 
 export interface UserContextData {
@@ -62,10 +62,12 @@ interface GraphQLUserContextResponse {
 export class UserContextAPI {
   private organizationsAPI: OrganizationsAPI;
   private locationsAPI: LocationsAPI;
+  private graphqlClient: GraphQLClient;
 
   constructor(private client: ForemanAPIClient) {
     this.organizationsAPI = new OrganizationsAPI(client);
     this.locationsAPI = new LocationsAPI(client);
+    this.graphqlClient = createGraphQLClient(client);
   }
 
   /**
@@ -73,76 +75,42 @@ export class UserContextAPI {
    * Single query to fetch user + organizations + locations
    */
   private async executeUserContextGraphQL(): Promise<GraphQLUserContextResponse> {
-    try {
-      const query = `
-        query UserContext {
-          currentUser {
-            id
-            login
-            firstname
-            lastname
-            email
-            organizations {
-              edges {
-                node {
-                  id
-                  name
-                  title
-                  description
-                  ancestry
-                  label
-                }
+    const query = `
+      query UserContext {
+        currentUser {
+          id
+          login
+          firstname
+          lastname
+          email
+          organizations {
+            edges {
+              node {
+                id
+                name
+                title
+                description
+                ancestry
+                label
               }
             }
-            locations {
-              edges {
-                node {
-                  id
-                  name
-                  title
-                  description
-                  ancestry
-                }
+          }
+          locations {
+            edges {
+              node {
+                id
+                name
+                title
+                description
+                ancestry
               }
             }
           }
         }
-      `;
-
-      // Extract relative path from GraphQL endpoint URL
-      const fullUrl = API_ENDPOINTS.GRAPHQL;
-      let graphqlUrl: string;
-      
-      if (fullUrl.startsWith('http')) {
-        const urlObj = new globalThis.URL(fullUrl);
-        graphqlUrl = urlObj.pathname + urlObj.search;
-      } else {
-        graphqlUrl = fullUrl;
       }
+    `;
 
-      // Use direct fetch to avoid baseURL being prepended  
-      const baseUrl = this.client.baseURL.replace('/api/v2', '');
-      const fullGraphqlUrl = baseUrl + graphqlUrl;
-      
-      const response = await fetch(fullGraphqlUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': this.client.getToken() ? `Bearer ${this.client.getToken()}` : '',
-        },
-        body: JSON.stringify({ query }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.warn('GraphQL user context query failed:', error);
-      throw error;
-    }
+    return await this.graphqlClient.query<GraphQLUserContextResponse['data']>(query);
   }
 
   /**
@@ -235,8 +203,8 @@ export class UserContextAPI {
         };
       }
 
-      if (response.errors && response.errors.length > 0) {
-        console.warn('GraphQL errors for user context:', response.errors);
+      if (this.graphqlClient.hasErrors(response)) {
+        console.warn('GraphQL errors for user context:', this.graphqlClient.getFormattedErrors(response));
       }
 
       // Fall through to REST fallback

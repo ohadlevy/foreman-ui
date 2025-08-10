@@ -1,4 +1,5 @@
 import { ForemanAPIClient } from './client';
+import { GraphQLClient, createGraphQLClient } from './graphqlClient';
 import { Location, SearchParams, ApiResponse } from '../types';
 import { API_ENDPOINTS } from '../constants';
 import { parseGraphQLId } from '../utils/graphql';
@@ -44,7 +45,11 @@ interface LocationsResponse {
 }
 
 export class LocationsAPI {
-  constructor(private client: ForemanAPIClient) {}
+  private graphqlClient: GraphQLClient;
+
+  constructor(private client: ForemanAPIClient) {
+    this.graphqlClient = createGraphQLClient(client);
+  }
 
   private parseLocationIdFromGraphQL(rawId: string): number {
     try {
@@ -56,52 +61,7 @@ export class LocationsAPI {
   }
 
   private async executeGraphQLQuery(query: string): Promise<LocationsResponse> {
-    try {
-      // Use the API client's post method instead of direct fetch
-      // This ensures proper authentication, error handling, and interceptors
-      // Extract relative path from GraphQL endpoint URL
-      const fullUrl = API_ENDPOINTS.GRAPHQL;
-
-      // Handle both absolute and relative URLs
-      let graphqlUrl: string;
-      if (fullUrl.startsWith('http')) {
-        // Absolute URL - extract path and search
-        const urlObj = new globalThis.URL(fullUrl);
-        graphqlUrl = urlObj.pathname + urlObj.search;
-      } else {
-        // Relative URL - use as is
-        graphqlUrl = fullUrl;
-      }
-
-      // Use direct fetch to avoid baseURL being prepended  
-      const baseUrl = this.client.baseURL.replace('/api/v2', '');
-      const fullGraphqlUrl = baseUrl + graphqlUrl;
-      
-      const token = this.client.getToken();
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(fullGraphqlUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ query }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw new Error(`GraphQL query failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    return await this.graphqlClient.query<LocationsResponse['data']>(query);
   }
 
   private convertGraphQLToLocation(node: {
@@ -149,8 +109,8 @@ export class LocationsAPI {
         );
       }
 
-      if (response.errors && response.errors.length > 0) {
-        console.warn('GraphQL errors for user locations:', response.errors);
+      if (this.graphqlClient.hasErrors(response)) {
+        console.warn('GraphQL errors for user locations:', this.graphqlClient.getFormattedErrors(response));
       }
 
       // Fall back to REST API if GraphQL fails
@@ -197,8 +157,8 @@ export class LocationsAPI {
         };
       }
 
-      if (response.errors && response.errors.length > 0) {
-        console.warn('GraphQL errors for locations list:', response.errors);
+      if (this.graphqlClient.hasErrors(response)) {
+        console.warn('GraphQL errors for locations list:', this.graphqlClient.getFormattedErrors(response));
       }
 
       // Fall back to REST API if GraphQL fails

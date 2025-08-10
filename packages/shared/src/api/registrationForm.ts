@@ -1,4 +1,5 @@
 import { ForemanAPIClient } from './client';
+import { GraphQLClient, createGraphQLClient } from './graphqlClient';
 import { HostGroup, SmartProxy } from '../types';
 import { API_ENDPOINTS } from '../constants';
 
@@ -30,7 +31,11 @@ interface RegistrationFormResponse {
 }
 
 export class RegistrationFormAPI {
-  constructor(private client: ForemanAPIClient) {}
+  private graphqlClient: GraphQLClient;
+
+  constructor(private client: ForemanAPIClient) {
+    this.graphqlClient = createGraphQLClient(client);
+  }
 
   async getFormData(): Promise<RegistrationFormData> {
     try {
@@ -101,29 +106,6 @@ export class RegistrationFormAPI {
   }
 
   private async executeGraphQLQuery(query: string): Promise<RegistrationFormResponse> {
-    const token = this.client.getToken();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${this.client.baseURL.replace('/api/v2', '')}${API_ENDPOINTS.GRAPHQL}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ query }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`GraphQL query failed: ${response.status}`);
-    }
-
-    try {
-      return await response.json();
-    } catch (error) {
-      throw new Error(`Failed to parse GraphQL response: ${error}`);
-    }
+    return await this.graphqlClient.query<RegistrationFormResponse['data']>(query);
   }
 }
