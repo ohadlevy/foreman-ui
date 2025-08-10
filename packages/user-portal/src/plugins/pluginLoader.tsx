@@ -1,4 +1,6 @@
-import { pluginRegistry, ForemanPlugin } from '@foreman/shared';
+import React from 'react';
+import { CubesIcon, CheckCircleIcon, ExclamationTriangleIcon, TimesCircleIcon } from '@patternfly/react-icons';
+import { pluginRegistry, ForemanPlugin, HostTableColumnProps, EXTENSION_POINTS, ExtensionComponentProps } from '@foreman/shared';
 
 /**
  * Plugin loader that discovers and registers plugins
@@ -153,6 +155,14 @@ export class PluginLoader {
       </div>
     );
 
+    // Demo host table column component
+    const DemoHostColumn: React.FC<HostTableColumnProps> = ({ host }) => (
+      <div style={{ color: '#06c', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <CubesIcon />
+        <span>Demo-{host?.id || 'N/A'}</span>
+      </div>
+    );
+
     return {
       name: 'foreman_demo',
       version: '1.0.0',
@@ -192,6 +202,19 @@ export class PluginLoader {
         }
       ],
 
+      componentExtensions: [
+        {
+          extensionPoint: EXTENSION_POINTS.HOST_TABLE_COLUMNS,
+          component: DemoHostColumn as React.ComponentType<ExtensionComponentProps>,
+          title: 'Demo Column',
+          order: 10,
+          props: {
+            key: 'demo_value',
+            label: 'Demo Value'
+          }
+        }
+      ],
+
       i18n: {
         domain: 'foreman_demo',
         defaultLocale: 'en',
@@ -218,6 +241,22 @@ export class PluginLoader {
       </div>
     );
 
+    // Monitoring host table column component
+    const MonitoringHostColumn: React.FC<HostTableColumnProps> = ({ host }) => {
+      // Simulate health status based on host data
+      const isHealthy = host?.enabled && !host?.build;
+      const status = isHealthy ? 'Healthy' : host?.build ? 'Building' : 'Unhealthy';
+      const color = isHealthy ? '#28a745' : host?.build ? '#ffc107' : '#dc3545';
+      const Icon = isHealthy ? CheckCircleIcon : host?.build ? ExclamationTriangleIcon : TimesCircleIcon;
+
+      return (
+        <div style={{ color, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Icon />
+          <span>{status}</span>
+        </div>
+      );
+    };
+
     return {
       name: 'foreman_monitoring',
       version: '1.0.0',
@@ -232,6 +271,19 @@ export class PluginLoader {
           title: 'System Status',
           component: StatusWidget,
           size: 'small'
+        }
+      ],
+
+      componentExtensions: [
+        {
+          extensionPoint: EXTENSION_POINTS.HOST_TABLE_COLUMNS,
+          component: MonitoringHostColumn as React.ComponentType<ExtensionComponentProps>,
+          title: 'Health Status',
+          order: 5,
+          props: {
+            key: 'health_status',
+            label: 'Health Status'
+          }
         }
       ],
 

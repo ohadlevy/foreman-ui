@@ -18,6 +18,11 @@ import {
   MenuToggle,
   MenuToggleElement,
   Divider,
+  Modal,
+  ModalVariant,
+  Checkbox,
+  Form,
+  FormGroup,
 } from '@patternfly/react-core';
 import {
   Table,
@@ -34,6 +39,7 @@ import {
   ExclamationTriangleIcon,
   TimesCircleIcon,
   HistoryIcon,
+  CogIcon,
 } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -45,23 +51,219 @@ import {
   RecentHosts,
   RecentSearches,
   useActivityStore,
+  pluginRegistry,
+  EXTENSION_POINTS,
+  HostTableColumnProps,
+  ExtensionComponentProps,
 } from '@foreman/shared';
 import { Host } from '@foreman/shared';
+
+// Column type definition
+interface ColumnConfig {
+  key: string;
+  label: string;
+  enabled: boolean;
+  required: boolean;
+  source: 'core' | 'plugin';
+  plugin?: string;
+  component?: React.ComponentType<ExtensionComponentProps>;
+}
+
+// Base columns configuration - moved outside component for performance
+const BASE_COLUMNS: ColumnConfig[] = [
+  { key: 'name', label: 'Name', enabled: true, required: true, source: 'core' },
+  { key: 'status', label: 'Status', enabled: true, required: false, source: 'core' },
+  { key: 'operatingsystem', label: 'Operating System', enabled: true, required: false, source: 'core' },
+  { key: 'ip', label: 'IP Address', enabled: true, required: false, source: 'core' },
+  { key: 'last_report', label: 'Last Report', enabled: true, required: false, source: 'core' },
+  { key: 'created_at', label: 'Created', enabled: true, required: false, source: 'core' },
+  { key: 'environment', label: 'Environment', enabled: false, required: false, source: 'core' },
+  { key: 'hostgroup', label: 'Host Group', enabled: false, required: false, source: 'core' },
+  { key: 'owner', label: 'Owner', enabled: false, required: false, source: 'core' },
+  { key: 'location', label: 'Location', enabled: false, required: false, source: 'core' },
+  { key: 'organization', label: 'Organization', enabled: false, required: false, source: 'core' },
+];
+
+// Type guard to validate plugin components - moved outside component for performance
+const isValidHostTableComponent = (component: unknown): component is React.ComponentType<HostTableColumnProps> => {
+  // Check if it's a function (function component or class constructor)
+  if (typeof component === 'function') {
+    return true;
+  }
+  
+  // Check if it's a valid React element type (forwardRef, memo, etc.)
+  if (
+    typeof component === 'object' && 
+    component !== null && 
+    '$$typeof' in component
+  ) {
+    const reactElement = component as { $$typeof?: symbol };
+    return (
+      reactElement.$$typeof === Symbol.for('react.forward_ref') ||
+      reactElement.$$typeof === Symbol.for('react.memo')
+    );
+  }
+  
+  return false;
+};
+
+// Helper function to convert Host to HostTableColumnProps['host'] - moved outside component for performance
+const convertHostForPlugin = (host: Host): HostTableColumnProps['host'] => {
+  // Return the host object with all properties, ensuring compatibility with plugin interface
+  return {
+    ...host,
+    // Ensure required properties are explicitly defined for type safety
+    // Use host.id directly if it exists, otherwise don't provide a default to catch issues
+    id: host.id,
+    name: host.name ?? '',
+    enabled: host.enabled ?? false,
+    build: host.build ?? false,
+  };
+};
+
+// Robust sanitization function for plugin titles - moved outside component for performance
+const sanitizePluginTitle = (title: string): string => {
+  return title
+    .trim()
+    .toLowerCase()
+    // Replace sequences of non-alphanumeric characters with single underscore
+    .replace(/[^a-z0-9]+/g, '_')
+    // Remove leading/trailing underscores
+    .replace(/^_+|_+$/g, '')
+    // Ensure result is not empty
+    || 'plugin';
+};
 
 export const HostsList: React.FC = () => {
   const navigate = useNavigate();
   const { canCreateHosts } = usePermissions();
+  const { addActivity } = useActivityStore();
+  
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [recentDropdownOpen, setRecentDropdownOpen] = useState(false);
-  const { addActivity } = useActivityStore();
+  const [columnManagerOpen, setColumnManagerOpen] = useState(false);
 
+  // Data fetching - moved to top for better readability
   const { data, isLoading, error } = useMyHosts({
     search,
     page,
     per_page: perPage,
   });
+
+  // Track plugin registry changes to update columns when plugins are loaded/unloaded
+  const [pluginRegistryVersion, setPluginRegistryVersion] = React.useState(0);
+  
+  React.useEffect(() => {
+    const unsubscribe = pluginRegistry.subscribe(() => {
+      setPluginRegistryVersion(prev => prev + 1);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Memoized plugin columns to avoid expensive calls on every render
+  const pluginColumns = React.useMemo(() => {
+    const extensions = pluginRegistry.getPluginsWithExtensions(EXTENSION_POINTS.HOST_TABLE_COLUMNS);
+    return extensions.map((ext, index) => {
+      const { key: propKey, label: propLabel, ...otherProps } = ext.props || {};
+      
+      // Generate stable, deterministic keys for plugin columns
+      // Priority: explicit key -> extension point + title -> extension point + order -> fallback
+      let stableKey: string;
+      if (propKey && typeof propKey === 'string') {
+        stableKey = propKey;
+      } else if (ext.title) {
+        // Create deterministic key from extension point and title
+        const sanitizedTitle = sanitizePluginTitle(ext.title);
+        stableKey = `${ext.extensionPoint}_${sanitizedTitle}`;
+      } else if (ext.order !== undefined) {
+        // Use order if available for deterministic positioning
+        stableKey = `${ext.extensionPoint}_order_${ext.order}`;
+      } else {
+        // Fallback to index-based key with warning
+        stableKey = `${ext.extensionPoint}_index_${index}`;
+        console.warn(`Plugin column using index-based key: ${stableKey}`);
+      }
+      
+      const pluginName = ext.title || 'Unknown Plugin';
+      
+      return {
+        key: stableKey,
+        label: ext.title || propLabel || 'Plugin Column',
+        enabled: false,
+        required: false,
+        source: 'plugin' as const,
+        plugin: pluginName,
+        component: ext.component,
+        ...otherProps
+      } as ColumnConfig;
+    });
+  }, [pluginRegistryVersion]);
+  // pluginRegistryVersion is intentionally included to trigger re-computation when plugins are loaded/unloaded
+
+  // Combine base and plugin columns - memoized to prevent unnecessary recalculations
+  const allAvailableColumns = React.useMemo(() => {
+    return [...BASE_COLUMNS, ...pluginColumns];
+  }, [pluginColumns]);
+
+  // Load saved column preferences from localStorage
+  const loadColumnPreferences = React.useCallback(() => {
+    try {
+      const saved = localStorage.getItem('hostlist-columns');
+      if (saved) {
+        const savedColumns = JSON.parse(saved);
+
+        // Merge saved preferences with available columns
+        return allAvailableColumns.map(col => {
+          const savedCol = savedColumns.find((s: { key: string; enabled: boolean }) => s.key === col.key);
+          return savedCol ? { ...col, enabled: savedCol.enabled } : col;
+        });
+      }
+    } catch (error) {
+      // localStorage can fail due to JSON parsing errors, security restrictions,
+      // or when accessing localStorage in environments where it's not available
+      console.warn('Failed to load column preferences from localStorage:', error);
+    }
+    return allAvailableColumns;
+  }, [allAvailableColumns]);
+
+  const [columns, setColumns] = useState<ColumnConfig[]>([]);
+
+  // Load column preferences after mount and when available columns change
+  useEffect(() => {
+    setColumns(loadColumnPreferences());
+  }, [loadColumnPreferences]);
+
+  // Save column preferences to localStorage - memoized to prevent unnecessary re-renders
+  const saveColumnPreferences = React.useCallback((newColumns: typeof columns) => {
+    try {
+      const columnsToSave = newColumns.map(col => ({
+        key: col.key,
+        enabled: col.enabled
+      }));
+      localStorage.setItem('hostlist-columns', JSON.stringify(columnsToSave));
+    } catch (error) {
+      // localStorage can fail in private browsing mode, when storage is full,
+      // or when storage access is restricted by browser security policies
+      console.warn('Failed to save column preferences to localStorage:', error);
+    }
+  }, []); // No dependencies - function only uses parameters and doesn't close over state
+
+  // Toggle column visibility - memoized to prevent unnecessary re-renders
+  const toggleColumn = React.useCallback((columnKey: string) => {
+    setColumns(prev => {
+      const newColumns = prev.map(col =>
+        col.key === columnKey ? { ...col, enabled: !col.enabled } : col
+      );
+      saveColumnPreferences(newColumns);
+      return newColumns;
+    });
+  }, [saveColumnPreferences]);
+
+  // Get enabled columns
+  const enabledColumns = columns.filter(col => col.enabled);
+
 
   // Track page visit
   useEffect(() => {
@@ -89,7 +291,7 @@ export const HostsList: React.FC = () => {
     }
   }, [search, isLoading, data, addActivity]);
 
-  const getStatusIcon = (host: Host) => {
+  const getStatusIcon = React.useCallback((host: Host) => {
     if (host.build) {
       return <ExclamationTriangleIcon color="orange" />;
     }
@@ -97,13 +299,79 @@ export const HostsList: React.FC = () => {
       return <CheckCircleIcon color="green" />;
     }
     return <TimesCircleIcon color="red" />;
-  };
+  }, []);
 
-  const getStatusText = (host: Host) => {
+  const getStatusText = React.useCallback((host: Host) => {
     if (host.build) return 'Building';
     if (host.enabled) return 'Running';
     return 'Stopped';
-  };
+  }, []);
+
+  // Memoized host click handler to prevent unnecessary re-renders
+  const handleHostClick = React.useCallback((host: Host) => {
+    addActivity({
+      type: 'host_view',
+      title: host.name,
+      subtitle: 'Host details',
+      url: `/hosts/${host.id}`,
+      metadata: { hostId: host.id },
+    });
+    navigate(`/hosts/${host.id}`);
+  }, [addActivity, navigate]);
+
+  // Memoized column data renderer for better performance
+  const renderColumnData = React.useCallback((host: Host, columnKey: string) => {
+    // Check if this is a plugin column
+    const column = columns.find(col => col.key === columnKey);
+    if (column && column.source === 'plugin' && column.component) {
+      // Use runtime type guard to safely validate plugin components
+      if (isValidHostTableComponent(column.component)) {
+        const PluginComponent = column.component;
+        return <PluginComponent host={convertHostForPlugin(host)} />;
+      } else {
+        console.warn(`Invalid plugin component for column ${columnKey}:`, column.component);
+        return <span>Invalid plugin component</span>;
+      }
+    }
+
+    // Core column rendering
+    switch (columnKey) {
+      case 'name':
+        return (
+          <div className="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-sm">
+            <ServerIcon />
+            {host.name}
+          </div>
+        );
+      case 'status':
+        return (
+          <div className="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-sm">
+            {getStatusIcon(host)}
+            {getStatusText(host)}
+          </div>
+        );
+      case 'operatingsystem':
+        return host.operatingsystem_name || 'Unknown';
+      case 'ip':
+        return host.ip || 'Not assigned';
+      case 'last_report':
+        return host.last_report ? formatRelativeTime(host.last_report) : 'Never';
+      case 'created_at':
+        return formatDateTime(host.created_at);
+      case 'environment':
+        return host.environment_name || 'Not set';
+      case 'hostgroup':
+        return host.hostgroup_name || 'Not set';
+      case 'owner':
+        return host.owner_name || 'Not set';
+      case 'location':
+        return host.location_name || 'Not set';
+      case 'organization':
+        return host.organization_name || 'Not set';
+      default:
+        return 'N/A';
+    }
+  }, [columns, getStatusIcon, getStatusText]);
 
   if (isLoading) {
     return (
@@ -184,6 +452,16 @@ export const HostsList: React.FC = () => {
                 </Dropdown>
               </ToolbarItem>
 
+              <ToolbarItem>
+                <Button
+                  variant="secondary"
+                  icon={<CogIcon />}
+                  onClick={() => setColumnManagerOpen(true)}
+                >
+                  Manage columns
+                </Button>
+              </ToolbarItem>
+
               {canCreateHosts() && (
                 <ToolbarItem align={{ default: 'alignRight' }}>
                   <Button
@@ -221,52 +499,25 @@ export const HostsList: React.FC = () => {
               <Table>
                 <Thead>
                   <Tr>
-                    <Th>Name</Th>
-                    <Th>Status</Th>
-                    <Th>Operating System</Th>
-                    <Th>IP Address</Th>
-                    <Th>Last Report</Th>
-                    <Th>Created</Th>
+                    {enabledColumns.map(column => (
+                      <Th key={column.key}>
+                        {column.label}
+                      </Th>
+                    ))}
                   </Tr>
                 </Thead>
                 <Tbody>
                   {hosts.map((host) => (
                     <Tr
                       key={host.id}
-                      isRowSelected={false}
                       isClickable
-                      onClick={() => {
-                        addActivity({
-                          type: 'host_view',
-                          title: host.name,
-                          subtitle: 'Host details',
-                          url: `/hosts/${host.id}`,
-                          metadata: { hostId: host.id },
-                        });
-                        navigate(`/hosts/${host.id}`);
-                      }}
+                      onClick={() => handleHostClick(host)}
                     >
-                      <Td>
-                        <div className="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-sm">
-                          <ServerIcon />
-                          {host.name}
-                        </div>
-                      </Td>
-                      <Td>
-                        <div className="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-sm">
-                          {getStatusIcon(host)}
-                          {getStatusText(host)}
-                        </div>
-                      </Td>
-                      <Td>{host.operatingsystem_name || 'Unknown'}</Td>
-                      <Td>{host.ip || 'Not assigned'}</Td>
-                      <Td>
-                        {host.last_report
-                          ? formatRelativeTime(host.last_report)
-                          : 'Never'
-                        }
-                      </Td>
-                      <Td>{formatDateTime(host.created_at)}</Td>
+                      {enabledColumns.map(column => (
+                        <Td key={column.key}>
+                          {renderColumnData(host, column.key)}
+                        </Td>
+                      ))}
                     </Tr>
                   ))}
                 </Tbody>
@@ -295,6 +546,51 @@ export const HostsList: React.FC = () => {
           )}
         </Card>
       </PageSection>
+
+      {/* Column Management Modal */}
+      <Modal
+        variant={ModalVariant.medium}
+        title="Manage columns"
+        isOpen={columnManagerOpen}
+        onClose={() => setColumnManagerOpen(false)}
+        actions={[
+          <Button key="confirm" variant="primary" onClick={() => setColumnManagerOpen(false)}>
+            Apply
+          </Button>,
+          <Button key="cancel" variant="link" onClick={() => setColumnManagerOpen(false)}>
+            Cancel
+          </Button>,
+        ]}
+      >
+        <Form>
+          <FormGroup label="Core columns" fieldId="core-columns">
+            {columns.filter(col => col.source === 'core').map(column => (
+              <Checkbox
+                key={column.key}
+                id={`column-${column.key}`}
+                label={column.label}
+                isChecked={column.enabled}
+                isDisabled={column.required}
+                onChange={() => toggleColumn(column.key)}
+              />
+            ))}
+          </FormGroup>
+
+          {columns.some(col => col.source === 'plugin') && (
+            <FormGroup label="Plugin columns" fieldId="plugin-columns">
+              {columns.filter(col => col.source === 'plugin').map(column => (
+                <Checkbox
+                  key={column.key}
+                  id={`column-${column.key}`}
+                  label={`${column.label} (${column.plugin || 'Plugin'})`}
+                  isChecked={column.enabled}
+                  onChange={() => toggleColumn(column.key)}
+                />
+              ))}
+            </FormGroup>
+          )}
+        </Form>
+      </Modal>
     </>
   );
 };

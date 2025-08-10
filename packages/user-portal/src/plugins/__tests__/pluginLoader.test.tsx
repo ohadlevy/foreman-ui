@@ -8,7 +8,13 @@ vi.mock('@foreman/shared', () => ({
     register: vi.fn(),
     isRegistered: vi.fn(),
   },
-  ForemanPlugin: {} // Type import
+  ForemanPlugin: {}, // Type import
+  EXTENSION_POINTS: {
+    HOST_TABLE_COLUMNS: 'host-table-columns',
+    HOST_DETAILS_TABS: 'host-details-tabs',
+    DASHBOARD_WIDGETS: 'dashboard-widgets',
+  },
+  HostTableColumnProps: {}, // Type import
 }));
 
 // Get the mocked registry
