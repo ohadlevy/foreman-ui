@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   PageSection,
   Title,
@@ -63,6 +63,7 @@ import {
   useBulkDeleteHosts,
   useBulkUpdateHostGroup,
   useHostGroups,
+  useApi,
   BulkAction,
   BulkOperationResult,
 } from '@foreman/shared';
@@ -169,8 +170,30 @@ export const HostsList: React.FC = () => {
   const hosts = data?.results || [];
   const total = data?.total || 0;
 
-  // Bulk selection management
-  const bulkSelection = useBulkSelection({ items: hosts });
+  // API access for cross-page operations
+  const api = useApi();
+  
+  // Function to get all host IDs for cross-page selection
+  const getAllHostIds = useCallback(async () => {
+    try {
+      // Fetch all hosts with current search/filter but no pagination
+      const allHostsData = await api.hosts.getMyHosts({
+        search,
+        per_page: total, // Get all matching hosts
+      });
+      return allHostsData.results.map(host => host.id);
+    } catch (error) {
+      console.error('Failed to fetch all host IDs:', error);
+      return [];
+    }
+  }, [api.hosts, search, total]);
+
+  // Bulk selection management with enhanced cross-page support
+  const bulkSelection = useBulkSelection({ 
+    items: hosts,
+    totalCount: total,
+    onSelectAllPages: getAllHostIds,
+  });
 
   // Bulk operation hooks
   const bulkDeleteMutation = useBulkDeleteHosts();
@@ -578,6 +601,8 @@ export const HostsList: React.FC = () => {
             onClearSelection={bulkSelection.clearSelection}
             actions={bulkActions}
             onActionClick={handleBulkActionClick}
+            onSelectAllPages={bulkSelection.selectAllPages}
+            showSelectAllPages={total > perPage && bulkSelection.selectedCount > 0 && bulkSelection.selectedCount < total}
           />
 
           {hosts.length === 0 ? (
@@ -605,10 +630,15 @@ export const HostsList: React.FC = () => {
                   <Tr>
                     <Th
                       select={{
-                        onSelect: bulkSelection.toggleAll,
-                        isSelected: bulkSelection.isAllSelected,
+                        onSelect: (event) => {
+                          event.stopPropagation();
+                          bulkSelection.toggleAll();
+                        },
+                        isSelected: bulkSelection.isAllCurrentPageSelected,
+                        isPartiallySelected: bulkSelection.isPartiallySelected,
                         isHeaderSelectDisabled: hosts.length === 0,
                       }}
+                      screenReaderText="Select all hosts"
                     />
                     {enabledColumns.map(column => (
                       <Th key={column.key}>
@@ -626,7 +656,10 @@ export const HostsList: React.FC = () => {
                     >
                       <Td
                         select={{
-                          onSelect: () => bulkSelection.toggleItem(host.id),
+                          onSelect: (event) => {
+                            event.stopPropagation();
+                            bulkSelection.toggleItem(host.id);
+                          },
                           isSelected: bulkSelection.isSelected(host.id),
                         }}
                       />

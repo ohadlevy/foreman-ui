@@ -29,6 +29,7 @@ vi.mock('@foreman/shared', () => ({
     selectedCount: 0,
     isSelected: vi.fn(() => false),
     isAllSelected: false,
+    isAllCurrentPageSelected: false,
     isPartiallySelected: false,
     toggleItem: vi.fn(),
     toggleAll: vi.fn(),
@@ -36,6 +37,8 @@ vi.mock('@foreman/shared', () => ({
     deselectItems: vi.fn(),
     clearSelection: vi.fn(),
     selectAll: vi.fn(),
+    selectAllPages: vi.fn(),
+    totalCount: 0,
   })),
   BulkActionToolbar: () => <div data-testid="bulk-action-toolbar">Bulk Actions</div>,
   BulkActionModal: () => <div data-testid="bulk-action-modal">Bulk Action Modal</div>,
@@ -46,6 +49,11 @@ vi.mock('@foreman/shared', () => ({
     mutateAsync: vi.fn(),
   })),
   useHostGroups: vi.fn(() => ({ data: { results: [] } })),
+  useApi: vi.fn(() => ({
+    hosts: {
+      getMyHosts: vi.fn(() => Promise.resolve({ results: [], total: 0 })),
+    },
+  })),
 }));
 
 // Mock navigation
