@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { ApiResponse, ApiError } from '../types';
+import { ApiResponse, ApiError, BulkOperationResult } from '../types';
 
 export interface ForemanClientConfig {
   baseURL: string;
@@ -186,6 +186,87 @@ export class ForemanAPIClient {
         message: error instanceof Error ? error.message : 'An unknown error occurred',
       },
     };
+  }
+
+  // Bulk operations methods
+  async bulkUpdateHostgroup(hostIds: number[], hostgroupId: number): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/update_multiple_hostgroup', {
+      host_ids: hostIds,
+      hostgroup_id: hostgroupId,
+    });
+  }
+
+  async bulkUpdateEnvironment(hostIds: number[], environmentId: number): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/update_multiple_environment', {
+      host_ids: hostIds,
+      environment_id: environmentId,
+    });
+  }
+
+  async bulkUpdateOwner(hostIds: number[], ownerId: number, ownerType: string = 'User'): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/update_multiple_owner', {
+      host_ids: hostIds,
+      owner_id: ownerId,
+      owner_type: ownerType,
+    });
+  }
+
+  async bulkUpdateOrganization(hostIds: number[], organizationId: number): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/update_multiple_organization', {
+      host_ids: hostIds,
+      organization_id: organizationId,
+    });
+  }
+
+  async bulkUpdateLocation(hostIds: number[], locationId: number): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/update_multiple_location', {
+      host_ids: hostIds,
+      location_id: locationId,
+    });
+  }
+
+  async bulkUpdateParameters(hostIds: number[], parameters: Record<string, unknown>): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/update_multiple_parameters', {
+      host_ids: hostIds,
+      host_parameters: parameters,
+    });
+  }
+
+  async bulkChangeGroup(hostIds: number[], groupName: string): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/multiple_change_group', {
+      host_ids: hostIds,
+      group: groupName,
+    });
+  }
+
+  async bulkBuild(hostIds: number[]): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/multiple_build', {
+      host_ids: hostIds,
+    });
+  }
+
+  async bulkDestroy(hostIds: number[]): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/multiple_destroy', {
+      host_ids: hostIds,
+    });
+  }
+
+  async bulkDisown(hostIds: number[]): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/multiple_disown', {
+      host_ids: hostIds,
+    });
+  }
+
+  async bulkEnable(hostIds: number[]): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/multiple_enable', {
+      host_ids: hostIds,
+    });
+  }
+
+  async bulkDisable(hostIds: number[]): Promise<BulkOperationResult> {
+    return this.put<BulkOperationResult>('/hosts/multiple_disable', {
+      host_ids: hostIds,
+    });
   }
 }
 
