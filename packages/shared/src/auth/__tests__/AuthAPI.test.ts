@@ -143,7 +143,7 @@ describe('AuthAPI', () => {
   describe('logout', () => {
     it('should clear all authentication data', async () => {
       localStorageMock.getItem.mockReturnValue('test_token');
-      
+
       await authAPI.logout();
 
       expect(mockClient.setLoggingOut).toHaveBeenCalledWith(true);

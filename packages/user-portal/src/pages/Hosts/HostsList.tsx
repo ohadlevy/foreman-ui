@@ -90,11 +90,11 @@ const isValidHostTableComponent = (component: unknown): component is React.Compo
   if (typeof component === 'function') {
     return true;
   }
-  
+
   // Check if it's a valid React element type (forwardRef, memo, etc.)
   if (
-    typeof component === 'object' && 
-    component !== null && 
+    typeof component === 'object' &&
+    component !== null &&
     '$$typeof' in component
   ) {
     const reactElement = component as { $$typeof?: symbol };
@@ -103,7 +103,7 @@ const isValidHostTableComponent = (component: unknown): component is React.Compo
       reactElement.$$typeof === Symbol.for('react.memo')
     );
   }
-  
+
   return false;
 };
 
@@ -138,7 +138,7 @@ export const HostsList: React.FC = () => {
   const navigate = useNavigate();
   const { canCreateHosts } = usePermissions();
   const { addActivity } = useActivityStore();
-  
+
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
@@ -154,7 +154,7 @@ export const HostsList: React.FC = () => {
 
   // Track plugin registry changes to update columns when plugins are loaded/unloaded
   const [pluginRegistryVersion, setPluginRegistryVersion] = React.useState(0);
-  
+
   React.useEffect(() => {
     const unsubscribe = pluginRegistry.subscribe(() => {
       setPluginRegistryVersion(prev => prev + 1);
@@ -167,7 +167,7 @@ export const HostsList: React.FC = () => {
     const extensions = pluginRegistry.getPluginsWithExtensions(EXTENSION_POINTS.HOST_TABLE_COLUMNS);
     return extensions.map((ext, index) => {
       const { key: propKey, label: propLabel, ...otherProps } = ext.props || {};
-      
+
       // Generate stable, deterministic keys for plugin columns
       // Priority: explicit key -> extension point + title -> extension point + order -> fallback
       let stableKey: string;
@@ -185,9 +185,9 @@ export const HostsList: React.FC = () => {
         stableKey = `${ext.extensionPoint}_index_${index}`;
         console.warn(`Plugin column using index-based key: ${stableKey}`);
       }
-      
+
       const pluginName = ext.title || 'Unknown Plugin';
-      
+
       return {
         key: stableKey,
         label: ext.title || propLabel || 'Plugin Column',

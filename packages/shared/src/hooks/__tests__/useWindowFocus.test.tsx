@@ -4,7 +4,7 @@ import { useWindowFocus } from '../useWindowFocus';
 
 describe('useWindowFocus', () => {
   const originalHasFocus = document.hasFocus;
-  
+
   beforeEach(() => {
     document.hasFocus = vi.fn(() => true);
   });
@@ -28,7 +28,7 @@ describe('useWindowFocus', () => {
 
   it('should update focus state when window focus changes', () => {
     const { result } = renderHook(() => useWindowFocus());
-    
+
     // Initially focused
     expect(result.current).toBe(true);
 
@@ -48,18 +48,18 @@ describe('useWindowFocus', () => {
   it('should clean up event listeners on unmount', () => {
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
     const { unmount } = renderHook(() => useWindowFocus());
-    
+
     unmount();
-    
+
     expect(removeEventListenerSpy).toHaveBeenCalledWith('focus', expect.any(Function));
     expect(removeEventListenerSpy).toHaveBeenCalledWith('blur', expect.any(Function));
-    
+
     removeEventListenerSpy.mockRestore();
   });
 
   it('should handle multiple focus/blur events correctly', () => {
     const { result } = renderHook(() => useWindowFocus());
-    
+
     // Multiple blur events
     act(() => {
       window.dispatchEvent(new window.Event('blur'));

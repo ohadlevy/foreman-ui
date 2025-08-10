@@ -12,3 +12,4 @@ export * from './useRegistrationFormData';
 export * from './useHostGroups';
 export * from './useSmartProxies';
 export * from './useWindowFocus';
+export * from './useTaxonomy';

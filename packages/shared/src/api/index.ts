@@ -7,3 +7,7 @@ export * from './hostgroups';
 export * from './smartproxies';
 export * from './registration';
 export * from './registrationForm';
+export * from './organizations';
+export * from './locations';
+export * from './taxonomyClient';
+export * from './userContext';

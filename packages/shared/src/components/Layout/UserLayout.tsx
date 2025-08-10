@@ -36,6 +36,7 @@ import { hasPluginPermissions } from '../../plugins/utils';
 import { ForemanBrand } from '../Branding';
 import { NotificationBell, NotificationDrawer } from '../Notifications';
 import { QuickNav } from '../QuickNav';
+import { HeaderTaxonomySelector } from '../TaxonomySelector';
 import { SkipToContent } from './SkipToContent';
 
 interface UserLayoutProps {
@@ -195,6 +196,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
             onClick={() => navigate('/dashboard')}
           />
         </MastheadBrand>
+        <HeaderTaxonomySelector />
       </MastheadMain>
       <MastheadContent>{headerToolbar}</MastheadContent>
     </Masthead>

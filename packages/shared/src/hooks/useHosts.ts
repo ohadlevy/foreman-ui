@@ -2,13 +2,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from './useApi';
 import { useAuth } from '../auth/useAuth';
 import { HostSearchParams, HostFormData } from '../types';
+import { useTaxonomyStore } from '../stores/taxonomyStore';
 
 export const useHosts = (params?: HostSearchParams) => {
   const { hosts } = useApi();
   const { hasPermission } = useAuth();
+  const { currentOrganization, currentLocation } = useTaxonomyStore();
+
+  // Include taxonomy context in query key to ensure proper cache separation
+  const taxonomyContext = {
+    orgId: currentOrganization?.id || null,
+    locId: currentLocation?.id || null,
+  };
 
   return useQuery({
-    queryKey: ['hosts', params],
+    queryKey: ['hosts', params, taxonomyContext],
     queryFn: () => hosts.list(params),
     keepPreviousData: true,
     enabled: hasPermission('view_hosts'),
@@ -18,9 +26,16 @@ export const useHosts = (params?: HostSearchParams) => {
 export const useHost = (id: number, enabled = true) => {
   const { hosts } = useApi();
   const { hasPermission } = useAuth();
+  const { currentOrganization, currentLocation } = useTaxonomyStore();
+
+  // Include taxonomy context in query key to ensure proper cache separation
+  const taxonomyContext = {
+    orgId: currentOrganization?.id || null,
+    locId: currentLocation?.id || null,
+  };
 
   return useQuery({
-    queryKey: ['hosts', id],
+    queryKey: ['hosts', id, taxonomyContext],
     queryFn: () => hosts.get(id),
     enabled: enabled && !!id && hasPermission('view_hosts'),
   });
@@ -29,9 +44,16 @@ export const useHost = (id: number, enabled = true) => {
 export const useMyHosts = (params?: HostSearchParams) => {
   const { hosts } = useApi();
   const { hasPermission } = useAuth();
+  const { currentOrganization, currentLocation } = useTaxonomyStore();
+
+  // Include taxonomy context in query key to ensure proper cache separation
+  const taxonomyContext = {
+    orgId: currentOrganization?.id || null,
+    locId: currentLocation?.id || null,
+  };
 
   return useQuery({
-    queryKey: ['myHosts', params],
+    queryKey: ['myHosts', params, taxonomyContext],
     queryFn: () => hosts.getMyHosts(params),
     keepPreviousData: true,
     enabled: hasPermission('view_hosts'),

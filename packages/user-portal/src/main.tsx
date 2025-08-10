@@ -12,7 +12,7 @@ import '@patternfly/patternfly/patternfly.css';
 const startApp = async () => {
   // Ensure i18next is fully initialized
   const i18nInstance = await initI18n();
-  
+
   // Double-check initialization completed - only log in development
   if (!i18nInstance.isInitialized && process.env.NODE_ENV === 'development') {
     console.debug('i18next initialization may not be complete');
