@@ -99,7 +99,7 @@ describe('RegistrationFormAPI', () => {
       });
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://foreman.example.com/api/graphql',
+        'https://foreman.example.com/graphql',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
