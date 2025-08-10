@@ -201,6 +201,8 @@ export interface HostFormData {
   hostgroup_id?: number;
   organization_id?: number;
   location_id?: number;
+  owner_id?: number;
+  owner_type?: string;
   comment?: string;
   build?: boolean;
   enabled?: boolean;
@@ -271,6 +273,36 @@ export interface BulkOperationResult {
     message: string;
   }>;
   warnings?: string[];
+  task_id?: string; // For async operations
+  message?: string; // Success/info message
+  missed_hosts?: number[]; // IDs of hosts that couldn't be processed
+  is_async?: boolean; // Whether operation runs in background
+}
+
+// Task tracking for async operations
+export interface ForemanTask {
+  id: string;
+  label: string;
+  state: 'pending' | 'running' | 'paused' | 'stopped' | 'error';
+  result: 'pending' | 'success' | 'warning' | 'error';
+  progress: number; // 0-100
+  started_at?: string;
+  ended_at?: string;
+  error?: string;
+  humanized?: {
+    action?: string;
+    errors?: string[];
+  };
+}
+
+// Progress tracking for bulk operations
+export interface BulkOperationProgress {
+  operation_id: string;
+  total_items: number;
+  completed_items: number;
+  failed_items: number;
+  current_status: string;
+  estimated_completion?: string;
 }
 
 // Host Groups types

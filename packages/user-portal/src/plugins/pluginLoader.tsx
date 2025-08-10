@@ -1,6 +1,6 @@
 import React from 'react';
-import { CubesIcon, CheckCircleIcon, ExclamationTriangleIcon, TimesCircleIcon } from '@patternfly/react-icons';
-import { pluginRegistry, ForemanPlugin, HostTableColumnProps, EXTENSION_POINTS, ExtensionComponentProps } from '@foreman/shared';
+import { CubesIcon, CheckCircleIcon, ExclamationTriangleIcon, TimesCircleIcon, SearchIcon, PlayIcon } from '@patternfly/react-icons';
+import { pluginRegistry, ForemanPlugin, HostTableColumnProps, EXTENSION_POINTS, ExtensionComponentProps, BulkOperationResult } from '@foreman/shared';
 
 /**
  * Plugin loader that discovers and registers plugins
@@ -283,6 +283,87 @@ export class PluginLoader {
           props: {
             key: 'health_status',
             label: 'Health Status'
+          }
+        },
+        {
+          extensionPoint: EXTENSION_POINTS.HOST_BULK_ACTIONS,
+          title: 'Run Health Check',
+          order: 10,
+          component: React.forwardRef<HTMLDivElement, ExtensionComponentProps>(function HealthCheckAction(_props, ref) {
+            return <div ref={ref}>Health Check Action</div>;
+          }),
+          props: {
+            id: 'monitoring-health-check',
+            label: 'Run Health Check',
+            icon: SearchIcon,
+            action: async (selectedIds: number[]): Promise<BulkOperationResult> => {
+              // Simulate a health check operation
+              console.log(`Running health check on ${selectedIds.length} hosts:`, selectedIds);
+
+              // Simulate API delay
+              await new Promise(resolve => setTimeout(resolve, 2000));
+
+              // Simulate some failures for demo purposes
+              const failureRate = 0.1; // 10% failure rate
+              const failedHosts = selectedIds.filter(() => Math.random() < failureRate);
+              const successCount = selectedIds.length - failedHosts.length;
+
+              return {
+                success_count: successCount,
+                failed_count: failedHosts.length,
+                errors: failedHosts.map(hostId => ({
+                  host_id: hostId,
+                  message: 'Health check failed: Service not responding'
+                })),
+                warnings: failedHosts.length > 0 ? [
+                  `${failedHosts.length} hosts failed health check. Check network connectivity.`
+                ] : undefined
+              };
+            },
+            permissions: ['view_hosts', 'execute_monitoring'],
+            requiresConfirmation: true,
+            confirmationTitle: 'Run Health Check',
+            confirmationMessage: 'This will run a comprehensive health check on all selected hosts. The check may take several minutes to complete.',
+            destructive: false,
+          }
+        },
+        {
+          extensionPoint: EXTENSION_POINTS.HOST_BULK_ACTIONS,
+          title: 'Restart Monitoring',
+          order: 20,
+          component: React.forwardRef<HTMLDivElement, ExtensionComponentProps>(function RestartMonitoringAction(_props, ref) {
+            return <div ref={ref}>Restart Monitoring Action</div>;
+          }),
+          props: {
+            id: 'monitoring-restart',
+            label: 'Restart Monitoring',
+            icon: PlayIcon,
+            action: async (selectedIds: number[]): Promise<BulkOperationResult> => {
+              // Simulate restarting monitoring services
+              console.log(`Restarting monitoring on ${selectedIds.length} hosts:`, selectedIds);
+
+              // Simulate API delay
+              await new Promise(resolve => setTimeout(resolve, 1500));
+
+              // Simulate very high success rate for restart operation
+              const failureRate = 0.05; // 5% failure rate
+              const failedHosts = selectedIds.filter(() => Math.random() < failureRate);
+              const successCount = selectedIds.length - failedHosts.length;
+
+              return {
+                success_count: successCount,
+                failed_count: failedHosts.length,
+                errors: failedHosts.map(hostId => ({
+                  host_id: hostId,
+                  message: 'Failed to restart monitoring: Permission denied'
+                }))
+              };
+            },
+            permissions: ['edit_hosts', 'execute_monitoring'],
+            requiresConfirmation: true,
+            confirmationTitle: 'Restart Monitoring Services',
+            confirmationMessage: 'This will restart monitoring services on all selected hosts. This may cause temporary monitoring gaps.',
+            destructive: false,
           }
         }
       ],

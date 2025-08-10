@@ -48,12 +48,35 @@ vi.mock('@foreman/shared', () => ({
   useBulkUpdateHostGroup: vi.fn(() => ({
     mutateAsync: vi.fn(),
   })),
+  useBulkUpdateOrganization: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+  })),
+  useBulkUpdateLocation: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+  })),
+  useBulkBuild: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+  })),
+  useBulkChangeOwner: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+  })),
+  useBulkDisassociate: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+  })),
   useHostGroups: vi.fn(() => ({ data: { results: [] } })),
+  useAllHostIds: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(() => Promise.resolve({ data: [] })),
+  })),
   useApi: vi.fn(() => ({
     hosts: {
       getMyHosts: vi.fn(() => Promise.resolve({ results: [], total: 0 })),
     },
   })),
+  BulkAction: {},
+  BulkOperationResult: {},
 }));
 
 // Mock navigation
@@ -302,10 +325,8 @@ describe('HostsList', () => {
 
     render(<HostsList />, { wrapper: createWrapper() });
 
-    const hostRow = screen.getByText('test-host-1').closest('tr');
-    if (hostRow) {
-      fireEvent.click(hostRow);
-      expect(mockNavigate).toHaveBeenCalledWith('/hosts/1');
-    }
+    const hostCell = screen.getByText('test-host-1');
+    fireEvent.click(hostCell);
+    expect(mockNavigate).toHaveBeenCalledWith('/hosts/1');
   });
 });

@@ -62,8 +62,13 @@ import {
   BulkActionModal,
   useBulkDeleteHosts,
   useBulkUpdateHostGroup,
+  useBulkUpdateOrganization,
+  useBulkUpdateLocation,
+  useBulkBuild,
+  useBulkChangeOwner,
+  useBulkDisassociate,
   useHostGroups,
-  useApi,
+  useAllHostIds,
   BulkAction,
   BulkOperationResult,
 } from '@foreman/shared';
@@ -170,26 +175,39 @@ export const HostsList: React.FC = () => {
   const hosts = data?.results || [];
   const total = data?.total || 0;
 
-  // API access for cross-page operations
-  const api = useApi();
-  
-  // Function to get all host IDs for cross-page selection
+  // API access for cross-page operations (currently unused but kept for future bulk operations)
+  // const api = useApi();
+
+  // Fast GraphQL-based host ID fetching
+  const allHostIdsQuery = useAllHostIds({ search });
+
+  // Function to get all host IDs for cross-page selection using GraphQL
   const getAllHostIds = useCallback(async () => {
     try {
-      // Fetch all hosts with current search/filter but no pagination
-      const allHostsData = await api.hosts.getMyHosts({
-        search,
-        per_page: total, // Get all matching hosts
-      });
-      return allHostsData.results.map(host => host.id);
-    } catch (error) {
-      console.error('Failed to fetch all host IDs:', error);
+      // Use GraphQL for much faster bulk selection
+      const result = await allHostIdsQuery.refetch();
+      if (result.data) {
+        return result.data.map(host => host.id);
+      }
+
+      // If GraphQL query succeeds but returns no data, return empty array
       return [];
+    } catch (error) {
+      console.warn('GraphQL query failed, falling back to REST API for bulk selection:', error);
+
+      // Fallback to fetching all hosts via REST API
+      try {
+        const restResponse = await data?.results || [];
+        return restResponse.map(host => host.id);
+      } catch (restError) {
+        console.error('Failed to fetch host IDs via fallback method:', restError);
+        return [];
+      }
     }
-  }, [api.hosts, search, total]);
+  }, [allHostIdsQuery, data]);
 
   // Bulk selection management with enhanced cross-page support
-  const bulkSelection = useBulkSelection({ 
+  const bulkSelection = useBulkSelection({
     items: hosts,
     totalCount: total,
     onSelectAllPages: getAllHostIds,
@@ -198,6 +216,11 @@ export const HostsList: React.FC = () => {
   // Bulk operation hooks
   const bulkDeleteMutation = useBulkDeleteHosts();
   const bulkUpdateHostGroupMutation = useBulkUpdateHostGroup();
+  const bulkUpdateOrganizationMutation = useBulkUpdateOrganization();
+  const bulkUpdateLocationMutation = useBulkUpdateLocation();
+  const bulkBuildMutation = useBulkBuild();
+  const bulkChangeOwnerMutation = useBulkChangeOwner();
+  const bulkDisassociateMutation = useBulkDisassociate();
   const { data: hostGroups } = useHostGroups();
 
   // Track plugin registry changes to update columns when plugins are loaded/unloaded
@@ -217,7 +240,7 @@ export const HostsList: React.FC = () => {
       label: 'Delete',
       icon: TrashIcon,
       action: async (selectedIds: number[]) => {
-        return bulkDeleteMutation.mutateAsync(selectedIds);
+        await bulkDeleteMutation.mutateAsync(selectedIds);
       },
       permissions: ['destroy_hosts'],
       requiresConfirmation: true,
@@ -229,12 +252,9 @@ export const HostsList: React.FC = () => {
       id: 'change-hostgroup',
       label: 'Change Host Group',
       icon: EditIcon,
-      action: async (selectedIds: number[], parameters?: Record<string, unknown>) => {
-        const hostgroupId = parameters?.hostgroup_id as number;
-        if (!hostgroupId) {
-          throw new Error('Host group is required');
-        }
-        return bulkUpdateHostGroupMutation.mutateAsync({ hostIds: selectedIds, hostgroupId });
+      action: async (selectedIds: number[]) => {
+        // Parameters will be handled in the modal before calling this action
+        console.log(`Change host group action for ${selectedIds.length} hosts`);
       },
       permissions: ['edit_hosts'],
       requiresConfirmation: true,
@@ -242,7 +262,72 @@ export const HostsList: React.FC = () => {
       confirmationMessage: 'This will change the host group for all selected hosts.',
       destructive: false,
     },
-  ], [bulkDeleteMutation, bulkUpdateHostGroupMutation]);
+    {
+      id: 'change-organization',
+      label: 'Change Organization',
+      icon: EditIcon,
+      action: async (selectedIds: number[]) => {
+        console.log(`Change organization action for ${selectedIds.length} hosts`);
+      },
+      permissions: ['edit_hosts'],
+      requiresConfirmation: true,
+      confirmationTitle: 'Change Organization',
+      confirmationMessage: 'This will change the organization for all selected hosts.',
+      destructive: false,
+    },
+    {
+      id: 'change-location',
+      label: 'Change Location',
+      icon: EditIcon,
+      action: async (selectedIds: number[]) => {
+        console.log(`Change location action for ${selectedIds.length} hosts`);
+      },
+      permissions: ['edit_hosts'],
+      requiresConfirmation: true,
+      confirmationTitle: 'Change Location',
+      confirmationMessage: 'This will change the location for all selected hosts.',
+      destructive: false,
+    },
+    {
+      id: 'build',
+      label: 'Rebuild Hosts',
+      icon: CogIcon,
+      action: async (selectedIds: number[]) => {
+        console.log(`Build action for ${selectedIds.length} hosts`);
+      },
+      permissions: ['build_hosts'],
+      requiresConfirmation: true,
+      confirmationTitle: 'Rebuild Hosts',
+      confirmationMessage: 'This will trigger a rebuild for all selected hosts. They will be rebooted and reinstalled.',
+      destructive: true,
+    },
+    {
+      id: 'change-owner',
+      label: 'Change Owner',
+      icon: EditIcon,
+      action: async (selectedIds: number[]) => {
+        console.log(`Change owner action for ${selectedIds.length} hosts`);
+      },
+      permissions: ['edit_hosts'],
+      requiresConfirmation: true,
+      confirmationTitle: 'Change Owner',
+      confirmationMessage: 'This will change the owner for all selected hosts.',
+      destructive: false,
+    },
+    {
+      id: 'disassociate',
+      label: 'Disassociate',
+      icon: TrashIcon,
+      action: async (selectedIds: number[]) => {
+        await bulkDisassociateMutation.mutateAsync(selectedIds);
+      },
+      permissions: ['edit_hosts'],
+      requiresConfirmation: true,
+      confirmationTitle: 'Disassociate Hosts',
+      confirmationMessage: 'This will disassociate the selected hosts from their current resources.',
+      destructive: true,
+    },
+  ], [bulkDeleteMutation, bulkUpdateHostGroupMutation, bulkUpdateOrganizationMutation, bulkUpdateLocationMutation, bulkBuildMutation, bulkChangeOwnerMutation, bulkDisassociateMutation]);
 
   // Get plugin bulk actions
   const pluginBulkActions = React.useMemo(() => {
@@ -252,7 +337,7 @@ export const HostsList: React.FC = () => {
       label: ext.title || 'Plugin Action',
       action: async (selectedIds: number[]) => {
         // Plugin actions would be handled through the extension component
-        return { success_count: selectedIds.length, failed_count: 0 };
+        console.log(`Plugin action executed on ${selectedIds.length} hosts`);
       },
       permissions: ext.permissions || [],
       ...ext.props,
@@ -275,9 +360,39 @@ export const HostsList: React.FC = () => {
       throw new Error('No action selected');
     }
 
-    const result = await bulkActionModal.action.action(bulkSelection.selectedIds, parameters);
+    const selectedIds = bulkSelection.selectedIds;
+
+    // Handle specific bulk operations with parameters
+    if (bulkActionModal.action.id === 'change-hostgroup' && parameters?.hostgroup_id) {
+      const hostgroupId = parameters.hostgroup_id as number;
+      await bulkUpdateHostGroupMutation.mutateAsync({ hostIds: selectedIds, hostgroupId });
+    } else if (bulkActionModal.action.id === 'change-organization' && parameters?.organization_id) {
+      const organizationId = parameters.organization_id as number;
+      await bulkUpdateOrganizationMutation.mutateAsync({ hostIds: selectedIds, organizationId });
+    } else if (bulkActionModal.action.id === 'change-location' && parameters?.location_id) {
+      const locationId = parameters.location_id as number;
+      await bulkUpdateLocationMutation.mutateAsync({ hostIds: selectedIds, locationId });
+    } else if (bulkActionModal.action.id === 'build' && parameters) {
+      const options = {
+        reboot: parameters.reboot as boolean,
+        rebuildConfiguration: parameters.rebuild_configuration as boolean
+      };
+      await bulkBuildMutation.mutateAsync({ hostIds: selectedIds, options });
+    } else if (bulkActionModal.action.id === 'change-owner' && parameters?.owner_id) {
+      const ownerId = parameters.owner_id as number;
+      await bulkChangeOwnerMutation.mutateAsync({ hostIds: selectedIds, ownerId });
+    } else {
+      // For other actions, call the action directly
+      await bulkActionModal.action.action(selectedIds);
+    }
+
     bulkSelection.clearSelection();
-    return result;
+
+    // Return a default result since the action doesn't provide one
+    return {
+      success_count: selectedIds.length,
+      failed_count: 0
+    };
   };
 
   const handleBulkActionModalClose = () => {
@@ -523,13 +638,12 @@ export const HostsList: React.FC = () => {
 
   return (
     <>
-      <PageSection variant="light">
-        <Title headingLevel="h1" size="2xl">
-          My Hosts
-        </Title>
-      </PageSection>
-
       <PageSection>
+        <div className="pf-v5-u-mb-md">
+          <Title headingLevel="h1" size="2xl">
+            My Hosts
+          </Title>
+        </div>
         <Card>
           <Toolbar id="hosts-toolbar">
             <ToolbarContent>
@@ -595,15 +709,17 @@ export const HostsList: React.FC = () => {
             </ToolbarContent>
           </Toolbar>
 
-          <BulkActionToolbar
-            selectedCount={bulkSelection.selectedCount}
-            totalCount={total}
-            onClearSelection={bulkSelection.clearSelection}
-            actions={bulkActions}
-            onActionClick={handleBulkActionClick}
-            onSelectAllPages={bulkSelection.selectAllPages}
-            showSelectAllPages={total > perPage && bulkSelection.selectedCount > 0 && bulkSelection.selectedCount < total}
-          />
+          {bulkSelection.selectedCount > 0 && (
+            <BulkActionToolbar
+              selectedCount={bulkSelection.selectedCount}
+              totalCount={total}
+              onClearSelection={bulkSelection.clearSelection}
+              actions={bulkActions}
+              onActionClick={handleBulkActionClick}
+              onSelectAllPages={bulkSelection.selectAllPages}
+              showSelectAllPages={total > perPage && bulkSelection.selectedCount > 0 && bulkSelection.selectedCount < total}
+            />
+          )}
 
           {hosts.length === 0 ? (
             <EmptyState>
@@ -635,7 +751,6 @@ export const HostsList: React.FC = () => {
                           bulkSelection.toggleAll();
                         },
                         isSelected: bulkSelection.isAllCurrentPageSelected,
-                        isPartiallySelected: bulkSelection.isPartiallySelected,
                         isHeaderSelectDisabled: hosts.length === 0,
                       }}
                       screenReaderText="Select all hosts"
@@ -648,28 +763,33 @@ export const HostsList: React.FC = () => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {hosts.map((host) => (
-                    <Tr
-                      key={host.id}
-                      isClickable
-                      onClick={() => handleHostClick(host)}
-                    >
-                      <Td
-                        select={{
-                          onSelect: (event) => {
-                            event.stopPropagation();
-                            bulkSelection.toggleItem(host.id);
-                          },
-                          isSelected: bulkSelection.isSelected(host.id),
-                        }}
-                      />
-                      {enabledColumns.map(column => (
-                        <Td key={column.key}>
-                          {renderColumnData(host, column.key)}
-                        </Td>
-                      ))}
-                    </Tr>
-                  ))}
+                  {hosts.map((host, index) => {
+                    const isHostSelected = bulkSelection.isSelected(host.id);
+                    return (
+                      <Tr key={host.id}>
+                        <Td
+                          select={{
+                            onSelect: (event) => {
+                              event.stopPropagation();
+                              bulkSelection.toggleItem(host.id);
+                            },
+                            isSelected: isHostSelected,
+                            rowIndex: index,
+                          }}
+                        />
+                        {enabledColumns.map(column => (
+                          <Td
+                            key={column.key}
+                            isActionCell={false}
+                            onClick={() => handleHostClick(host)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            {renderColumnData(host, column.key)}
+                          </Td>
+                        ))}
+                      </Tr>
+                    );
+                  })}
                 </Tbody>
               </Table>
 

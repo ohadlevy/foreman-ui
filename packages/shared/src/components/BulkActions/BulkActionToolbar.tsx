@@ -25,6 +25,8 @@ interface BulkActionToolbarProps {
   onClearSelection: () => void;
   actions: BulkAction[];
   onActionClick: (action: BulkAction) => void;
+  onSelectAllPages?: () => void;
+  showSelectAllPages?: boolean;
 }
 
 export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
@@ -33,11 +35,19 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
   onClearSelection,
   actions,
   onActionClick,
+  onSelectAllPages,
+  showSelectAllPages = false,
 }) => {
   const [isActionsOpen, setIsActionsOpen] = useState(false);
 
+
+  // Always render the container to prevent layout jumps
   if (selectedCount === 0) {
-    return null;
+    return (
+      <div style={{ minHeight: '56px', visibility: 'hidden' }}>
+        <Toolbar><ToolbarContent></ToolbarContent></Toolbar>
+      </div>
+    );
   }
 
   const enabledActions = actions.filter(action => !action.disabled);
@@ -64,6 +74,17 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
                 Clear selection
               </Button>
             </SplitItem>
+            {showSelectAllPages && selectedCount < totalCount && (
+              <SplitItem>
+                <Button
+                  variant="link"
+                  onClick={onSelectAllPages}
+                  size="sm"
+                >
+                  Select all {totalCount} items
+                </Button>
+              </SplitItem>
+            )}
           </Split>
         </ToolbarItem>
 

@@ -39,6 +39,8 @@ import {
   usePluginMenuItems,
   useAuth,
   useStatuses,
+  pluginRegistry,
+  EXTENSION_POINTS,
   type ForemanStatusesResponse,
   type CacheStatus,
   type ApiStatusData
@@ -282,6 +284,11 @@ export const SystemStatus: React.FC = () => {
   const { user: currentUser } = useAuth();
   const { data: statuses, isLoading: statusesLoading, error: statusesError } = useStatuses();
 
+  // Calculate total bulk actions provided by plugins
+  const totalBulkActions = React.useMemo(() => {
+    return pluginRegistry.getPluginsWithExtensions(EXTENSION_POINTS.HOST_BULK_ACTIONS).length;
+  }, [plugins]);
+
 
   // System health metrics based only on what we can observe
   const systemHealth = React.useMemo(() => {
@@ -360,9 +367,16 @@ export const SystemStatus: React.FC = () => {
 
     // Count extensions by type for more detailed display
     const extensionsByType: Record<string, number> = {};
+    let bulkActionsCount = 0;
+
     plugin.componentExtensions?.forEach(ext => {
       const extensionType = ext.extensionPoint;
       extensionsByType[extensionType] = (extensionsByType[extensionType] || 0) + 1;
+
+      // Count bulk actions specifically
+      if (extensionType === EXTENSION_POINTS.HOST_BULK_ACTIONS) {
+        bulkActionsCount++;
+      }
     });
 
     return {
@@ -370,6 +384,7 @@ export const SystemStatus: React.FC = () => {
       menuItems: plugin.menuItems?.length || 0,
       routes: plugin.routes?.length || 0,
       extensions: plugin.componentExtensions?.length || 0,
+      bulkActions: bulkActionsCount,
       extensionsByType,
     };
   };
@@ -535,9 +550,31 @@ export const SystemStatus: React.FC = () => {
                   <GridItem span={3}>
                     <Card isCompact>
                       <CardBody>
+                        <Text component={TextVariants.small}>Plugin Bulk Actions</Text>
+                        <Title headingLevel="h3" size="2xl">
+                          {totalBulkActions}
+                        </Title>
+                      </CardBody>
+                    </Card>
+                  </GridItem>
+                </Grid>
+                <Grid hasGutter style={{ marginTop: '1rem' }}>
+                  <GridItem span={6}>
+                    <Card isCompact>
+                      <CardBody>
                         <Text component={TextVariants.small}>Additional Menu Items</Text>
                         <Title headingLevel="h3" size="2xl">
                           {menuItems.length}
+                        </Title>
+                      </CardBody>
+                    </Card>
+                  </GridItem>
+                  <GridItem span={6}>
+                    <Card isCompact>
+                      <CardBody>
+                        <Text component={TextVariants.small}>Total Extensions</Text>
+                        <Title headingLevel="h3" size="2xl">
+                          {plugins.reduce((total, plugin) => total + (plugin.componentExtensions?.length || 0), 0)}
                         </Title>
                       </CardBody>
                     </Card>
@@ -637,6 +674,12 @@ export const SystemStatus: React.FC = () => {
                                   {features.routes} Route{(features.routes || 0) !== 1 ? 's' : ''}
                                 </ListItem>
                               )}
+                              {(features.bulkActions || 0) > 0 && (
+                                <ListItem>
+                                  <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}
+                                  {features.bulkActions} Bulk Action{(features.bulkActions || 0) !== 1 ? 's' : ''}
+                                </ListItem>
+                              )}
                               {features.extensionsByType && Object.entries(features.extensionsByType).map(([extensionType, count]) => {
                                 // Convert extension point names to user-friendly labels
                                 const getExtensionLabel = (type: string) => {
@@ -645,6 +688,8 @@ export const SystemStatus: React.FC = () => {
                                       return 'Host Table Column';
                                     case 'host-details-tabs':
                                       return 'Host Details Tab';
+                                    case 'host-bulk-actions':
+                                      return 'Host Bulk Action';
                                     case 'dashboard-widgets':
                                       return 'Dashboard Widget Extension';
                                     default:

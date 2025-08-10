@@ -6,16 +6,20 @@ import { SystemStatus } from '../SystemStatus';
 import type { ForemanStatus, ForemanPingResponse, ForemanStatusesResponse } from '@foreman/shared';
 
 // Mock the shared hooks
-vi.mock('@foreman/shared', () => ({
-  usePlugins: vi.fn(),
-  usePluginLoadState: vi.fn(),
-  usePluginDashboardWidgets: vi.fn(),
-  usePluginMenuItems: vi.fn(),
-  useAuth: vi.fn(),
-  useStatus: vi.fn(),
-  usePing: vi.fn(),
-  useStatuses: vi.fn(),
-}));
+vi.mock('@foreman/shared', async () => {
+  const actual = await vi.importActual('@foreman/shared') as Record<string, unknown>;
+  return {
+    ...actual,
+    usePlugins: vi.fn(),
+    usePluginLoadState: vi.fn(),
+    usePluginDashboardWidgets: vi.fn(),
+    usePluginMenuItems: vi.fn(),
+    useAuth: vi.fn(),
+    useStatus: vi.fn(),
+    usePing: vi.fn(),
+    useStatuses: vi.fn(),
+  };
+});
 
 const mockHooks = vi.mocked(await import('@foreman/shared'));
 

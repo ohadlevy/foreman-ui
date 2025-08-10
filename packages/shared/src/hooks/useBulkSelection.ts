@@ -24,7 +24,9 @@ export const useBulkSelection = <T extends { id: number }>({
     [items, selectedItems]
   );
 
-  const isSelected = useCallback((id: number) => selectedItems.has(id), [selectedItems]);
+  const isSelected = useCallback((id: number) => {
+    return selectedItems.has(id);
+  }, [selectedItems]);
 
   const isAllCurrentPageSelected = useMemo(() =>
     items.length > 0 && items.every(item => selectedItems.has(item.id)),
@@ -59,7 +61,7 @@ export const useBulkSelection = <T extends { id: number }>({
     setSelectedItems(prev => {
       // Check if all current page items are already selected
       const allCurrentSelected = items.length > 0 && items.every(item => prev.has(item.id));
-      
+
       if (allCurrentSelected) {
         // Remove all current page items from selection
         const newSelection = new Set(prev);
