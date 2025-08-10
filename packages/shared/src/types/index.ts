@@ -232,6 +232,21 @@ export interface GeneratedRegistrationCommand {
   parameters: RegistrationParams;
 }
 
+// Bulk action types
+export interface BulkAction {
+  id: string;
+  label: string;
+  icon?: React.ComponentType | string;
+  action: (selectedItems: number[]) => Promise<void>;
+  permissions?: string[];
+  requiresConfirmation?: boolean;
+  confirmationTitle?: string;
+  confirmationMessage?: string;
+  destructive?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
+}
+
 // Host Groups types
 export interface HostGroup {
   id: number;
