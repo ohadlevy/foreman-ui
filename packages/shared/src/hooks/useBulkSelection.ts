@@ -3,11 +3,15 @@ import { useState, useCallback, useMemo } from 'react';
 interface UseBulkSelectionOptions<T extends { id: number }> {
   items: T[];
   initialSelection?: number[];
+  totalCount?: number;
+  onSelectAllPages?: () => Promise<number[]> | number[];
 }
 
 export const useBulkSelection = <T extends { id: number }>({
   items,
   initialSelection = [],
+  totalCount,
+  onSelectAllPages,
 }: UseBulkSelectionOptions<T>) => {
   const [selectedItems, setSelectedItems] = useState<Set<number>>(
     new Set(initialSelection)
@@ -22,10 +26,17 @@ export const useBulkSelection = <T extends { id: number }>({
 
   const isSelected = useCallback((id: number) => selectedItems.has(id), [selectedItems]);
 
-  const isAllSelected = useMemo(() =>
+  const isAllCurrentPageSelected = useMemo(() =>
     items.length > 0 && items.every(item => selectedItems.has(item.id)),
     [items, selectedItems]
   );
+
+  const isAllSelected = useMemo(() => {
+    if (totalCount !== undefined) {
+      return selectedItems.size === totalCount;
+    }
+    return isAllCurrentPageSelected;
+  }, [selectedItems.size, totalCount, isAllCurrentPageSelected]);
 
   const isPartiallySelected = useMemo(() =>
     selectedItems.size > 0 && !isAllSelected,
@@ -46,13 +57,33 @@ export const useBulkSelection = <T extends { id: number }>({
 
   const toggleAll = useCallback(() => {
     setSelectedItems(prev => {
-      if (prev.size === items.length) {
-        return new Set(); // Deselect all
+      // Check if all current page items are already selected
+      const allCurrentSelected = items.length > 0 && items.every(item => prev.has(item.id));
+      
+      if (allCurrentSelected) {
+        // Remove all current page items from selection
+        const newSelection = new Set(prev);
+        items.forEach(item => newSelection.delete(item.id));
+        return newSelection;
       } else {
-        return new Set(items.map(item => item.id)); // Select all
+        // Add all current page items to selection
+        const newSelection = new Set(prev);
+        items.forEach(item => newSelection.add(item.id));
+        return newSelection;
       }
     });
   }, [items]);
+
+  const selectAllPages = useCallback(async () => {
+    if (onSelectAllPages) {
+      try {
+        const allIds = await onSelectAllPages();
+        setSelectedItems(new Set(allIds));
+      } catch (error) {
+        console.error('Failed to select all pages:', error);
+      }
+    }
+  }, [onSelectAllPages]);
 
   const selectItems = useCallback((ids: number[]) => {
     setSelectedItems(prev => {
@@ -84,6 +115,7 @@ export const useBulkSelection = <T extends { id: number }>({
     selectedCount: selectedItems.size,
     isSelected,
     isAllSelected,
+    isAllCurrentPageSelected,
     isPartiallySelected,
     toggleItem,
     toggleAll,
@@ -91,5 +123,7 @@ export const useBulkSelection = <T extends { id: number }>({
     deselectItems,
     clearSelection,
     selectAll,
+    selectAllPages,
+    totalCount,
   };
 };
