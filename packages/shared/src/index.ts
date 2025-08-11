@@ -25,3 +25,6 @@ export * from './constants';
 
 // Plugin Framework
 export * from './plugins';
+
+// Providers
+export * from './providers';
