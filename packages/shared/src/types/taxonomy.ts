@@ -3,7 +3,7 @@
  * Provides enhanced typing for taxonomy selection, context management, and API integration
  */
 
-import { Organization, Location } from './index';
+import { Organization, Location, SearchParams } from './index';
 
 /**
  * Base taxonomy entity interface
@@ -175,4 +175,90 @@ export interface TaxonomyChangeEvent {
   newLocation?: EnhancedLocation;
   timestamp: Date;
   userId?: number;
+}
+
+/**
+ * Query parameters for taxonomy API requests
+ */
+export interface TaxonomyQueryParams extends SearchParams {
+  include_hosts_count?: boolean;
+  include_users_count?: boolean;
+}
+
+/**
+ * API response wrapper for taxonomy endpoints
+ */
+export interface TaxonomyApiResponse<T> {
+  results: T;
+  total: number;
+  subtotal: number;
+  page: number;
+  per_page: number;
+  search?: string;
+  sort?: {
+    by: string;
+    order: string;
+  };
+  can_create?: boolean;
+}
+
+/**
+ * Organization creation data
+ */
+export interface OrganizationCreateData {
+  name: string;
+  title?: string;
+  description?: string;
+  parent_id?: number;
+  location_ids?: number[];
+  compute_resource_ids?: number[];
+  medium_ids?: number[];
+  user_ids?: number[];
+  smart_proxy_ids?: number[];
+  subnet_ids?: number[];
+  domain_ids?: number[];
+  environment_ids?: number[];
+  hostgroup_ids?: number[];
+  realm_ids?: number[];
+}
+
+/**
+ * Organization update data
+ */
+export type OrganizationUpdateData = Partial<OrganizationCreateData>;
+
+/**
+ * Location creation data
+ */
+export interface LocationCreateData {
+  name: string;
+  title?: string;
+  description?: string;
+  parent_id?: number;
+  organization_ids?: number[];
+  compute_resource_ids?: number[];
+  medium_ids?: number[];
+  user_ids?: number[];
+  smart_proxy_ids?: number[];
+  subnet_ids?: number[];
+  domain_ids?: number[];
+  environment_ids?: number[];
+  hostgroup_ids?: number[];
+  realm_ids?: number[];
+}
+
+/**
+ * Location update data
+ */
+export type LocationUpdateData = Partial<LocationCreateData>;
+
+/**
+ * Taxonomy API error response
+ */
+export interface TaxonomyApiError {
+  error: {
+    message: string;
+    details?: Record<string, string[]>;
+  };
+  status: number;
 }
