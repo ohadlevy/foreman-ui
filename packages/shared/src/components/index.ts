@@ -9,3 +9,4 @@ export * from './Plugin';
 export * from './RecentActivity';
 export * from './QuickNav';
 export * from './BulkActions';
+export * from './TaxonomySelector';
