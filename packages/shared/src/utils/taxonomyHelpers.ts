@@ -5,7 +5,61 @@ import type {
 } from '../types/taxonomy';
 
 /**
+ * Constants for taxonomy hierarchy calculations
+ */
+const ROOT_LEVEL = 0;
+
+/**
+ * Precompute hierarchy levels for all entities to optimize tree building
+ */
+function precomputeHierarchyLevels<T extends TaxonomyEntity & { parent_id?: number }>(
+  entities: T[]
+): Map<number, number> {
+  const levelMap = new Map<number, number>();
+  const visited = new Set<number>();
+  const inProgress = new Set<number>(); // Detect cycles during traversal
+
+  const calculateLevel = (entityId: number): number => {
+    // Check for existing computed level
+    if (levelMap.has(entityId)) {
+      return levelMap.get(entityId)!;
+    }
+
+    // Detect cycles
+    if (inProgress.has(entityId)) {
+      console.warn(`[taxonomyHelpers] Cycle detected in taxonomy hierarchy for entity ${entityId}. Treating as root level.`);
+      return ROOT_LEVEL; // Treat cyclic nodes as root level
+    }
+
+    const entity = entities.find(e => e.id === entityId);
+    if (!entity || !entity.parent_id) {
+      levelMap.set(entityId, ROOT_LEVEL);
+      return ROOT_LEVEL;
+    }
+
+    inProgress.add(entityId);
+    const parentLevel = calculateLevel(entity.parent_id);
+    inProgress.delete(entityId);
+
+    const level = parentLevel + 1;
+    levelMap.set(entityId, level);
+    return level;
+  };
+
+  // Precompute levels for all entities
+  entities.forEach(entity => {
+    if (!visited.has(entity.id)) {
+      calculateLevel(entity.id);
+      visited.add(entity.id);
+    }
+  });
+
+  return levelMap;
+}
+
+/**
  * Build a hierarchical tree structure from flat taxonomy data
+ * Optimized with precomputed hierarchy levels
  */
 export function buildTaxonomyTree<T extends TaxonomyEntity & { parent_id?: number }>(
   entities: T[]
@@ -13,13 +67,16 @@ export function buildTaxonomyTree<T extends TaxonomyEntity & { parent_id?: numbe
   const nodeMap = new Map<number, TaxonomyTreeNode<T>>();
   const tree: TaxonomyTreeNode<T>[] = [];
   const visited = new Set<number>(); // Prevent circular references
+  
+  // Precompute all hierarchy levels for optimal performance
+  const levelMap = precomputeHierarchyLevels(entities);
 
-  // Create all nodes first
+  // Create all nodes with precomputed levels
   entities.forEach(entity => {
     const node: TaxonomyTreeNode<T> = {
       entity,
       children: [],
-      level: 0,
+      level: levelMap.get(entity.id) || ROOT_LEVEL,
       expanded: false,
       selected: false,
       disabled: false
@@ -39,8 +96,7 @@ export function buildTaxonomyTree<T extends TaxonomyEntity & { parent_id?: numbe
       // Find parent using map lookup (O(1))
       const parentNode = nodeMap.get(entity.parent_id);
       if (parentNode && !visited.has(entity.id)) {
-        // Calculate level based on parent
-        node.level = parentNode.level + 1;
+        // Add to parent's children (level already computed)
         parentNode.children.push(node);
         visited.add(entity.id);
       } else {
