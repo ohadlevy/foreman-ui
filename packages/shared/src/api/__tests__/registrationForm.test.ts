@@ -1,15 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RegistrationFormAPI } from '../registrationForm';
 import { HostGroup, SmartProxy } from '../../types';
+import { createForemanClient } from '../client';
 
 // Mock the ForemanAPIClient
-vi.mock('../client');
+vi.mock('../client', () => ({
+  createForemanClient: vi.fn(),
+}));
 
 describe('RegistrationFormAPI', () => {
   let api: RegistrationFormAPI;
   let mockClient: {
     getPaginated: ReturnType<typeof vi.fn>;
     getToken: ReturnType<typeof vi.fn>;
+    post: ReturnType<typeof vi.fn>;
+    baseURL: string;
+  };
+  let mockGraphQLClient: {
     post: ReturnType<typeof vi.fn>;
     baseURL: string;
   };
@@ -21,6 +28,13 @@ describe('RegistrationFormAPI', () => {
       post: vi.fn(),
       baseURL: 'https://foreman.example.com/api/v2',
     };
+
+    // Mock createForemanClient to return a mock client for GraphQL
+    mockGraphQLClient = {
+      post: vi.fn().mockRejectedValue(new Error('GraphQL failed')),
+      baseURL: '/api',
+    };
+    vi.mocked(createForemanClient).mockReturnValue(mockGraphQLClient as any);
 
     api = new RegistrationFormAPI(mockClient as any);
   });
@@ -88,8 +102,8 @@ describe('RegistrationFormAPI', () => {
         },
       };
 
-      // Mock GraphQL success via client.post
-      mockClient.post.mockResolvedValue(mockGraphQLResponse);
+      // Mock GraphQL success via GraphQL client.post
+      mockGraphQLClient.post.mockResolvedValue(mockGraphQLResponse);
 
       const result = await api.getFormData();
 
@@ -98,7 +112,7 @@ describe('RegistrationFormAPI', () => {
         smartProxies: mockSmartProxies,
       });
 
-      expect(mockClient.post).toHaveBeenCalledWith('/api/graphql', {
+      expect(mockGraphQLClient.post).toHaveBeenCalledWith('/graphql', {
         query: expect.stringContaining('query RegistrationFormData'),
       });
     });
