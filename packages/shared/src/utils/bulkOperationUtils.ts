@@ -76,7 +76,7 @@ export const validateBulkOperationResult = (result: unknown): BulkOperationResul
     warnings: Array.isArray(r.warnings) ? r.warnings : [],
     message: typeof r.message === 'string' ? r.message : undefined,
     task_id: typeof r.task_id === 'string' ? r.task_id : undefined,
-    missed_hosts: Array.isArray(r.missed_hosts) ? r.missed_hosts : [],
+    missed_items: Array.isArray(r.missed_items) ? r.missed_items : [],
     is_async: typeof r.is_async === 'boolean' ? r.is_async : false,
   };
   
@@ -111,9 +111,9 @@ export const formatBulkOperationResult = (result: BulkOperationResult): string =
 };
 
 /**
- * Extract host-specific errors from bulk operation result
+ * Extract item-specific errors from bulk operation result
  */
-export const extractHostErrors = (result: BulkOperationResult): Array<{
+export const extractItemErrors = (result: BulkOperationResult): Array<{
   hostId: number;
   hostName?: string;
   error: string;
@@ -123,8 +123,8 @@ export const extractHostErrors = (result: BulkOperationResult): Array<{
   }
   
   return result.errors.map(error => ({
-    hostId: error.host_id,
-    hostName: error.host_name,
+    hostId: error.item_id,
+    hostName: error.item_name,
     error: error.message,
   }));
 };
@@ -148,6 +148,14 @@ export const isBulkOperationPartialSuccess = (result: BulkOperationResult): bool
  */
 export const isBulkOperationFailure = (result: BulkOperationResult): boolean => {
   return result.success_count === 0 && result.failed_count > 0;
+};
+
+/**
+ * Check if there are retryable errors in a bulk operation result
+ */
+export const hasRetryableErrors = (result: BulkOperationResult | undefined): boolean => {
+  if (!result) return false;
+  return result.failed_count > 0 && Boolean(result.errors && result.errors.length > 0);
 };
 
 /**
@@ -196,16 +204,16 @@ export const createBulkOperationSummary = (
 };
 
 /**
- * Retry failed hosts from a previous bulk operation result
+ * Retry failed items from a previous bulk operation result
  */
-export const getFailedHostIds = (result: BulkOperationResult): number[] => {
+export const getFailedItemIds = (result: BulkOperationResult): number[] => {
   if (!result.errors || result.errors.length === 0) {
     return [];
   }
   
   return result.errors
-    .map(error => error.host_id)
-    .filter(hostId => hostId > 0); // Filter out generic errors
+    .map(error => error.item_id)
+    .filter(itemId => itemId > 0); // Filter out generic errors
 };
 
 /**
@@ -227,6 +235,71 @@ export const validateHostIds = (hostIds: number[]): void => {
   // Check for reasonable limits
   if (hostIds.length > MAX_BULK_OPERATION_HOSTS) {
     throw new Error(`Cannot perform bulk operations on more than ${MAX_BULK_OPERATION_HOSTS} hosts at once`);
+  }
+};
+
+/**
+ * Custom error class for parameter validation failures
+ */
+export class BulkOperationValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BulkOperationValidationError';
+  }
+}
+
+/**
+ * Custom error class for bulk operation execution failures
+ */
+export class BulkOperationExecutionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BulkOperationExecutionError';
+  }
+}
+
+/**
+ * Options for numeric parameter validation
+ */
+export interface NumericValidationOptions {
+  min?: number;
+  max?: number;
+}
+
+/**
+ * Validate a single parameter with type checking and optional constraints
+ */
+export const validateParameter = (
+  parameters: Record<string, unknown> | undefined,
+  paramName: string,
+  expectedType: 'string' | 'number' | 'boolean',
+  options?: NumericValidationOptions
+): void => {
+  if (!parameters || parameters[paramName] === undefined || parameters[paramName] === null) {
+    throw new BulkOperationValidationError(`Parameter "${paramName}" is required.`);
+  }
+  if (typeof parameters[paramName] !== expectedType) {
+    throw new BulkOperationValidationError(`Parameter "${paramName}" must be a ${expectedType}.`);
+  }
+  
+  // Additional validation for numeric parameters
+  if (expectedType === 'number' && typeof parameters[paramName] === 'number') {
+    const numValue = parameters[paramName] as number;
+    
+    // Validate that the numeric value is not NaN before checking constraints
+    if (isNaN(numValue)) {
+      throw new BulkOperationValidationError(`Parameter "${paramName}" cannot be NaN.`);
+    }
+    
+    // Check minimum value constraint
+    if (options?.min !== undefined && numValue < options.min) {
+      throw new BulkOperationValidationError(`Parameter "${paramName}" must be at least ${options.min}.`);
+    }
+    
+    // Check maximum value constraint
+    if (options?.max !== undefined && numValue > options.max) {
+      throw new BulkOperationValidationError(`Parameter "${paramName}" must be at most ${options.max}.`);
+    }
   }
 };
 

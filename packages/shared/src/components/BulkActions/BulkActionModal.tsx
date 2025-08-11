@@ -16,8 +16,8 @@ import {
   ListItem,
 } from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
-import { BulkOperationResult } from '../../types';
-import { GENERIC_ERROR_HOST_ID } from './BulkOperationProgress';
+import { BulkOperationResult, BulkActionParameter } from '../../types';
+import { GENERIC_ERROR_ITEM_ID } from './BulkOperationProgress';
 
 interface BulkActionModalProps {
   isOpen: boolean;
@@ -29,14 +29,7 @@ interface BulkActionModalProps {
   confirmationMessage?: string;
   requiresConfirmation?: boolean;
   destructive?: boolean;
-  parameters?: Array<{
-    key: string;
-    label: string;
-    type: 'select' | 'text' | 'number';
-    options?: Array<{ value: string | number; label: string }>;
-    required?: boolean;
-    placeholder?: string;
-  }>;
+  parameters?: BulkActionParameter[];
 }
 
 export const BulkActionModal: React.FC<BulkActionModalProps> = ({
@@ -94,7 +87,7 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
       setResult({
         success_count: 0,
         failed_count: selectedCount,
-        errors: [{ host_id: GENERIC_ERROR_HOST_ID, message: 'Operation failed. Please try again.' }],
+        errors: [{ item_id: GENERIC_ERROR_ITEM_ID, message: 'Operation failed. Please try again.' }],
       });
     } finally {
       setIsLoading(false);
@@ -108,7 +101,7 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
     onClose();
   };
 
-  const renderParameterField = (param: typeof parameters[0]) => {
+  const renderParameterField = (param: BulkActionParameter) => {
     switch (param.type) {
       case 'select':
         return (
@@ -165,7 +158,7 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
             <List>
               {result.errors.slice(0, 10).map((error, index) => (
                 <ListItem key={index}>
-                  {error.host_name ? `${error.host_name}: ` : ''}
+                  {error.item_name ? `${error.item_name}: ` : ''}
                   {error.message}
                 </ListItem>
               ))}
