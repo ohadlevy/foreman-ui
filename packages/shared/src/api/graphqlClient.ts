@@ -1,5 +1,4 @@
-import { ForemanAPIClient } from './client';
-import { API_ENDPOINTS } from '../constants';
+import { ForemanAPIClient, createForemanClient } from './client';
 
 /**
  * GraphQL error structure from Foreman GraphQL API
@@ -34,7 +33,16 @@ export interface GraphQLVariables {
  * Handles authentication, URL construction, and standardized error handling
  */
 export class GraphQLClient {
-  constructor(private client: ForemanAPIClient) {}
+  private client: ForemanAPIClient;
+
+  constructor(baseClient: ForemanAPIClient) {
+    // Create a separate client for GraphQL with correct baseURL, like notifications does
+    const token = baseClient.getToken();
+    this.client = createForemanClient({
+      baseURL: '/api', // GraphQL is at /api/graphql, not /api/v2/graphql  
+      token: token || undefined,
+    });
+  }
 
   /**
    * Execute a GraphQL query with proper authentication and error handling
@@ -50,8 +58,8 @@ export class GraphQLClient {
         body.variables = variables;
       }
 
-      // Use the ForemanAPIClient to make the request, which handles authentication and mocking
-      const result = await this.client.post<GraphQLResponse<T>>(API_ENDPOINTS.GRAPHQL, body);
+      // Use the GraphQL-specific client with baseURL '/api'
+      const result = await this.client.post<GraphQLResponse<T>>('/graphql', body);
 
       // Log GraphQL errors for debugging but don't throw - let caller handle
       if (result.errors?.length) {
