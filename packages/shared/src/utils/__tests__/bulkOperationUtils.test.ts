@@ -5,13 +5,17 @@ import {
   validateBulkOperationResult,
   parseBulkOperationError,
   formatBulkOperationResult,
-  extractHostErrors,
+  extractItemErrors,
   isBulkOperationSuccess,
   isBulkOperationPartialSuccess,
   isBulkOperationFailure,
   getBulkOperationNotificationType,
   createBulkOperationSummary,
-  getFailedHostIds,
+  getFailedItemIds,
+  validateParameter,
+  hasRetryableErrors,
+  BulkOperationValidationError,
+  BulkOperationExecutionError,
   MAX_BULK_OPERATION_HOSTS,
 } from '../bulkOperationUtils';
 import { AxiosError } from 'axios';
@@ -99,7 +103,7 @@ describe('bulkOperationUtils', () => {
       
       expect(validated.errors).toEqual([]);
       expect(validated.warnings).toEqual([]);
-      expect(validated.missed_hosts).toEqual([]);
+      expect(validated.missed_items).toEqual([]);
       expect(validated.is_async).toBe(false);
     });
   });
@@ -208,18 +212,18 @@ describe('bulkOperationUtils', () => {
     });
   });
 
-  describe('extractHostErrors', () => {
+  describe('extractItemErrors', () => {
     it('should extract host errors from result', () => {
       const result: BulkOperationResult = {
         success_count: 1,
         failed_count: 2,
         errors: [
-          { host_id: 1, host_name: 'host1.example.com', message: 'Permission denied' },
-          { host_id: 2, message: 'Host not found' },
+          { item_id: 1, item_name: 'host1.example.com', message: 'Permission denied' },
+          { item_id: 2, message: 'Host not found' },
         ],
       };
 
-      const hostErrors = extractHostErrors(result);
+      const hostErrors = extractItemErrors(result);
       
       expect(hostErrors).toHaveLength(2);
       expect(hostErrors[0]).toEqual({
@@ -240,7 +244,7 @@ describe('bulkOperationUtils', () => {
         failed_count: 0,
         errors: [],
       };
-      expect(extractHostErrors(result)).toEqual([]);
+      expect(extractItemErrors(result)).toEqual([]);
     });
   });
 
@@ -308,25 +312,117 @@ describe('bulkOperationUtils', () => {
     });
   });
 
-  describe('getFailedHostIds', () => {
+  describe('getFailedItemIds', () => {
     it('should extract failed host IDs', () => {
       const result: BulkOperationResult = {
         success_count: 1,
         failed_count: 2,
         errors: [
-          { host_id: 2, message: 'Error 1' },
-          { host_id: 3, message: 'Error 2' },
-          { host_id: -1, message: 'Generic error' }, // Should be filtered out
+          { item_id: 2, message: 'Error 1' },
+          { item_id: 3, message: 'Error 2' },
+          { item_id: -1, message: 'Generic error' }, // Should be filtered out
         ],
       };
 
-      const failedIds = getFailedHostIds(result);
+      const failedIds = getFailedItemIds(result);
       expect(failedIds).toEqual([2, 3]);
     });
 
     it('should return empty array for no errors', () => {
       const result: BulkOperationResult = { success_count: 3, failed_count: 0, errors: [] };
-      expect(getFailedHostIds(result)).toEqual([]);
+      expect(getFailedItemIds(result)).toEqual([]);
+    });
+  });
+
+  describe('validateParameter', () => {
+    it('should pass for valid parameter', () => {
+      const parameters = { hostgroup_id: 5 };
+      expect(() => validateParameter(parameters, 'hostgroup_id', 'number')).not.toThrow();
+    });
+
+    it('should throw validation error for missing parameter', () => {
+      const parameters = {};
+      expect(() => validateParameter(parameters, 'hostgroup_id', 'number')).toThrow(
+        BulkOperationValidationError
+      );
+      expect(() => validateParameter(parameters, 'hostgroup_id', 'number')).toThrow(
+        'Parameter "hostgroup_id" is required.'
+      );
+    });
+
+    it('should throw validation error for wrong type', () => {
+      const parameters = { hostgroup_id: 'not-a-number' };
+      expect(() => validateParameter(parameters, 'hostgroup_id', 'number')).toThrow(
+        BulkOperationValidationError
+      );
+      expect(() => validateParameter(parameters, 'hostgroup_id', 'number')).toThrow(
+        'Parameter "hostgroup_id" must be a number.'
+      );
+    });
+
+    it('should throw validation error for undefined parameters', () => {
+      expect(() => validateParameter(undefined, 'hostgroup_id', 'number')).toThrow(
+        BulkOperationValidationError
+      );
+      expect(() => validateParameter(undefined, 'hostgroup_id', 'number')).toThrow(
+        'Parameter "hostgroup_id" is required.'
+      );
+    });
+  });
+
+  describe('hasRetryableErrors', () => {
+    it('should return true for results with failed items and errors', () => {
+      const result: BulkOperationResult = {
+        success_count: 1,
+        failed_count: 2,
+        errors: [
+          { item_id: 2, message: 'Error 1' },
+          { item_id: 3, message: 'Error 2' },
+        ],
+      };
+      expect(hasRetryableErrors(result)).toBe(true);
+    });
+
+    it('should return false for undefined result', () => {
+      expect(hasRetryableErrors(undefined)).toBe(false);
+    });
+
+    it('should return false for results with no failures', () => {
+      const result: BulkOperationResult = {
+        success_count: 3,
+        failed_count: 0,
+        errors: [],
+      };
+      expect(hasRetryableErrors(result)).toBe(false);
+    });
+
+    it('should return false for results with failures but no errors', () => {
+      const result: BulkOperationResult = {
+        success_count: 1,
+        failed_count: 2,
+        errors: [],
+      };
+      expect(hasRetryableErrors(result)).toBe(false);
+    });
+  });
+
+  describe('BulkOperationValidationError', () => {
+    it('should create validation error with correct name and message', () => {
+      const error = new BulkOperationValidationError('Test validation error');
+      expect(error).toBeInstanceOf(Error);
+      expect(error).toBeInstanceOf(BulkOperationValidationError);
+      expect(error.name).toBe('BulkOperationValidationError');
+      expect(error.message).toBe('Test validation error');
+    });
+  });
+
+  describe('BulkOperationExecutionError', () => {
+    it('should create execution error with correct name and message', () => {
+      const error = new BulkOperationExecutionError('Test execution error');
+      expect(error).toBeInstanceOf(Error);
+      expect(error).toBeInstanceOf(BulkOperationExecutionError);
+      expect(error.name).toBe('BulkOperationExecutionError');
+      expect(error.message).toBe('Test execution error');
     });
   });
 });

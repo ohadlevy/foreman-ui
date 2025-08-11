@@ -27,8 +27,8 @@ describe('BulkOperationsAPI', () => {
     failed_count: 1,
     errors: [
       {
-        host_id: 3,
-        host_name: 'host3.example.com',
+        item_id: 3,
+        item_name: 'host3.example.com',
         message: 'Permission denied',
       },
     ],

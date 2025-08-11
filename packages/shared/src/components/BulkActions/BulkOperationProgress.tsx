@@ -30,8 +30,8 @@ const PROGRESS_SIMULATION_CONFIG = {
   UPDATE_INTERVAL_MS: 1000,
 } as const;
 
-// Generic error host ID for operations without specific host context
-export const GENERIC_ERROR_HOST_ID = -1;
+// Generic error item ID for operations without specific item context
+export const GENERIC_ERROR_ITEM_ID = -1;
 
 interface BulkOperationProgressProps {
   operationId: string;
@@ -204,7 +204,7 @@ export const BulkOperationProgressComponent: React.FC<BulkOperationProgressProps
                 <List>
                   {result.errors.map((error, index) => (
                     <ListItem key={index}>
-                      <strong>{error.host_name || `Host ${error.host_id}`}:</strong> {error.message}
+                      <strong>{error.item_name || `Item ${error.item_id}`}:</strong> {error.message}
                     </ListItem>
                   ))}
                 </List>

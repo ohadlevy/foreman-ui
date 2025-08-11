@@ -9,7 +9,7 @@ import {
   validateBulkOperationResult,
   parseBulkOperationError,
   createBulkOperationSummary,
-  getFailedHostIds,
+  getFailedItemIds,
 } from '../utils/bulkOperationUtils';
 import { generateUniqueId } from '../utils/idGenerator';
 
@@ -167,7 +167,7 @@ export const useBulkOperations = () => {
     parameters?: Record<string, unknown>,
     options?: UseBulkOperationMutationOptions
   ): Promise<BulkOperationResult> => {
-    const failedHostIds = getFailedHostIds(previousResult);
+    const failedHostIds = getFailedItemIds(previousResult);
     
     if (failedHostIds.length === 0) {
       throw new Error('No failed hosts to retry');

@@ -233,11 +233,20 @@ export interface GeneratedRegistrationCommand {
 }
 
 // Bulk action types
+export interface BulkActionParameter {
+  key: string;
+  label: string;
+  type: 'select' | 'text' | 'number';
+  options?: Array<{ value: string | number; label: string }>;
+  required?: boolean;
+  placeholder?: string;
+}
+
 export interface BulkAction {
   id: string;
   label: string;
   icon?: React.ComponentType | string;
-  action: (selectedItems: number[]) => Promise<void>;
+  action: (selectedItems: number[], parameters?: Record<string, unknown>) => Promise<BulkOperationResult>;
   permissions?: string[];
   requiresConfirmation?: boolean;
   confirmationTitle?: string;
@@ -245,20 +254,21 @@ export interface BulkAction {
   destructive?: boolean;
   disabled?: boolean;
   disabledReason?: string;
+  parameters?: BulkActionParameter[];
 }
 
 export interface BulkOperationResult {
   success_count: number;
   failed_count: number;
   errors?: Array<{
-    host_id: number;
-    host_name?: string;
+    item_id: number;
+    item_name?: string;
     message: string;
   }>;
   warnings?: string[];
   task_id?: string; // For async operations
   message?: string; // Success/info message
-  missed_hosts?: number[]; // IDs of hosts that couldn't be processed
+  missed_items?: number[]; // IDs of items that couldn't be processed
   is_async?: boolean; // Whether operation runs in background
 }
 
