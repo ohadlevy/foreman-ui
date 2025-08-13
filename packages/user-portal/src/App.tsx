@@ -12,9 +12,13 @@ import { SystemStatus } from './pages/SystemStatus';
 import { SimpleLogin } from './pages/SimpleLogin';
 import { useAuth } from '@foreman/shared';
 import { pluginLoader } from './plugins/pluginLoader';
+import { useUserSettingsInitializer } from './hooks/useUserSettingsInitializer';
 
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
+  
+  // Initialize user settings when auth state changes
+  useUserSettingsInitializer();
 
   // Initialize plugin system
   React.useEffect(() => {

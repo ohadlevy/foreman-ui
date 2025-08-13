@@ -5,37 +5,184 @@ import {
   Card,
   CardTitle,
   CardBody,
-  EmptyState,
-  EmptyStateIcon,
-  EmptyStateBody,
+  Form,
+  FormGroup,
+  Radio,
+  Switch,
+  Grid,
+  GridItem,
+  Text,
+  TextVariants,
+  Select,
+  SelectOption,
+  SelectList,
+  MenuToggle,
+  MenuToggleElement,
 } from '@patternfly/react-core';
-import { CogIcon } from '@patternfly/react-icons';
+import { useUserSettingsStore, ThemeMode, SUPPORTED_LANGUAGES } from '../stores/userSettingsStore';
 
 export const Settings: React.FC = () => {
+  const { getCurrentUserSettings, setTheme, setLanguage, updateUserSettings, currentUserId } = useUserSettingsStore();
+  const currentSettings = getCurrentUserSettings();
+  const [isLanguageSelectOpen, setIsLanguageSelectOpen] = React.useState(false);
+
+  const handleThemeChange = (theme: ThemeMode) => {
+    setTheme(theme);
+  };
+
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language);
+    setIsLanguageSelectOpen(false);
+  };
+
+  const handleNotificationChange = (type: 'desktop' | 'email' | 'sound', checked: boolean) => {
+    if (currentUserId) {
+      updateUserSettings(currentUserId, {
+        notificationPreferences: {
+          desktop: true,
+          email: true,
+          sound: false,
+          ...currentSettings.notificationPreferences,
+          [type]: checked,
+        },
+      });
+    }
+  };
+
+  const selectedLanguage = SUPPORTED_LANGUAGES.find(lang => lang.code === currentSettings.language);
+  const selectedLanguageLabel = selectedLanguage 
+    ? selectedLanguage.nativeName
+    : '🇺🇸 English';
+
   return (
     <>
       <PageSection variant="light">
         <Title headingLevel="h1" size="2xl">
           Settings
         </Title>
+        <Text component={TextVariants.p}>
+          Customize your Foreman experience with these personal preferences.
+        </Text>
       </PageSection>
 
       <PageSection>
-        <Card>
-          <CardTitle>User Preferences</CardTitle>
-          <CardBody>
-            <EmptyState>
-              <EmptyStateIcon icon={CogIcon} />
-              <Title headingLevel="h4" size="lg">
-                Settings Coming Soon
-              </Title>
-              <EmptyStateBody>
-                User settings and preferences will be available in a future release.
-                This will include options for themes, notifications, and display preferences.
-              </EmptyStateBody>
-            </EmptyState>
-          </CardBody>
-        </Card>
+        <Grid hasGutter>
+          <GridItem xl={6} lg={8} md={12}>
+            <Card>
+              <CardTitle>Appearance</CardTitle>
+              <CardBody>
+                <Form>
+                  <FormGroup
+                    label="Theme"
+                    fieldId="theme-options"
+                  >
+                    <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--pf-v5-global--Color--200)' }}>
+                      Choose how Foreman UI appears. System will follow your browser&apos;s preference.
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <Radio
+                        id="theme-light"
+                        name="theme"
+                        label="Light theme"
+                        isChecked={currentSettings.theme === 'light'}
+                        onChange={() => handleThemeChange('light')}
+                      />
+                      <Radio
+                        id="theme-dark"
+                        name="theme"
+                        label="Dark theme"
+                        isChecked={currentSettings.theme === 'dark'}
+                        onChange={() => handleThemeChange('dark')}
+                      />
+                      <Radio
+                        id="theme-system"
+                        name="theme"
+                        label="Follow system preference"
+                        isChecked={currentSettings.theme === 'system'}
+                        onChange={() => handleThemeChange('system')}
+                      />
+                    </div>
+                  </FormGroup>
+                  
+                  <FormGroup
+                    label="Language"
+                    fieldId="language-select"
+                  >
+                    <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--pf-v5-global--Color--200)' }}>
+                      Choose your preferred language for the interface.
+                    </div>
+                    <Select
+                      id="language-select"
+                      isOpen={isLanguageSelectOpen}
+                      selected={currentSettings.language}
+                      onSelect={(_event, selection) => handleLanguageChange(selection as string)}
+                      onOpenChange={(isOpen) => setIsLanguageSelectOpen(isOpen)}
+                      toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                        <MenuToggle
+                          ref={toggleRef}
+                          onClick={() => setIsLanguageSelectOpen(!isLanguageSelectOpen)}
+                          isExpanded={isLanguageSelectOpen}
+                          style={{ minWidth: '250px' }}
+                        >
+                          {selectedLanguageLabel}
+                        </MenuToggle>
+                      )}
+                    >
+                      <SelectList>
+                        {SUPPORTED_LANGUAGES.map((language) => (
+                          <SelectOption
+                            key={language.code}
+                            value={language.code}
+                          >
+                            {language.nativeName}
+                          </SelectOption>
+                        ))}
+                      </SelectList>
+                    </Select>
+                  </FormGroup>
+                </Form>
+              </CardBody>
+            </Card>
+          </GridItem>
+
+          <GridItem xl={6} lg={8} md={12}>
+            <Card>
+              <CardTitle>Notifications</CardTitle>
+              <CardBody>
+                <Form>
+                  <FormGroup
+                    label="Notification preferences"
+                    fieldId="notification-options"
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <Switch
+                        id="desktop-notifications"
+                        label="Desktop notifications"
+                        labelOff="Desktop notifications disabled"
+                        isChecked={currentSettings.notificationPreferences?.desktop ?? true}
+                        onChange={(_, checked) => handleNotificationChange('desktop', checked)}
+                      />
+                      <Switch
+                        id="email-notifications"
+                        label="Email notifications"
+                        labelOff="Email notifications disabled"
+                        isChecked={currentSettings.notificationPreferences?.email ?? true}
+                        onChange={(_, checked) => handleNotificationChange('email', checked)}
+                      />
+                      <Switch
+                        id="sound-notifications"
+                        label="Sound notifications"
+                        labelOff="Sound notifications disabled"
+                        isChecked={currentSettings.notificationPreferences?.sound ?? false}
+                        onChange={(_, checked) => handleNotificationChange('sound', checked)}
+                      />
+                    </div>
+                  </FormGroup>
+                </Form>
+              </CardBody>
+            </Card>
+          </GridItem>
+        </Grid>
       </PageSection>
     </>
   );
