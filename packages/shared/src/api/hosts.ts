@@ -41,13 +41,4 @@ export class HostsAPI {
     return this.client.get(`${API_ENDPOINTS.HOSTS}/${id}/status`);
   }
 
-  async getMyHosts(params?: HostSearchParams): Promise<ApiResponse<Host>> {
-    // Add current user filter to search
-    const userFilter = 'owner = current_user';
-    const searchParams = {
-      ...params,
-      search: params?.search ? `${params.search} and ${userFilter}` : userFilter,
-    };
-    return this.list(searchParams);
-  }
 }

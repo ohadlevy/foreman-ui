@@ -10,3 +10,4 @@ export * from './registration';
 export * from './registrationForm';
 export * from './bulkOperations';
 export * from './taxonomy';
+export * from './globalState';

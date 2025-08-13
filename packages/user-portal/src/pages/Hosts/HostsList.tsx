@@ -43,7 +43,7 @@ import {
 } from '@patternfly/react-icons';
 import { useNavigate } from 'react-router-dom';
 import {
-  useMyHosts,
+  useHosts,
   formatDateTime,
   formatRelativeTime,
   LoadingSpinner,
@@ -146,7 +146,7 @@ export const HostsList: React.FC = () => {
   const [columnManagerOpen, setColumnManagerOpen] = useState(false);
 
   // Data fetching - moved to top for better readability
-  const { data, isLoading, error } = useMyHosts({
+  const { data, isLoading, error } = useHosts({
     search,
     page,
     per_page: perPage,
@@ -269,7 +269,7 @@ export const HostsList: React.FC = () => {
   useEffect(() => {
     addActivity({
       type: 'page_visit',
-      title: 'My Hosts',
+      title: 'Hosts',
       subtitle: 'Host management',
       url: '/hosts',
     });
@@ -406,7 +406,7 @@ export const HostsList: React.FC = () => {
     <>
       <PageSection variant="light">
         <Title headingLevel="h1" size="2xl">
-          My Hosts
+          Hosts
         </Title>
       </PageSection>
 

@@ -2,13 +2,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from './useApi';
 import { useAuth } from '../auth/useAuth';
 import { HostSearchParams, HostFormData } from '../types';
+import { useTaxonomyStore } from '../stores/taxonomyStore';
 
 export const useHosts = (params?: HostSearchParams) => {
   const { hosts } = useApi();
   const { hasPermission } = useAuth();
+  const { context } = useTaxonomyStore();
+
+  // Include taxonomy context in query key to ensure proper cache separation
+  const taxonomyContext = {
+    orgId: context.organization?.id || null,
+    locId: context.location?.id || null,
+  };
 
   return useQuery({
-    queryKey: ['hosts', params],
+    queryKey: ['hosts', params, taxonomyContext],
     queryFn: () => hosts.list(params),
     keepPreviousData: true,
     enabled: hasPermission('view_hosts'),
@@ -18,25 +26,21 @@ export const useHosts = (params?: HostSearchParams) => {
 export const useHost = (id: number, enabled = true) => {
   const { hosts } = useApi();
   const { hasPermission } = useAuth();
+  const { context } = useTaxonomyStore();
+
+  // Include taxonomy context in query key to ensure proper cache separation
+  const taxonomyContext = {
+    orgId: context.organization?.id || null,
+    locId: context.location?.id || null,
+  };
 
   return useQuery({
-    queryKey: ['hosts', id],
+    queryKey: ['hosts', id, taxonomyContext],
     queryFn: () => hosts.get(id),
     enabled: enabled && !!id && hasPermission('view_hosts'),
   });
 };
 
-export const useMyHosts = (params?: HostSearchParams) => {
-  const { hosts } = useApi();
-  const { hasPermission } = useAuth();
-
-  return useQuery({
-    queryKey: ['myHosts', params],
-    queryFn: () => hosts.getMyHosts(params),
-    keepPreviousData: true,
-    enabled: hasPermission('view_hosts'),
-  });
-};
 
 export const useCreateHost = () => {
   const { hosts } = useApi();
@@ -46,7 +50,6 @@ export const useCreateHost = () => {
     mutationFn: (data: HostFormData) => hosts.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hosts'] });
-      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
     },
   });
 };
@@ -61,7 +64,6 @@ export const useUpdateHost = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['hosts'] });
       queryClient.invalidateQueries({ queryKey: ['hosts', id] });
-      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
     },
   });
 };
@@ -74,7 +76,6 @@ export const useDeleteHost = () => {
     mutationFn: (id: number) => hosts.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hosts'] });
-      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
     },
   });
 };
