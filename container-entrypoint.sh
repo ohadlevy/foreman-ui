@@ -63,8 +63,7 @@ fi
 
 # Log environment information
 echo "=== Environment Information ==="
-echo "Container OS: $(cat /etc/fedora-release)"
-echo "Node.js version: $(node --version)"
+echo "Container OS: $(cat /etc/os-release 2>/dev/null | grep PRETTY_NAME | cut -d'"' -f2 || echo "Alpine Linux")"
 echo "Nginx version: $(nginx -v 2>&1)"
 echo "=== Container Ready ==="
 
