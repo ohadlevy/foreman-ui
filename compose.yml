@@ -14,13 +14,13 @@ services:
     
     restart: unless-stopped
     
-    # Health check
+    # Health check with improved timeouts
     healthcheck:
       test: ["CMD", "curl", "-k", "-f", "https://localhost/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      interval: 45s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
     
     # Security options
     security_opt:

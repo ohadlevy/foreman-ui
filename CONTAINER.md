@@ -179,10 +179,11 @@ podman run -d \
 ## Architecture
 
 ### Container Structure
-- **Base**: Fedora 42 (latest)
+- **Build Stage**: Node.js 20 Alpine (fast, lightweight builds)
+- **Runtime Stage**: Nginx Alpine (minimal production image)
 - **Web Server**: Nginx with HTTPS redirect
 - **Application**: Pre-built React application
-- **Multi-stage**: Separate build and runtime stages for efficiency
+- **Multi-stage**: Optimized for build speed and runtime efficiency
 
 ### Network Flow
 ```

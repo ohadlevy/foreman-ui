@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 # Default values
@@ -10,11 +10,17 @@ echo "Foreman URL: $FOREMAN_URL"
 echo "Foreman Host: $FOREMAN_HOST"
 
 # Validate Foreman URL format
-if [[ ! $FOREMAN_URL =~ ^https?:// ]]; then
-    echo "ERROR: FOREMAN_URL must start with http:// or https://"
-    echo "Current value: $FOREMAN_URL"
-    exit 1
-fi
+case "$FOREMAN_URL" in
+    http://*|https://*)
+        # Valid URL format
+        ;;
+    *)
+        # Invalid URL format
+        echo "ERROR: FOREMAN_URL must start with http:// or https://"
+        echo "Current value: $FOREMAN_URL"
+        exit 1
+        ;;
+esac
 
 # Create nginx configuration with Foreman URL
 echo "Configuring nginx for Foreman instance..."
