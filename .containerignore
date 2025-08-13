@@ -1,0 +1,50 @@
+# Ignore node_modules from all packages
+node_modules/
+packages/*/node_modules/
+packages/*/dist/
+packages/*/build/
+
+# Ignore development files
+.git/
+.github/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore test files and coverage
+coverage/
+.nyc_output/
+packages/*/coverage/
+
+# Ignore temporary files
+*.tmp
+*.temp
+.cache/
+
+# Ignore container build artifacts (but keep files needed for build)
+compose.yml
+CONTAINER.md
+
+# Ignore documentation that's not needed in container
+CONTRIBUTING.md
+DEVELOPMENT.md
+PLUGIN_*.md
+TESTING.md
+SECURITY.md
+setup-foreman-cors.md
+
+# Scripts not needed in container
+scripts/
+setup.sh
