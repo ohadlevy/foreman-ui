@@ -4,14 +4,9 @@ on:
   push:
     branches: [ main ]
     tags: [ 'v*' ]
-    paths:
-      - 'Containerfile'
-      - 'compose*.yml'
-      - 'nginx*.conf'
-      - 'container-entrypoint.sh'
-      - '.github/workflows/container-publish.yml'
-  # Container builds disabled on PRs for faster development
-  # Only builds when merged to main or tagged for release
+  workflow_dispatch: # Allow manual triggering
+  # Container builds on every main push and tagged releases
+  # Disabled on PRs for faster development
 
 env:
   REGISTRY: ghcr.io
