@@ -48,12 +48,60 @@ vi.mock('../../../hooks/useHostGroups', () => ({
   })),
 }));
 
+vi.mock('../../../hooks/useUsers', () => ({
+  useUsers: vi.fn(() => ({
+    data: {
+      results: [
+        { id: 1, login: 'admin', name: 'Administrator' },
+        { id: 2, login: 'user1', name: 'User One' },
+      ],
+    },
+    isLoading: false,
+    error: null,
+    isError: false,
+  })),
+}));
+
 vi.mock('../../../hooks/useApi', () => ({
   useApi: vi.fn(() => ({
     user: { id: 1, login: 'admin' },
     client: {},
   })),
 }));
+
+// Mock React Query for organizations and locations
+vi.mock('@tanstack/react-query', async () => {
+  const actual = await vi.importActual('@tanstack/react-query') as Record<string, unknown>;
+  return {
+    ...actual,
+    useQuery: vi.fn((options: { queryKey: string[] }) => {
+      // Mock organizations and locations queries
+      if (options.queryKey[0] === 'organizations') {
+        return {
+          data: { results: [{ id: 1, name: 'test-org', title: 'Test Organization' }] },
+          isLoading: false,
+          error: null,
+          isError: false,
+        };
+      }
+      if (options.queryKey[0] === 'locations') {
+        return {
+          data: { results: [{ id: 1, name: 'test-location', title: 'Test Location' }] },
+          isLoading: false,
+          error: null,
+          isError: false,
+        };
+      }
+      // Default mock for other queries
+      return {
+        data: undefined,
+        isLoading: false,
+        error: null,
+        isError: false,
+      };
+    }),
+  };
+});
 
 const mockSelectedItems = [
   { id: 1, name: 'host1.example.com' },

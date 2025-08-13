@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { ApiResponse, ApiError, BulkOperationResult } from '../types';
+import { validateBulkOperationResult } from '../utils/bulkOperationUtils';
 
 export interface ForemanClientConfig {
   baseURL: string;
@@ -147,6 +148,31 @@ export class ForemanAPIClient {
     return response.data;
   }
 
+  /**
+   * Specialized PUT method for bulk operations
+   */
+  private async putBulkOperation(
+    url: string, 
+    data: { included: { ids: number[] } } & Record<string, unknown>
+  ): Promise<BulkOperationResult> {
+    const response = await this.client.put(url, data);
+    const requestedItemCount = data.included.ids.length;
+    return validateBulkOperationResult(response.data, requestedItemCount);
+  }
+
+  /**
+   * Specialized DELETE method for bulk operations
+   */
+  private async deleteBulkOperation(
+    url: string, 
+    data: { data: { included: { ids: number[] } } & Record<string, unknown> }
+  ): Promise<BulkOperationResult> {
+    const response = await this.client.delete(url, data);
+    const requestedItemCount = data.data.included.ids.length;
+    return validateBulkOperationResult(response.data, requestedItemCount);
+  }
+
+
   async patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.patch<T>(url, data, config);
     return response.data;
@@ -190,84 +216,116 @@ export class ForemanAPIClient {
 
   // Bulk operations methods
   async bulkUpdateHostgroup(hostIds: number[], hostgroupId: number): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/update_multiple_hostgroup', {
-      host_ids: hostIds,
+    return this.putBulkOperation('/hosts/bulk/reassign_hostgroup', {
+      included: {
+        ids: hostIds,
+      },
+      excluded: {},
       hostgroup_id: hostgroupId,
     });
   }
 
   async bulkUpdateEnvironment(hostIds: number[], environmentId: number): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/update_multiple_environment', {
-      host_ids: hostIds,
+    return this.putBulkOperation('/hosts/bulk/reassign_environment', {
+      included: {
+        ids: hostIds,
+      },
+      excluded: {},
       environment_id: environmentId,
     });
   }
 
   async bulkUpdateOwner(hostIds: number[], ownerId: number, ownerType: string = 'User'): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/update_multiple_owner', {
-      host_ids: hostIds,
-      owner_id: ownerId,
-      owner_type: ownerType,
+    // Owner type mapping for Foreman API formatting
+    // Foreman expects owner_id in format: "${id}-[OwnerTypeMap[type]]"
+    const ownerTypeMap: Record<string, string> = {
+      'User': 'Users',
+      'Usergroup': 'Usergroups',
+      // Add future owner types here as needed
+    };
+    
+    const mappedOwnerType = ownerTypeMap[ownerType];
+    if (!mappedOwnerType) {
+      const supportedTypes = Object.keys(ownerTypeMap).join(', ');
+      throw new Error(`Unknown owner type: "${ownerType}". Supported types: ${supportedTypes}`);
+    }
+    
+    // Format owner_id according to Foreman API requirement
+    const formattedOwnerId = `${ownerId}-${mappedOwnerType}`;
+    
+    return this.putBulkOperation('/hosts/bulk/change_owner', {
+      included: {
+        ids: hostIds,
+      },
+      excluded: {},
+      owner_id: formattedOwnerId,
     });
   }
 
   async bulkUpdateOrganization(hostIds: number[], organizationId: number): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/update_multiple_organization', {
-      host_ids: hostIds,
-      organization_id: organizationId,
+    return this.putBulkOperation('/hosts/bulk/assign_organization', {
+      included: {
+        ids: hostIds,
+      },
+      excluded: {},
+      id: organizationId,
+      mismatch_setting: true,
     });
   }
 
   async bulkUpdateLocation(hostIds: number[], locationId: number): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/update_multiple_location', {
-      host_ids: hostIds,
-      location_id: locationId,
+    return this.putBulkOperation('/hosts/bulk/assign_location', {
+      included: {
+        ids: hostIds,
+      },
+      excluded: {},
+      id: locationId,
+      mismatch_setting: true,
     });
   }
 
-  async bulkUpdateParameters(hostIds: number[], parameters: Record<string, unknown>): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/update_multiple_parameters', {
-      host_ids: hostIds,
-      host_parameters: parameters,
-    });
-  }
 
   async bulkChangeGroup(hostIds: number[], groupName: string): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/multiple_change_group', {
-      host_ids: hostIds,
+    return this.putBulkOperation('/hosts/multiple_change_group', {
+      included: {
+        ids: hostIds,
+      },
+      excluded: {},
       group: groupName,
     });
   }
 
   async bulkBuild(hostIds: number[]): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/multiple_build', {
-      host_ids: hostIds,
+    return this.putBulkOperation('/hosts/bulk/build', {
+      included: {
+        ids: hostIds,
+      },
+      excluded: {},
     });
   }
 
   async bulkDestroy(hostIds: number[]): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/multiple_destroy', {
-      host_ids: hostIds,
+    // Use DELETE method as per Foreman's actual API route:
+    // match 'hosts/bulk', :to => 'hosts_bulk_actions#bulk_destroy', :via => [:delete]
+    return this.deleteBulkOperation('/hosts/bulk', {
+      data: {
+        included: {
+          ids: hostIds,
+        },
+        excluded: {},
+      },
     });
   }
 
   async bulkDisown(hostIds: number[]): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/multiple_disown', {
-      host_ids: hostIds,
+    return this.putBulkOperation('/hosts/bulk/disassociate', {
+      included: {
+        ids: hostIds,
+      },
+      excluded: {},
     });
   }
 
-  async bulkEnable(hostIds: number[]): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/multiple_enable', {
-      host_ids: hostIds,
-    });
-  }
-
-  async bulkDisable(hostIds: number[]): Promise<BulkOperationResult> {
-    return this.put<BulkOperationResult>('/hosts/multiple_disable', {
-      host_ids: hostIds,
-    });
-  }
 }
 
 // Default client instance

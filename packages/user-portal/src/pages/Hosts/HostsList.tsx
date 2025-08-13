@@ -55,8 +55,15 @@ import {
   EXTENSION_POINTS,
   HostTableColumnProps,
   ExtensionComponentProps,
+  useBulkSelection,
+  BulkActionsProvider,
+  BulkActionsContainer,
 } from '@foreman/shared';
 import { Host } from '@foreman/shared';
+
+// Layout constants - using PatternFly design tokens for consistent spacing
+// Standard PatternFly toolbar height based on design system specifications
+const BULK_ACTIONS_TOOLBAR_HEIGHT = '48px'; // Matches PatternFly v5 toolbar minimum height
 
 // Column type definition
 interface ColumnConfig {
@@ -136,7 +143,7 @@ const sanitizePluginTitle = (title: string): string => {
 
 export const HostsList: React.FC = () => {
   const navigate = useNavigate();
-  const { canCreateHosts } = usePermissions();
+  const { canCreateHosts, canEditHosts, canDeleteHosts, canBuildHosts } = usePermissions();
   const { addActivity } = useActivityStore();
   
   const [search, setSearch] = useState('');
@@ -146,7 +153,7 @@ export const HostsList: React.FC = () => {
   const [columnManagerOpen, setColumnManagerOpen] = useState(false);
 
   // Data fetching - moved to top for better readability
-  const { data, isLoading, error } = useHosts({
+  const { data, isLoading, error, refetch } = useHosts({
     search,
     page,
     per_page: perPage,
@@ -291,6 +298,49 @@ export const HostsList: React.FC = () => {
     }
   }, [search, isLoading, data, addActivity]);
 
+  // Get hosts data early for hooks
+  const hosts = data?.results || [];
+  const total = data?.total || 0;
+
+  // Fetch all host IDs for select all pages functionality (only when needed)
+  // TODO: Implement "select all pages" functionality 
+  // Best approaches: GraphQL query to fetch all IDs OR use search API with just ID fields
+  // For now, disabled until GraphQL implementation
+
+  // Bulk selection management - must be called before any early returns
+  const {
+    selectedObjects,
+    selectedCount,
+    isSelected,
+    isAllCurrentPageSelected,
+    toggleItem,
+    toggleAll,
+    clearSelection,
+    selectAllPages,
+  } = useBulkSelection({
+    items: hosts,
+    totalCount: total,
+    onSelectAllPages: async () => {
+      // TODO: Implement proper "select all pages" with GraphQL or search API
+      // For now, fallback to current page only
+      console.warn('Select all pages not yet implemented with new context system. Selecting current page only.');
+      return hosts.map(host => host.id);
+    },
+  });
+
+  // Convert selected hosts to the format expected by BulkActionsContainer
+  const selectedItems = selectedObjects.map(host => ({
+    id: host.id,
+    name: host.name,
+  }));
+
+  // Build user permissions array based on actual permissions
+  const userPermissions = [
+    { key: 'edit_hosts', check: canEditHosts },
+    { key: 'build_hosts', check: canBuildHosts },
+    { key: 'destroy_hosts', check: canDeleteHosts }
+  ].filter(perm => perm.check()).map(perm => perm.key);
+
   const getStatusIcon = React.useCallback((host: Host) => {
     if (host.build) {
       return <ExclamationTriangleIcon color="orange" />;
@@ -399,11 +449,19 @@ export const HostsList: React.FC = () => {
     );
   }
 
-  const hosts = data?.results || [];
-  const total = data?.total || 0;
-
   return (
-    <>
+    <BulkActionsProvider
+      enabledActions={[
+        'update_hostgroup',
+        'update_owner',
+        'update_organization',
+        'update_location',
+        'build',
+        'destroy',
+        'disown'
+      ]}
+      userPermissions={userPermissions}
+    >
       <PageSection variant="light">
         <Title headingLevel="h1" size="2xl">
           Hosts
@@ -476,6 +534,23 @@ export const HostsList: React.FC = () => {
             </ToolbarContent>
           </Toolbar>
 
+          {/* Bulk Actions - always render container to prevent layout jump */}
+          {hosts.length > 0 && (
+            <div style={{ minHeight: BULK_ACTIONS_TOOLBAR_HEIGHT, marginBottom: '1rem' }}>
+              {selectedCount > 0 && (
+                <BulkActionsContainer
+                  selectedItems={selectedItems}
+                  totalCount={total}
+                  onClearSelection={clearSelection}
+                  onSelectAllPages={selectAllPages}
+                  showSelectAllPages={selectedCount > 0 && selectedCount < total}
+                  onSuccess={refetch}
+                  className="pf-v5-u-mb-md"
+                />
+              )}
+            </div>
+          )}
+
           {hosts.length === 0 ? (
             <EmptyState>
               <EmptyStateIcon icon={ServerIcon} />
@@ -499,6 +574,17 @@ export const HostsList: React.FC = () => {
               <Table>
                 <Thead>
                   <Tr>
+                    <Th
+                      select={{
+                        onSelect: (event) => {
+                          event.stopPropagation();
+                          toggleAll();
+                        },
+                        isSelected: isAllCurrentPageSelected,
+                        isHeaderSelectDisabled: hosts.length === 0,
+                      }}
+                      screenReaderText="Select all hosts"
+                    />
                     {enabledColumns.map(column => (
                       <Th key={column.key}>
                         {column.label}
@@ -507,14 +593,25 @@ export const HostsList: React.FC = () => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {hosts.map((host) => (
-                    <Tr
-                      key={host.id}
-                      isClickable
-                      onClick={() => handleHostClick(host)}
-                    >
+                  {hosts.map((host, index) => (
+                    <Tr key={host.id}>
+                      <Td
+                        select={{
+                          onSelect: (event) => {
+                            event.stopPropagation();
+                            toggleItem(host.id);
+                          },
+                          isSelected: isSelected(host.id),
+                          rowIndex: index,
+                        }}
+                      />
                       {enabledColumns.map(column => (
-                        <Td key={column.key}>
+                        <Td
+                          key={column.key}
+                          isActionCell={false}
+                          onClick={() => handleHostClick(host)}
+                          style={{ cursor: 'pointer' }}
+                        >
                           {renderColumnData(host, column.key)}
                         </Td>
                       ))}
@@ -591,6 +688,6 @@ export const HostsList: React.FC = () => {
           )}
         </Form>
       </Modal>
-    </>
+    </BulkActionsProvider>
   );
 };

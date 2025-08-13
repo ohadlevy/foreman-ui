@@ -107,7 +107,12 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
         return (
           <FormSelect
             value={parameterValues[param.key] as string || ''}
-            onChange={(_event, value) => handleParameterChange(param.key, value)}
+            onChange={(_event, value) => {
+              // Convert numeric option values back to numbers
+              const numValue = Number(value);
+              const finalValue = !isNaN(numValue) && value !== '' ? numValue : value;
+              handleParameterChange(param.key, finalValue);
+            }}
             aria-label={param.label}
           >
             <FormSelectOption value="" label={param.placeholder || `Select ${param.label.toLowerCase()}`} />
