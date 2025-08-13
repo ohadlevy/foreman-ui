@@ -37,13 +37,19 @@ jobs:
         target: builder
         cache-from: type=gha,scope=builder
         cache-to: type=gha,mode=max,scope=builder
-        outputs: type=local,dest=./dist
+        outputs: type=tar,dest=./assets.tar
+
+    - name: Extract built assets only
+      run: |
+        tar -xf ./assets.tar app/packages/user-portal/dist/
+        mkdir -p ./built-assets
+        mv app/packages/user-portal/dist/* ./built-assets/
 
     - name: Upload built assets
       uses: actions/upload-artifact@v4
       with:
         name: built-assets
-        path: ./dist/app/packages/user-portal/dist/
+        path: ./built-assets/
         retention-days: 1
 
   # Step 2: Build multi-arch runtime images using pre-built assets
