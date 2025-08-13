@@ -21,7 +21,7 @@ const ERROR_MESSAGES = {
   REFRESH_FAILED: 'Failed to refresh taxonomy'
 } as const;
 
-import { validateTaxonomySelection } from '../utils/taxonomy';
+import { validateTaxonomySelection } from '../utils/taxonomyHelpers';
 
 /**
  * Taxonomy store state interface

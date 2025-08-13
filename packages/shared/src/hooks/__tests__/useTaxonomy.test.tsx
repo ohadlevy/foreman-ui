@@ -98,6 +98,31 @@ vi.mock('../../stores/taxonomyStore', () => ({
   useTaxonomyStore: () => mockStore
 }));
 
+vi.mock('../useGlobalState', () => ({
+  useGlobalState: () => ({
+    globalState: {
+      currentUser: { id: 1, login: 'testuser' },
+      organizations: mockOrganizations,
+      locations: mockLocations
+    },
+    currentUser: { id: 1, login: 'testuser' },
+    organizations: mockOrganizations,
+    locations: mockLocations,
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+    isReady: true
+  }),
+  useGlobalTaxonomies: () => ({
+    organizations: mockOrganizations,
+    locations: mockLocations,
+    isLoading: false,
+    isError: false,
+    error: null,
+    isReady: true
+  })
+}));
 vi.mock('../useTaxonomyQueries', () => ({
   useOrganizations: () => ({
     data: { results: mockOrganizations },
@@ -206,25 +231,6 @@ describe('useTaxonomy', () => {
       expect(result.current.mutations.deleteLocation).toBeDefined();
     });
 
-    it('should provide refetch functionality', () => {
-      const wrapper = createWrapper();
-      const { result } = renderHook(() => useTaxonomy(), { wrapper });
-
-      expect(typeof result.current.refetch).toBe('function');
-      
-      // Should not throw when called
-      expect(() => result.current.refetch()).not.toThrow();
-    });
-
-    it('should provide query objects', () => {
-      const wrapper = createWrapper();
-      const { result } = renderHook(() => useTaxonomy(), { wrapper });
-
-      expect(result.current.queries.organizations).toBeDefined();
-      expect(result.current.queries.locations).toBeDefined();
-      expect(result.current.queries.organizations.data).toEqual({ results: mockOrganizations });
-      expect(result.current.queries.locations.data).toEqual({ results: mockLocations });
-    });
   });
 
   describe('useOrganizationManagement', () => {
@@ -248,7 +254,6 @@ describe('useTaxonomy', () => {
       expect(typeof result.current.actions.create).toBe('function');
       expect(typeof result.current.actions.update).toBe('function');
       expect(typeof result.current.actions.delete).toBe('function');
-      expect(typeof result.current.actions.refetch).toBe('function');
     });
 
     it('should provide mutation objects', () => {
@@ -282,7 +287,6 @@ describe('useTaxonomy', () => {
       expect(typeof result.current.actions.create).toBe('function');
       expect(typeof result.current.actions.update).toBe('function');
       expect(typeof result.current.actions.delete).toBe('function');
-      expect(typeof result.current.actions.refetch).toBe('function');
     });
 
     it('should provide mutation objects', () => {

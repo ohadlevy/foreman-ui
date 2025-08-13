@@ -2,14 +2,29 @@ import { useQuery } from '@tanstack/react-query';
 import { useApi } from './useApi';
 import { useAuth } from '../auth/useAuth';
 import { SearchParams } from '../types';
+import { useTaxonomyStore } from '../stores/taxonomyStore';
 
 export const useSmartProxies = (params?: SearchParams) => {
   const { smartproxies } = useApi();
   const { hasPermission } = useAuth();
+  const { context } = useTaxonomyStore();
+
+  // Include taxonomy context in query key to ensure proper cache separation
+  const taxonomyContext = {
+    orgId: context.organization?.id || null,
+    locId: context.location?.id || null,
+  };
+
+  // Merge taxonomy context into API parameters
+  const enhancedParams = {
+    ...params,
+    ...(context.organization?.id && { organization_id: context.organization.id }),
+    ...(context.location?.id && { location_id: context.location.id }),
+  };
 
   return useQuery({
-    queryKey: ['smartproxies', params],
-    queryFn: () => smartproxies.list(params),
+    queryKey: ['smartproxies', params, taxonomyContext],
+    queryFn: () => smartproxies.list(enhancedParams),
     keepPreviousData: true,
     enabled: hasPermission('view_smart_proxies'),
   });
@@ -18,9 +33,16 @@ export const useSmartProxies = (params?: SearchParams) => {
 export const useSmartProxy = (id: number, enabled = true) => {
   const { smartproxies } = useApi();
   const { hasPermission } = useAuth();
+  const { context } = useTaxonomyStore();
+
+  // Include taxonomy context in query key to ensure proper cache separation
+  const taxonomyContext = {
+    orgId: context.organization?.id || null,
+    locId: context.location?.id || null,
+  };
 
   return useQuery({
-    queryKey: ['smartproxies', id],
+    queryKey: ['smartproxies', id, taxonomyContext],
     queryFn: () => smartproxies.get(id),
     enabled: enabled && !!id && hasPermission('view_smart_proxies'),
   });

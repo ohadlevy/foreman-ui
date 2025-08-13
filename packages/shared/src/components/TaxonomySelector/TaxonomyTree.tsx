@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   TreeView,
   TreeViewDataItem,
@@ -98,6 +98,7 @@ export const TaxonomyTree: React.FC<TaxonomyTreeProps> = ({
 }) => {
   const [searchValue, setSearchValue] = useState('');
   const [allExpanded, setAllExpanded] = useState(defaultExpanded);
+  const scrollContainerRef = useRef<React.ElementRef<'div'>>(null);
 
   // Filter entities based on search
   const filteredEntities = useMemo(() => {
@@ -115,16 +116,38 @@ export const TaxonomyTree: React.FC<TaxonomyTreeProps> = ({
     );
   }, [entities, searchValue, onFilter]);
 
-  // Build tree structure
+  // Build tree structure with auto-expansion for selected items
   const treeData = useMemo(() => {
-    return buildTaxonomyTree(filteredEntities);
-  }, [filteredEntities]);
+    const tree = buildTaxonomyTree(filteredEntities);
+    
+    // Auto-expand parent nodes if their children are selected
+    const expandParentsOfSelected = (nodes: TaxonomyTreeNode<EnhancedOrganization | EnhancedLocation>[]): TaxonomyTreeNode<EnhancedOrganization | EnhancedLocation>[] => {
+      return nodes.map(node => {
+        const hasSelectedChild = (node: TaxonomyTreeNode<EnhancedOrganization | EnhancedLocation>): boolean => {
+          if (selectedIds.includes(node.entity.id)) {
+            return true;
+          }
+          return node.children.some(hasSelectedChild);
+        };
+        
+        const shouldExpand = allExpanded || hasSelectedChild(node);
+        
+        return {
+          ...node,
+          expanded: shouldExpand,
+          children: expandParentsOfSelected(node.children)
+        };
+      });
+    };
+    
+    return expandParentsOfSelected(tree);
+  }, [filteredEntities, selectedIds, allExpanded]);
 
   // Convert tree nodes to TreeView format
   const convertToTreeViewData = useCallback((nodes: TaxonomyTreeNode<EnhancedOrganization | EnhancedLocation>[]): TreeViewDataItem[] => {
     return nodes.map(node => {
       const entity = node.entity;
-      const displayName = entity.title || entity.name;
+      const displayName = entity.name;
       
       // Generate counts text
       let countsText = '';
@@ -157,6 +180,22 @@ export const TaxonomyTree: React.FC<TaxonomyTreeProps> = ({
     return convertToTreeViewData(treeData);
   }, [treeData, convertToTreeViewData]);
 
+  // Scroll to selected item when selectedIds change
+  useEffect(() => {
+    if (selectedIds.length > 0 && scrollContainerRef.current) {
+      // Small delay to ensure TreeView has rendered
+      setTimeout(() => {
+        const selectedElement = scrollContainerRef.current?.querySelector('[aria-selected="true"]');
+        if (selectedElement) {
+          selectedElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }
+      }, 100);
+    }
+  }, [selectedIds, treeViewData]);
+
   // Handle selection change
   const handleSelectionChange = useCallback((evt: React.MouseEvent, treeViewItem: TreeViewDataItem) => {
     if (!onSelectionChange) return;
@@ -169,7 +208,9 @@ export const TaxonomyTree: React.FC<TaxonomyTreeProps> = ({
         : [...selectedIds, entityId];
       onSelectionChange(newSelectedIds);
     } else {
-      onSelectionChange([entityId]);
+      // For single select, allow deselection by clicking the same item
+      const newSelectedIds = selectedIds.includes(entityId) ? [] : [entityId];
+      onSelectionChange(newSelectedIds);
     }
   }, [selectedIds, allowMultiSelect, onSelectionChange]);
 
@@ -272,9 +313,11 @@ export const TaxonomyTree: React.FC<TaxonomyTreeProps> = ({
 
     return (
       <div 
+        ref={scrollContainerRef}
         style={{ maxHeight, overflowY: 'auto' }}
         role="tree"
         aria-label={`${type} tree`}
+        data-testid={`taxonomy-tree-${type}`}
       >
         <TreeView
           data={treeViewData}

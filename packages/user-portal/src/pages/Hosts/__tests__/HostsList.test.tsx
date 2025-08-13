@@ -7,7 +7,7 @@ import { HostsList } from '../HostsList';
 
 // Mock the shared hooks and modules
 vi.mock('@foreman/shared', () => ({
-  useMyHosts: vi.fn(),
+  useHosts: vi.fn(),
   usePermissions: vi.fn(),
   useActivityStore: vi.fn(),
   formatDateTime: vi.fn((date) => `formatted-${date}`),
@@ -73,7 +73,7 @@ describe('HostsList', () => {
     vi.stubGlobal('localStorage', localStorageMock);
 
     // Default mock implementations
-    mockedShared.useMyHosts.mockReturnValue({
+    mockedShared.useHosts.mockReturnValue({
       data: { results: [], total: 0, subtotal: 0, page: 1, per_page: 20 },
       isLoading: false,
       error: null,
@@ -86,7 +86,7 @@ describe('HostsList', () => {
       isStale: false,
       isPlaceholderData: false,
       refetch: vi.fn(),
-    } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
+    } as unknown as ReturnType<typeof mockedShared.useHosts>);
 
     mockedShared.usePermissions.mockReturnValue({
       hasUserData: true,
@@ -107,13 +107,13 @@ describe('HostsList', () => {
   it('should render the hosts list page', () => {
     render(<HostsList />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('My Hosts')).toBeInTheDocument();
+    expect(screen.getByText('Hosts')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Search hosts...')).toBeInTheDocument();
     expect(screen.getByText('Manage columns')).toBeInTheDocument();
   });
 
   it('should show loading state', () => {
-    mockedShared.useMyHosts.mockReturnValue({
+    mockedShared.useHosts.mockReturnValue({
       data: undefined,
       isLoading: true,
       error: null,
@@ -126,7 +126,7 @@ describe('HostsList', () => {
       isStale: false,
       isPlaceholderData: false,
       refetch: vi.fn(),
-    } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
+    } as unknown as ReturnType<typeof mockedShared.useHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
     
@@ -134,7 +134,7 @@ describe('HostsList', () => {
   });
 
   it('should show error state', () => {
-    mockedShared.useMyHosts.mockReturnValue({
+    mockedShared.useHosts.mockReturnValue({
       data: undefined,
       isLoading: false,
       error: new Error('Failed to load hosts'),
@@ -147,7 +147,7 @@ describe('HostsList', () => {
       isStale: false,
       isPlaceholderData: false,
       refetch: vi.fn(),
-    } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
+    } as unknown as ReturnType<typeof mockedShared.useHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
     
@@ -179,7 +179,7 @@ describe('HostsList', () => {
       },
     ];
 
-    mockedShared.useMyHosts.mockReturnValue({
+    mockedShared.useHosts.mockReturnValue({
       data: { results: mockHosts, total: 1, subtotal: 1, page: 1, per_page: 20 },
       isLoading: false,
       error: null,
@@ -192,7 +192,7 @@ describe('HostsList', () => {
       isStale: false,
       isPlaceholderData: false,
       refetch: vi.fn(),
-    } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
+    } as unknown as ReturnType<typeof mockedShared.useHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
     
@@ -216,7 +216,7 @@ describe('HostsList', () => {
     const addActivity = vi.fn();
     mockedShared.useActivityStore.mockReturnValue({ addActivity });
 
-    mockedShared.useMyHosts.mockReturnValue({
+    mockedShared.useHosts.mockReturnValue({
       data: { results: [], total: 0, subtotal: 0, page: 1, per_page: 20 },
       isLoading: false,
       error: null,
@@ -229,7 +229,7 @@ describe('HostsList', () => {
       isStale: false,
       isPlaceholderData: false,
       refetch: vi.fn(),
-    } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
+    } as unknown as ReturnType<typeof mockedShared.useHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
     
@@ -253,7 +253,7 @@ describe('HostsList', () => {
       },
     ];
 
-    mockedShared.useMyHosts.mockReturnValue({
+    mockedShared.useHosts.mockReturnValue({
       data: { results: mockHosts, total: 1, subtotal: 1, page: 1, per_page: 20 },
       isLoading: false,
       error: null,
@@ -266,7 +266,7 @@ describe('HostsList', () => {
       isStale: false,
       isPlaceholderData: false,
       refetch: vi.fn(),
-    } as unknown as ReturnType<typeof mockedShared.useMyHosts>);
+    } as unknown as ReturnType<typeof mockedShared.useHosts>);
 
     render(<HostsList />, { wrapper: createWrapper() });
     

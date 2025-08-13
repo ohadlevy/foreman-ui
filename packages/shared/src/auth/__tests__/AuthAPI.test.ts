@@ -49,6 +49,12 @@ Object.defineProperty(document, 'cookie', {
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
 
+// Mock btoa to avoid encoding issues in Node.js test environment
+global.btoa = vi.fn((str: string) => {
+  // Return a mock base64 string for testing purposes
+  return `mock_base64_${str.length}_chars`;
+});
+
 describe('AuthAPI', () => {
   let mockClient: any;
   let authAPI: AuthAPI;
@@ -85,21 +91,42 @@ describe('AuthAPI', () => {
 
   describe('login', () => {
     it('should clear session data before login', async () => {
-      fetchMock.mockResolvedValueOnce({
-        ok: false,
-        status: 401,
+      // Mock fetch to return 401 - this should cause immediate failure
+      fetchMock.mockImplementation((url) => {
+        // Ensure we're mocking the right URL pattern
+        if (url.includes('/current_user')) {
+          return Promise.resolve({
+            ok: false,
+            status: 401,
+            statusText: 'Unauthorized',
+            json: () => Promise.resolve({ error: 'Unauthorized' })
+          });
+        }
+        // Fallback for other URLs - shouldn't happen in this test
+        return Promise.reject(new Error('Unmocked fetch call'));
       });
 
-      try {
-        await authAPI.login({ login: 'test', password: 'test' });
-      } catch {
-        // Expected to fail, but cleanup should happen
-      }
+      // Use valid ASCII credentials
+      await expect(authAPI.login({ login: 'admin', password: 'password' }))
+        .rejects.toThrow('Invalid username or password');
 
+      // Verify cleanup happened before the failed authentication
       expect(mockClient.clearToken).toHaveBeenCalled();
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('foreman_auth_token');
       expect(sessionStorageMock.clear).toHaveBeenCalled();
       expect(resetDefaultClient).toHaveBeenCalled();
+      
+      // Verify fetch was called with the expected URL
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/current_user'),
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Authorization': expect.stringMatching(/^Basic /),
+          })
+        })
+      );
     });
 
     // FIXME: These tests have complex fetch mocking issues - covered by existing integration tests

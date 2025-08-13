@@ -26,3 +26,4 @@ export {
   useDeleteLocation
 } from './useTaxonomyQueries';
 export { useTaxonomy, useOrganizationManagement, useLocationManagement } from './useTaxonomy';
+export { useGlobalState, useCurrentUser, useGlobalTaxonomies } from './useGlobalState';

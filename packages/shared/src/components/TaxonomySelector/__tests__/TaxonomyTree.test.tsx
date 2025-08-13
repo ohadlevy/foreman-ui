@@ -170,19 +170,19 @@ describe('TaxonomyTree', () => {
     it('should display entities in tree format', () => {
       render(<TaxonomyTree {...defaultProps} />);
       
-      expect(screen.getByText('Organization 1')).toBeInTheDocument();
-      expect(screen.getByText('Organization 3')).toBeInTheDocument();
+      expect(screen.getByText('org1')).toBeInTheDocument();
+      expect(screen.getByText('org3')).toBeInTheDocument();
     });
 
     it('should show hierarchical structure with children', () => {
       render(<TaxonomyTree {...defaultProps} />);
       
       // Should show parent organizations
-      expect(screen.getByText('Organization 1')).toBeInTheDocument();
-      expect(screen.getByText('Organization 3')).toBeInTheDocument();
+      expect(screen.getByText('org1')).toBeInTheDocument();
+      expect(screen.getByText('org3')).toBeInTheDocument();
       
       // Should show child organization under parent
-      expect(screen.getByText('Organization 2')).toBeInTheDocument();
+      expect(screen.getByText('org2')).toBeInTheDocument();
     });
   });
 
@@ -319,7 +319,7 @@ describe('TaxonomyTree', () => {
         />
       );
       
-      const firstEntity = screen.getByText('Organization 1');
+      const firstEntity = screen.getByText('org1');
       await user.click(firstEntity);
       
       expect(onSelectionChange).toHaveBeenCalledWith([1]);
@@ -338,7 +338,7 @@ describe('TaxonomyTree', () => {
         />
       );
       
-      const firstEntity = screen.getByText('Organization 1');
+      const firstEntity = screen.getByText('org1');
       await user.click(firstEntity);
       
       expect(onSelectionChange).toHaveBeenCalledWith([1]);
@@ -357,7 +357,7 @@ describe('TaxonomyTree', () => {
         />
       );
       
-      const firstEntity = screen.getByText('Organization 1');
+      const firstEntity = screen.getByText('org1');
       await user.click(firstEntity);
       
       expect(onSelectionChange).toHaveBeenCalledWith([]);
@@ -371,7 +371,7 @@ describe('TaxonomyTree', () => {
         />
       );
       
-      const activeItem = screen.getByText('Organization 1').closest('[data-testid="tree-item"]');
+      const activeItem = screen.getByText('org1').closest('[data-testid="tree-item"]');
       expect(activeItem).toHaveClass('active');
     });
   });
@@ -387,10 +387,10 @@ describe('TaxonomyTree', () => {
       );
       
       const searchInput = screen.getByTestId('search-input');
-      await user.type(searchInput, 'Organization 1');
+      await user.type(searchInput, 'org1');
       
       // The filtering logic would be handled by the onFilter prop or internal filtering
-      expect(searchInput).toHaveValue('Organization 1');
+      expect(searchInput).toHaveValue('org1');
     });
 
     it('should use custom filter function when provided', async () => {

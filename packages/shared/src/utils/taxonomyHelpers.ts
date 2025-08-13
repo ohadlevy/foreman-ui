@@ -4,109 +4,108 @@ import type {
   TaxonomyApiResponse
 } from '../types/taxonomy';
 
-/**
- * Constants for taxonomy hierarchy calculations
- */
-const ROOT_LEVEL = 0;
+// Memoization cache for separator detection with size limits to prevent memory leaks
+const MAX_CACHE_SIZE = 100; // Limit cache size to prevent unbounded growth
+const separatorCache = new Map<string, string>();
 
 /**
- * Precompute hierarchy levels for all entities to optimize tree building
+ * Manage cache size to prevent memory leaks
  */
-function precomputeHierarchyLevels<T extends TaxonomyEntity & { parent_id?: number }>(
-  entities: T[]
-): Map<number, number> {
-  const levelMap = new Map<number, number>();
-  const visited = new Set<number>();
-  const inProgress = new Set<number>(); // Detect cycles during traversal
-
-  const calculateLevel = (entityId: number): number => {
-    // Check for existing computed level
-    if (levelMap.has(entityId)) {
-      return levelMap.get(entityId)!;
-    }
-
-    // Detect cycles
-    if (inProgress.has(entityId)) {
-      console.warn(`[taxonomyHelpers] Cycle detected in taxonomy hierarchy for entity ${entityId}. Treating as root level.`);
-      return ROOT_LEVEL; // Treat cyclic nodes as root level
-    }
-
-    const entity = entities.find(e => e.id === entityId);
-    if (!entity || !entity.parent_id) {
-      levelMap.set(entityId, ROOT_LEVEL);
-      return ROOT_LEVEL;
-    }
-
-    inProgress.add(entityId);
-    const parentLevel = calculateLevel(entity.parent_id);
-    inProgress.delete(entityId);
-
-    const level = parentLevel + 1;
-    levelMap.set(entityId, level);
-    return level;
-  };
-
-  // Precompute levels for all entities
-  entities.forEach(entity => {
-    if (!visited.has(entity.id)) {
-      calculateLevel(entity.id);
-      visited.add(entity.id);
-    }
-  });
-
-  return levelMap;
+function manageCacheSize<K, V>(cache: Map<K, V>, maxSize: number): void {
+  if (cache.size >= maxSize) {
+    // Remove oldest entries (FIFO) when cache reaches max size
+    const keysToDelete = Array.from(cache.keys()).slice(0, Math.floor(maxSize * 0.2)); // Remove 20% of entries
+    keysToDelete.forEach(key => cache.delete(key));
+  }
 }
 
 /**
- * Build a hierarchical tree structure from flat taxonomy data
- * Optimized with precomputed hierarchy levels
+ * Detect the hierarchy separator used in the data
+ * Supports both " / " (space-slash-space) and "/" (just slash)
+ * Memoized for performance to avoid repeated computation
  */
-export function buildTaxonomyTree<T extends TaxonomyEntity & { parent_id?: number }>(
-  entities: T[]
-): TaxonomyTreeNode<T>[] {
-  const nodeMap = new Map<number, TaxonomyTreeNode<T>>();
-  const tree: TaxonomyTreeNode<T>[] = [];
-  const visited = new Set<number>(); // Prevent circular references
+function detectHierarchySeparator<T extends TaxonomyEntity>(entities: T[]): string {
+  // Create cache key based on entity names/titles for better cache effectiveness
+  const cacheKey = entities.map(e => e.title || e.name).sort().join('|');
   
-  // Precompute all hierarchy levels for optimal performance
-  const levelMap = precomputeHierarchyLevels(entities);
+  // Check cache first
+  const cached = separatorCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
 
-  // Create all nodes with precomputed levels
-  entities.forEach(entity => {
-    const node: TaxonomyTreeNode<T> = {
+  // Single pass through entities to detect separator
+  for (const entity of entities) {
+    const title = entity.title || entity.name;
+    
+    // Check for spaced separator first (more specific)
+    if (title.includes(' / ')) {
+      const result = ' / ';
+      manageCacheSize(separatorCache, MAX_CACHE_SIZE);
+      separatorCache.set(cacheKey, result);
+      return result;
+    }
+    
+    // Check for slash separator
+    if (title.includes('/')) {
+      const result = '/';
+      manageCacheSize(separatorCache, MAX_CACHE_SIZE);
+      separatorCache.set(cacheKey, result);
+      return result;
+    }
+  }
+  
+  const defaultResult = ' / '; // Default to spaced separator
+  manageCacheSize(separatorCache, MAX_CACHE_SIZE);
+  separatorCache.set(cacheKey, defaultResult);
+  return defaultResult;
+}
+
+/**
+ * Build a hierarchical tree structure from flat taxonomy entities using title-based hierarchy
+ * Foreman sends title data with hierarchy already built in (e.g., "Parent/Child" or "Parent / Child")
+ */
+export function buildTaxonomyTree<T extends TaxonomyEntity>(
+  entities: T[],
+  parentTitle?: string
+): TaxonomyTreeNode<T>[] {
+  // Auto-detect the separator used in this dataset
+  const separator = detectHierarchySeparator(entities);
+  
+  const children = entities.filter(entity => {
+    const entityTitle = entity.title || entity.name;
+    
+    if (!parentTitle) {
+      // Root level entities - those that don't contain hierarchy separator
+      return !entityTitle.includes(separator);
+    }
+    
+    // Child entities - those whose title starts with parent title + separator
+    return entityTitle.startsWith(`${parentTitle}${separator}`) && 
+           entityTitle.split(separator).length === parentTitle.split(separator).length + 1;
+  });
+
+  return children.map(entity => {
+    const entityTitle = entity.title || entity.name;
+    const childNodes = buildTaxonomyTree(entities, entityTitle);
+    return {
       entity,
-      children: [],
-      level: levelMap.get(entity.id) || ROOT_LEVEL,
+      children: childNodes,
+      level: getEntityLevelFromTitle(entity.title, separator),
       expanded: false,
       selected: false,
       disabled: false
     };
-    nodeMap.set(entity.id, node);
   });
+}
 
-  // Build parent-child relationships using O(1) map lookups
-  entities.forEach(entity => {
-    const node = nodeMap.get(entity.id);
-    if (!node) return;
-
-    if (!entity.parent_id) {
-      // Root level entity
-      tree.push(node);
-    } else {
-      // Find parent using map lookup (O(1))
-      const parentNode = nodeMap.get(entity.parent_id);
-      if (parentNode && !visited.has(entity.id)) {
-        // Add to parent's children (level already computed)
-        parentNode.children.push(node);
-        visited.add(entity.id);
-      } else {
-        // Parent not found or circular reference, treat as root
-        tree.push(node);
-      }
-    }
-  });
-
-  return tree;
+/**
+ * Get entity level from title hierarchy
+ * Title format: "Parent/Child/Grandchild" or "Parent / Child / Grandchild"
+ */
+function getEntityLevelFromTitle(title?: string, separator: string = ' / '): number {
+  if (!title) return 0;
+  return title.split(separator).length - 1;
 }
 
 /**
@@ -154,89 +153,111 @@ export function flattenTaxonomyTree<T extends TaxonomyEntity>(
 }
 
 /**
- * Get all parent entities for a given entity
+ * Get all parent entities for a given entity using title-based hierarchy
  */
-export function getTaxonomyAncestors<T extends TaxonomyEntity & { parent_id?: number }>(
+export function getTaxonomyAncestors<T extends TaxonomyEntity>(
   entity: T,
   allEntities: T[]
 ): T[] {
   const ancestors: T[] = [];
-  const entityMap = new Map(allEntities.map(e => [e.id, e]));
-  const visited = new Set<number>(); // Prevent circular references
-  const maxDepth = 50; // Prevent extremely deep hierarchies
+  const entityTitle = entity.title || entity.name;
+  const separator = detectHierarchySeparator(allEntities);
   
-  let current = entity;
-  let depth = 0;
+  if (!entityTitle.includes(separator)) return [];
+
+  // Split title and build ancestor paths
+  const titleParts = entityTitle.split(separator);
+  let currentPath = '';
   
-  while (current.parent_id && depth < maxDepth) {
-    // Check for circular reference
-    if (visited.has(current.id)) {
-      console.warn(`Circular reference detected in taxonomy hierarchy at entity ${current.id}`);
-      break;
-    }
-    
-    visited.add(current.id);
-    const parent = entityMap.get(current.parent_id);
-    
-    if (parent) {
-      ancestors.unshift(parent);
-      current = parent;
-      depth++;
+  // Build each ancestor path (excluding the current entity)
+  for (let i = 0; i < titleParts.length - 1; i++) {
+    if (i === 0) {
+      currentPath = titleParts[i];
     } else {
-      break;
+      currentPath += `${separator}${titleParts[i]}`;
+    }
+    
+    const ancestor = allEntities.find(e => (e.title || e.name) === currentPath);
+    if (ancestor) {
+      ancestors.push(ancestor);
     }
   }
-  
-  if (depth >= maxDepth) {
-    console.warn(`Maximum hierarchy depth (${maxDepth}) reached for entity ${entity.id}`);
-  }
-  
+
   return ancestors;
 }
 
 /**
- * Get all descendant entities for a given entity
+ * Get all descendant entities for a given entity using title-based hierarchy
  */
-export function getTaxonomyDescendants<T extends TaxonomyEntity & { parent_id?: number }>(
+export function getTaxonomyDescendants<T extends TaxonomyEntity>(
   entity: T,
   allEntities: T[]
 ): T[] {
   const descendants: T[] = [];
+  const entityTitle = entity.title || entity.name;
+  const separator = detectHierarchySeparator(allEntities);
   
-  const findChildren = (parentId: number) => {
-    const children = allEntities.filter(e => e.parent_id === parentId);
-    for (const child of children) {
-      descendants.push(child);
-      findChildren(child.id);
+  allEntities.forEach(e => {
+    const eTitle = e.title || e.name;
+    // Check if entity title starts with parent title followed by hierarchy separator
+    if (eTitle.startsWith(`${entityTitle}${separator}`)) {
+      descendants.push(e);
     }
-  };
-  
-  findChildren(entity.id);
+  });
+
   return descendants;
 }
 
 /**
- * Generate breadcrumbs for a taxonomy entity
+ * Generate breadcrumbs for a taxonomy entity using title-based hierarchy
  */
-export function getTaxonomyBreadcrumbs<T extends TaxonomyEntity & { parent_id?: number }>(
+export function getTaxonomyBreadcrumbs<T extends TaxonomyEntity>(
   entity: T,
   allEntities: T[],
   type: 'organization' | 'location'
 ): Array<{ id: number; name: string; path: string }> {
-  const ancestors = getTaxonomyAncestors(entity, allEntities);
-  const breadcrumbs = ancestors.map(ancestor => ({
-    id: ancestor.id,
-    name: ancestor.name,
-    path: `/${type}s/${ancestor.id}`
-  }));
+  const breadcrumbs: Array<{ id: number; name: string; path: string }> = [];
+  const separator = detectHierarchySeparator(allEntities);
   
-  // Add current entity
-  breadcrumbs.push({
-    id: entity.id,
-    name: entity.name,
-    path: `/${type}s/${entity.id}`
+  if (!entity.title) {
+    breadcrumbs.push({
+      id: entity.id,
+      name: entity.name,
+      path: `/${type}s/${entity.id}`
+    });
+    return breadcrumbs;
+  }
+
+  // Split the title by hierarchy separator and build breadcrumbs
+  const titleParts = entity.title.split(separator);
+  
+  // For each title part, try to find the corresponding entity
+  let currentPath = '';
+  titleParts.forEach((titlePart, index) => {
+    if (index === 0) {
+      currentPath = titlePart;
+    } else {
+      currentPath += `${separator}${titlePart}`;
+    }
+    
+    // Find entity with this exact title path
+    const matchingEntity = allEntities.find(e => e.title === currentPath);
+    if (matchingEntity) {
+      breadcrumbs.push({
+        id: matchingEntity.id,
+        name: matchingEntity.name,
+        path: `/${type}s/${matchingEntity.id}`
+      });
+    } else if (index === titleParts.length - 1) {
+      // If this is the current entity and we couldn't find it in the list
+      breadcrumbs.push({
+        id: entity.id,
+        name: entity.name,
+        path: `/${type}s/${entity.id}`
+      });
+    }
   });
-  
+
   return breadcrumbs;
 }
 
@@ -268,7 +289,7 @@ export function filterTaxonomyEntities<T extends TaxonomyEntity>(
 /**
  * Sort taxonomy entities by hierarchy and name
  */
-export function sortTaxonomyEntities<T extends TaxonomyEntity & { parent_id?: number }>(
+export function sortTaxonomyEntities<T extends TaxonomyEntity>(
   entities: T[]
 ): T[] {
   // Build tree and then flatten to get hierarchical order
@@ -285,43 +306,74 @@ export function getTaxonomyDisplayName(entity: TaxonomyEntity): string {
 }
 
 /**
- * Check if an entity has children
+ * Check if an entity has children using title-based hierarchy
  */
-export function hasChildren<T extends TaxonomyEntity & { parent_id?: number }>(
+export function hasChildren<T extends TaxonomyEntity>(
   entity: T,
   allEntities: T[]
 ): boolean {
-  return allEntities.some(e => e.parent_id === entity.id);
+  const entityTitle = entity.title || entity.name;
+  const separator = detectHierarchySeparator(allEntities);
+  return allEntities.some(e => {
+    const eTitle = e.title || e.name;
+    return eTitle.startsWith(`${entityTitle}${separator}`);
+  });
 }
 
 /**
- * Calculate entity depth in hierarchy
+ * Calculate entity depth in hierarchy using title-based approach
  */
-export function getTaxonomyDepth<T extends TaxonomyEntity & { parent_id?: number }>(
+export function getTaxonomyDepth<T extends TaxonomyEntity>(
   entity: T,
   allEntities: T[]
 ): number {
-  const ancestors = getTaxonomyAncestors(entity, allEntities);
-  return ancestors.length;
+  const separator = detectHierarchySeparator(allEntities);
+  return getEntityLevelFromTitle(entity.title, separator);
 }
 
 /**
- * Group entities by parent
+ * Validate taxonomy selection
  */
-export function groupTaxonomyByParent<T extends TaxonomyEntity & { parent_id?: number }>(
-  entities: T[]
-): Map<number | null, T[]> {
-  const groups = new Map<number | null, T[]>();
-  
-  entities.forEach(entity => {
-    const parentId = entity.parent_id || null;
-    if (!groups.has(parentId)) {
-      groups.set(parentId, []);
+export function validateTaxonomySelection(
+  selection: { organizationId?: number; locationId?: number },
+  availableOrganizations: { id: number; name: string; organizations?: { id: number }[] }[],
+  availableLocations: { id: number; name: string; organizations?: { id: number }[] }[]
+): { isValid: boolean; errors: string[]; warnings: string[] } {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // Validate organization
+  if (selection.organizationId) {
+    const org = availableOrganizations.find(o => o.id === selection.organizationId);
+    if (!org) {
+      errors.push('Selected organization is not available or does not exist');
     }
-    groups.get(parentId)!.push(entity);
-  });
-  
-  return groups;
+  }
+
+  // Validate location
+  if (selection.locationId) {
+    const loc = availableLocations.find(l => l.id === selection.locationId);
+    if (!loc) {
+      errors.push('Selected location is not available or does not exist');
+    }
+  }
+
+  // Check if location is compatible with organization
+  if (selection.organizationId && selection.locationId) {
+    const location = availableLocations.find(l => l.id === selection.locationId);
+    if (location?.organizations && location.organizations.length > 0) {
+      const isCompatible = location.organizations.some(org => org.id === selection.organizationId);
+      if (!isCompatible) {
+        warnings.push('Selected location may not be available in the selected organization');
+      }
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings
+  };
 }
 
 /**
@@ -396,9 +448,9 @@ export function extractTaxonomyIds<T extends TaxonomyEntity>(entities: T[]): num
 }
 
 /**
- * Find common parent for multiple entities
+ * Find common parent for multiple entities using title-based hierarchy
  */
-export function findCommonParent<T extends TaxonomyEntity & { parent_id?: number }>(
+export function findCommonParent<T extends TaxonomyEntity>(
   entities: T[],
   allEntities: T[]
 ): T | null {
