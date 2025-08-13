@@ -42,6 +42,7 @@ interface BulkActionsContainerProps {
   showSelectAllPages?: boolean;
   className?: string;
   autoClearTimeoutMs?: number; // Time in milliseconds before auto-clearing selection after successful operation
+  onSuccess?: () => void; // Callback to refresh data after successful bulk operation
 }
 
 export const BulkActionsContainer: React.FC<BulkActionsContainerProps> = ({
@@ -52,6 +53,7 @@ export const BulkActionsContainer: React.FC<BulkActionsContainerProps> = ({
   showSelectAllPages = false,
   className,
   autoClearTimeoutMs = 3000, // Default to 3 seconds
+  onSuccess,
 }) => {
   const { actions, isLoading } = useBulkActions();
   const [activeModal, setActiveModal] = useState<BulkAction | null>(null);
@@ -106,6 +108,11 @@ export const BulkActionsContainer: React.FC<BulkActionsContainerProps> = ({
       
       // Auto-clear selection after operation completion (configurable timeout)
       scheduleAutoClear();
+      
+      // Call success callback if provided (for additional custom logic)
+      if (onSuccess) {
+        onSuccess();
+      }
       
     } catch (error) {
       let errorMessage = 'Operation failed';

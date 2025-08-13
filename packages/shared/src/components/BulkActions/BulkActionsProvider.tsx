@@ -2,6 +2,9 @@ import React, { createContext, useContext, useMemo } from 'react';
 import { BulkAction, HostGroup } from '../../types';
 import { useBulkOperations } from '../../hooks/useBulkOperations';
 import { useHostGroups } from '../../hooks/useHostGroups';
+import { useUsers } from '../../hooks/useUsers';
+import { useOrganizations, useLocations } from '../../hooks/useTaxonomyQueries';
+import { useApi } from '../../hooks/useApi';
 import { validateParameter } from '../../utils/bulkOperationUtils';
 
 interface BulkActionsContextType {
@@ -21,21 +24,30 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
   children,
   enabledActions = [
     'update_hostgroup',
-    'update_environment', 
     'update_owner',
     'update_organization',
     'update_location',
     'build',
     'destroy',
-    'enable',
-    'disable',
     'disown'
   ],
   userPermissions = [],
 }) => {
   const { executeBulkOperation } = useBulkOperations();
   const { data: hostGroupsResponse, isLoading: hostGroupsLoading } = useHostGroups();
+  const { data: usersResponse, isLoading: usersLoading } = useUsers();
+  const { taxonomyApi } = useApi();
+  
+  // Fetch organizations using proper taxonomy hook
+  const { data: organizationsResponse, isLoading: organizationsLoading } = useOrganizations(taxonomyApi);
+  
+  // Fetch locations using proper taxonomy hook
+  const { data: locationsResponse, isLoading: locationsLoading } = useLocations(taxonomyApi);
+  
   const hostGroups = hostGroupsResponse?.results || [];
+  const users = usersResponse?.results || [];
+  const organizations = organizationsResponse?.results || [];
+  const locations = locationsResponse?.results || [];
 
   // Helper function to generate hostgroup parameters for improved readability
   const getHostgroupParameters = () => [
@@ -52,6 +64,63 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
     },
   ];
 
+  // Helper function to generate owner parameters
+  const getOwnerParameters = () => [
+    {
+      key: 'owner_id',
+      label: 'Owner (User)',
+      type: 'select' as const,
+      required: true,
+      options: users.map((user: { id: number; name?: string; login: string }) => ({
+        value: user.id,
+        label: user.name || user.login,
+      })),
+      placeholder: 'Select a user...',
+    },
+  ];
+
+  // Helper function to generate organization parameters
+  const getOrganizationParameters = () => [
+    {
+      key: 'organization_id',
+      label: 'Organization',
+      type: 'select' as const,
+      required: true,
+      options: organizations.map((org: { id: number; name: string; title?: string }) => ({
+        value: org.id,
+        label: org.title || org.name,
+      })),
+      placeholder: 'Select an organization...',
+    },
+  ];
+
+  // Helper function to generate location parameters
+  const getLocationParameters = () => [
+    {
+      key: 'location_id',
+      label: 'Location',
+      type: 'select' as const,
+      required: true,
+      options: locations.map((loc: { id: number; name: string; title?: string }) => ({
+        value: loc.id,
+        label: loc.title || loc.name,
+      })),
+      placeholder: 'Select a location...',
+    },
+  ];
+
+  // Helper function for parameter validation and bulk operation execution
+  const createValidatedAction = (
+    paramName: string,
+    paramType: 'string' | 'number' | 'boolean',
+    operation: string,
+    additionalParams?: Record<string, unknown>
+  ) => async (selectedItemIds: number[], parameters?: Record<string, unknown>) => {
+    validateParameter(parameters, paramName, paramType, { min: 1 });
+    const finalParams = additionalParams ? { ...parameters, ...additionalParams } : parameters;
+    return executeBulkOperation(operation, selectedItemIds, finalParams);
+  };
+
   const actions: BulkAction[] = useMemo(() => {
     
     return [
@@ -65,35 +134,10 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         disabled: hostGroupsLoading || hostGroups.length === 0,
         disabledReason: hostGroupsLoading ? 'Loading hostgroups...' : 'No hostgroups available',
         permissions: ['edit_hosts'],
-        action: async (selectedItemIds: number[], parameters?: Record<string, unknown>) => {
-          validateParameter(parameters, 'hostgroup_id', 'number', { min: 1 });
-          return executeBulkOperation('update_hostgroup', selectedItemIds, parameters);
-        },
+        action: createValidatedAction('hostgroup_id', 'number', 'update_hostgroup'),
         parameters: getHostgroupParameters(),
       },
 
-      // Change Environment
-      {
-        id: 'update_environment',
-        label: 'Change Environment',
-        requiresConfirmation: true,
-        confirmationTitle: 'Change Environment',
-        confirmationMessage: 'Specify the new environment for the selected hosts.',
-        permissions: ['edit_hosts'],
-        action: async (selectedItemIds: number[], parameters?: Record<string, unknown>) => {
-          validateParameter(parameters, 'environment_id', 'number', { min: 1 });
-          return executeBulkOperation('update_environment', selectedItemIds, parameters);
-        },
-        parameters: [
-          {
-            key: 'environment_id',
-            label: 'Environment ID',
-            type: 'number' as const,
-            required: true,
-            placeholder: 'Enter environment ID...',
-          },
-        ],
-      },
 
       // Change Owner
       {
@@ -102,31 +146,11 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Owner',
         confirmationMessage: 'Assign a new owner to the selected hosts.',
+        disabled: usersLoading || users.length === 0,
+        disabledReason: usersLoading ? 'Loading users...' : 'No users available',
         permissions: ['edit_hosts'],
-        action: async (selectedItemIds: number[], parameters?: Record<string, unknown>) => {
-          validateParameter(parameters, 'owner_id', 'number', { min: 1 });
-          return executeBulkOperation('update_owner', selectedItemIds, parameters);
-        },
-        parameters: [
-          {
-            key: 'owner_id',
-            label: 'Owner ID',
-            type: 'number' as const,
-            required: true,
-            placeholder: 'Enter owner ID...',
-          },
-          {
-            key: 'owner_type',
-            label: 'Owner Type',
-            type: 'select' as const,
-            required: false,
-            options: [
-              { value: 'User', label: 'User' },
-              { value: 'Usergroup', label: 'User Group' },
-            ],
-            placeholder: 'Select owner type...',
-          },
-        ],
+        action: createValidatedAction('owner_id', 'number', 'update_owner', { owner_type: 'User' }),
+        parameters: getOwnerParameters(),
       },
 
       // Change Organization
@@ -136,20 +160,11 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Organization',
         confirmationMessage: 'Move the selected hosts to a different organization.',
+        disabled: organizationsLoading || organizations.length === 0,
+        disabledReason: organizationsLoading ? 'Loading organizations...' : 'No organizations available',
         permissions: ['edit_hosts'],
-        action: async (selectedItemIds: number[], parameters?: Record<string, unknown>) => {
-          validateParameter(parameters, 'organization_id', 'number', { min: 1 });
-          return executeBulkOperation('update_organization', selectedItemIds, parameters);
-        },
-        parameters: [
-          {
-            key: 'organization_id',
-            label: 'Organization ID',
-            type: 'number' as const,
-            required: true,
-            placeholder: 'Enter organization ID...',
-          },
-        ],
+        action: createValidatedAction('organization_id', 'number', 'update_organization'),
+        parameters: getOrganizationParameters(),
       },
 
       // Change Location
@@ -159,20 +174,11 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Location',
         confirmationMessage: 'Move the selected hosts to a different location.',
+        disabled: locationsLoading || locations.length === 0,
+        disabledReason: locationsLoading ? 'Loading locations...' : 'No locations available',
         permissions: ['edit_hosts'],
-        action: async (selectedItemIds: number[], parameters?: Record<string, unknown>) => {
-          validateParameter(parameters, 'location_id', 'number', { min: 1 });
-          return executeBulkOperation('update_location', selectedItemIds, parameters);
-        },
-        parameters: [
-          {
-            key: 'location_id',
-            label: 'Location ID',
-            type: 'number' as const,
-            required: true,
-            placeholder: 'Enter location ID...',
-          },
-        ],
+        action: createValidatedAction('location_id', 'number', 'update_location'),
+        parameters: getLocationParameters(),
       },
 
       // Build Hosts
@@ -189,40 +195,14 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         },
       },
 
-      // Enable Hosts
-      {
-        id: 'enable',
-        label: 'Enable Hosts',
-        requiresConfirmation: true,
-        confirmationTitle: 'Enable Hosts',
-        confirmationMessage: 'This will enable the selected hosts.',
-        permissions: ['edit_hosts'],
-        action: async (selectedItemIds: number[]) => {
-          return executeBulkOperation('enable', selectedItemIds);
-        },
-      },
 
-      // Disable Hosts
-      {
-        id: 'disable',
-        label: 'Disable Hosts',
-        requiresConfirmation: true,
-        confirmationTitle: 'Disable Hosts',
-        confirmationMessage: 'This will disable the selected hosts.',
-        destructive: true,
-        permissions: ['edit_hosts'],
-        action: async (selectedItemIds: number[]) => {
-          return executeBulkOperation('disable', selectedItemIds);
-        },
-      },
-
-      // Disown Hosts
+      // Disassociate Compute Resources (Disown)
       {
         id: 'disown',
-        label: 'Remove Owner',
+        label: 'Disassociate Compute Resources',
         requiresConfirmation: true,
-        confirmationTitle: 'Remove Owner',
-        confirmationMessage: 'This will remove the owner from the selected hosts.',
+        confirmationTitle: 'Disassociate Compute Resources',
+        confirmationMessage: 'This will disassociate compute resources from the selected hosts.',
         destructive: true,
         permissions: ['edit_hosts'],
         action: async (selectedItemIds: number[]) => {
@@ -264,12 +244,18 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
     executeBulkOperation,
     hostGroups,
     hostGroupsLoading,
+    users,
+    usersLoading,
+    organizations,
+    organizationsLoading,
+    locations,
+    locationsLoading,
   ]);
 
   const contextValue = useMemo(() => ({
     actions,
-    isLoading: hostGroupsLoading,
-  }), [actions, hostGroupsLoading]);
+    isLoading: hostGroupsLoading || usersLoading || organizationsLoading || locationsLoading,
+  }), [actions, hostGroupsLoading, usersLoading, organizationsLoading, locationsLoading]);
 
   return (
     <BulkActionsContext.Provider value={contextValue}>

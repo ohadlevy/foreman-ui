@@ -83,6 +83,8 @@ export const useBulkSelection = <T extends { id: number }>({
         setSelectedItems(new Set(allIds));
       } catch (error) {
         console.error('Failed to select all pages:', error);
+        // Could optionally show user notification here
+        throw error; // Re-throw to allow UI to handle
       }
     }
   }, [onSelectAllPages]);

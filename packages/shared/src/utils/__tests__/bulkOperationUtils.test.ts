@@ -36,9 +36,9 @@ describe('bulkOperationUtils', () => {
     });
 
     it('should throw error for invalid host IDs', () => {
-      expect(() => validateHostIds([1, 0, 3])).toThrow('All host IDs must be positive integers');
-      expect(() => validateHostIds([1, -1, 3])).toThrow('All host IDs must be positive integers');
-      expect(() => validateHostIds([1, 2.5, 3])).toThrow('All host IDs must be positive integers');
+      expect(() => validateHostIds([1, 0, 3])).toThrow('Invalid host IDs detected');
+      expect(() => validateHostIds([1, -1, 3])).toThrow('Invalid host IDs detected');
+      expect(() => validateHostIds([1, 2.5, 3])).toThrow('Invalid host IDs detected');
     });
 
     it('should throw error for too many hosts', () => {
@@ -57,49 +57,51 @@ describe('bulkOperationUtils', () => {
     it('should throw error for missing required parameters', () => {
       const parameters = { environment_id: 3 };
       const required = ['hostgroup_id'];
-      expect(() => validateBulkOperationParameters(parameters, required)).toThrow("Required parameter 'hostgroup_id' is missing");
+      expect(() => validateBulkOperationParameters(parameters, required)).toThrow('Required parameters missing: "hostgroup_id"');
     });
 
     it('should throw error for null/undefined values', () => {
       const parameters = { hostgroup_id: null };
       const required = ['hostgroup_id'];
-      expect(() => validateBulkOperationParameters(parameters, required)).toThrow("Required parameter 'hostgroup_id' is missing");
+      expect(() => validateBulkOperationParameters(parameters, required)).toThrow('Required parameters missing: "hostgroup_id"');
     });
   });
 
   describe('validateBulkOperationResult', () => {
-    it('should accept valid result', () => {
+    it('should use requested count as success count for HTTP 200', () => {
       const result = {
-        success_count: 2,
-        failed_count: 1,
-        errors: [{ host_id: 1, message: 'Error' }],
+        message: 'Updated 3 hosts: changed owner',
       };
-      const validated = validateBulkOperationResult(result);
-      expect(validated.success_count).toBe(2);
-      expect(validated.failed_count).toBe(1);
+      const validated = validateBulkOperationResult(result, 3);
+      expect(validated.success_count).toBe(3);
+      expect(validated.failed_count).toBe(0);
+      expect(validated.message).toBe('Updated 3 hosts: changed owner');
     });
 
     it('should throw error for non-object result', () => {
-      expect(() => validateBulkOperationResult('not an object')).toThrow('Invalid bulk operation result: result is not an object');
-      expect(() => validateBulkOperationResult(null)).toThrow('Invalid bulk operation result: result is not an object');
+      expect(() => validateBulkOperationResult('not an object', 1)).toThrow('Invalid bulk operation result');
+      expect(() => validateBulkOperationResult(null, 1)).toThrow('Invalid bulk operation result');
     });
 
-    it('should throw error for results with no counts and no message', () => {
+    it('should provide default message when none provided', () => {
       const result = {};
-      expect(() => validateBulkOperationResult(result)).toThrow('Invalid bulk operation result: no success or failure counts or message provided');
+      const validated = validateBulkOperationResult(result, 2);
+      expect(validated.success_count).toBe(2);
+      expect(validated.message).toBe('Operation completed successfully');
+      expect(validated.failed_count).toBe(0);
     });
 
-    it('should allow zero counts when message is provided', () => {
-      const result = { success_count: 0, failed_count: 0, message: 'No hosts to process' };
-      const validated = validateBulkOperationResult(result);
-      expect(validated.success_count).toBe(0);
+    it('should handle Foreman message format', () => {
+      const result = { message: 'Built 5 hosts' };
+      const validated = validateBulkOperationResult(result, 5);
+      expect(validated.success_count).toBe(5);
       expect(validated.failed_count).toBe(0);
-      expect(validated.message).toBe('No hosts to process');
+      expect(validated.message).toBe('Built 5 hosts');
     });
 
     it('should provide defaults for missing fields', () => {
-      const result = { success_count: 1, failed_count: 0 };
-      const validated = validateBulkOperationResult(result);
+      const result = { message: 'Operation completed' };
+      const validated = validateBulkOperationResult(result, 1);
       
       expect(validated.errors).toEqual([]);
       expect(validated.warnings).toEqual([]);
@@ -202,13 +204,13 @@ describe('bulkOperationUtils', () => {
       expect(formatBulkOperationResult(result)).toBe('1 host succeeded, 1 host failed');
     });
 
-    it('should throw error for no processed hosts', () => {
+    it('should return fallback message for no processed hosts', () => {
       const result: BulkOperationResult = {
         success_count: 0,
         failed_count: 0,
         errors: [],
       };
-      expect(() => formatBulkOperationResult(result)).toThrow('No hosts were processed - invalid bulk operation result');
+      expect(formatBulkOperationResult(result)).toBe('Operation completed');
     });
   });
 
@@ -346,7 +348,7 @@ describe('bulkOperationUtils', () => {
         BulkOperationValidationError
       );
       expect(() => validateParameter(parameters, 'hostgroup_id', 'number')).toThrow(
-        'Parameter "hostgroup_id" is required.'
+        'Parameter "hostgroup_id" is required'
       );
     });
 
@@ -356,7 +358,7 @@ describe('bulkOperationUtils', () => {
         BulkOperationValidationError
       );
       expect(() => validateParameter(parameters, 'hostgroup_id', 'number')).toThrow(
-        'Parameter "hostgroup_id" must be a number.'
+        'Parameter "hostgroup_id" must be a number'
       );
     });
 
@@ -365,7 +367,7 @@ describe('bulkOperationUtils', () => {
         BulkOperationValidationError
       );
       expect(() => validateParameter(undefined, 'hostgroup_id', 'number')).toThrow(
-        'Parameter "hostgroup_id" is required.'
+        'Parameter "hostgroup_id" is required'
       );
     });
   });

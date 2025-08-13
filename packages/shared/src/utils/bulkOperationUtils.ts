@@ -4,6 +4,16 @@ import { BulkOperationResult } from '../types';
 // Configuration constants
 export const MAX_BULK_OPERATION_HOSTS = 1000;
 
+/**
+ * Foreman bulk API response format
+ * 
+ * Foreman API v2 bulk operations return:
+ * - Success (HTTP 200): { message: "Built 5 hosts" } or { message: "Updated host: changed owner" }
+ * - Failure (HTTP 4xx/5xx): Error response with details
+ * 
+ * Since we trust HTTP status codes, we don't need to parse message content.
+ */
+
 export interface ParsedBulkOperationError {
   message: string;
   details?: string[];
@@ -58,41 +68,48 @@ export const parseBulkOperationError = (error: unknown): ParsedBulkOperationErro
   };
 };
 
+
 /**
- * Validate bulk operation result and ensure it has required fields
+ * Validate bulk operation result based on Foreman API v2 format
+ * 
+ * Since this is called only on HTTP 200 responses, we trust the operation succeeded.
+ * Foreman returns: { message: "Built 5 hosts" } or { message: "Updated host: changed owner" }
  */
-export const validateBulkOperationResult = (result: unknown): BulkOperationResult => {
+export const validateBulkOperationResult = (
+  result: unknown, 
+  requestedItemCount: number
+): BulkOperationResult => {
   if (!result || typeof result !== 'object') {
-    throw new Error('Invalid bulk operation result: result is not an object');
+    throw new Error('Invalid bulk operation result');
   }
   
   const r = result as Record<string, unknown>;
+  const message = typeof r.message === 'string' ? r.message : 'Operation completed successfully';
   
-  // Ensure required fields exist with defaults
-  const validatedResult: BulkOperationResult = {
-    success_count: typeof r.success_count === 'number' ? r.success_count : 0,
-    failed_count: typeof r.failed_count === 'number' ? r.failed_count : 0,
-    errors: Array.isArray(r.errors) ? r.errors : [],
+  // HTTP 200 means all requested items succeeded
+  return {
+    success_count: requestedItemCount,
+    failed_count: 0,
+    errors: [],
     warnings: Array.isArray(r.warnings) ? r.warnings : [],
-    message: typeof r.message === 'string' ? r.message : undefined,
+    message,
     task_id: typeof r.task_id === 'string' ? r.task_id : undefined,
-    missed_items: Array.isArray(r.missed_items) ? r.missed_items : [],
+    missed_items: [],
     is_async: typeof r.is_async === 'boolean' ? r.is_async : false,
   };
-  
-  // Allow zero counts for valid empty operations, but ensure at least some information is present
-  if (validatedResult.success_count === 0 && validatedResult.failed_count === 0 && !validatedResult.message) {
-    throw new Error('Invalid bulk operation result: no success or failure counts or message provided');
-  }
-  
-  // Control flow: either returns a valid result or throws an error
-  return validatedResult;
 };
 
 /**
  * Format bulk operation result for user display
+ * Prioritizes the original Foreman message when available
  */
 export const formatBulkOperationResult = (result: BulkOperationResult): string => {
+  // If we have a meaningful message from Foreman, use it
+  if (result.message && result.message !== 'Operation completed successfully') {
+    return result.message;
+  }
+  
+  // Fallback to count-based formatting
   const parts: string[] = [];
   
   if (result.success_count > 0) {
@@ -104,7 +121,7 @@ export const formatBulkOperationResult = (result: BulkOperationResult): string =
   }
   
   if (parts.length === 0) {
-    throw new Error('No hosts were processed - invalid bulk operation result');
+    return result.message || DEFAULT_BULK_OPERATION_SUCCESS_MESSAGE;
   }
   
   return parts.join(', ');
@@ -229,14 +246,18 @@ export const validateHostIds = (hostIds: number[]): void => {
   }
   
   if (hostIds.some(id => !Number.isInteger(id) || id <= 0)) {
-    throw new Error('All host IDs must be positive integers');
+    throw new Error('Invalid host IDs detected');
   }
   
-  // Check for reasonable limits
   if (hostIds.length > MAX_BULK_OPERATION_HOSTS) {
     throw new Error(`Cannot perform bulk operations on more than ${MAX_BULK_OPERATION_HOSTS} hosts at once`);
   }
 };
+
+/**
+ * Constants for bulk operation utilities
+ */
+const DEFAULT_BULK_OPERATION_SUCCESS_MESSAGE = 'Operation completed';
 
 /**
  * Custom error class for parameter validation failures
@@ -276,29 +297,27 @@ export const validateParameter = (
   options?: NumericValidationOptions
 ): void => {
   if (!parameters || parameters[paramName] === undefined || parameters[paramName] === null) {
-    throw new BulkOperationValidationError(`Parameter "${paramName}" is required.`);
+    throw new BulkOperationValidationError(`Parameter "${paramName}" is required`);
   }
+  
   if (typeof parameters[paramName] !== expectedType) {
-    throw new BulkOperationValidationError(`Parameter "${paramName}" must be a ${expectedType}.`);
+    throw new BulkOperationValidationError(`Parameter "${paramName}" must be a ${expectedType}`);
   }
   
   // Additional validation for numeric parameters
   if (expectedType === 'number' && typeof parameters[paramName] === 'number') {
     const numValue = parameters[paramName] as number;
     
-    // Validate that the numeric value is not NaN before checking constraints
-    if (isNaN(numValue)) {
-      throw new BulkOperationValidationError(`Parameter "${paramName}" cannot be NaN.`);
+    if (Number.isNaN(numValue)) {
+      throw new BulkOperationValidationError(`Parameter "${paramName}" contains an invalid numeric value`);
     }
     
-    // Check minimum value constraint
     if (options?.min !== undefined && numValue < options.min) {
-      throw new BulkOperationValidationError(`Parameter "${paramName}" must be at least ${options.min}.`);
+      throw new BulkOperationValidationError(`Parameter "${paramName}" must be at least ${options.min}`);
     }
     
-    // Check maximum value constraint
     if (options?.max !== undefined && numValue > options.max) {
-      throw new BulkOperationValidationError(`Parameter "${paramName}" must be at most ${options.max}.`);
+      throw new BulkOperationValidationError(`Parameter "${paramName}" must be at most ${options.max}`);
     }
   }
 };
@@ -310,9 +329,12 @@ export const validateBulkOperationParameters = (
   parameters: Record<string, unknown>,
   requiredParams: string[]
 ): void => {
-  for (const param of requiredParams) {
-    if (!(param in parameters) || parameters[param] === null || parameters[param] === undefined) {
-      throw new Error(`Required parameter '${param}' is missing`);
-    }
+  const missingParams = requiredParams.filter(
+    param => !(param in parameters) || parameters[param] === null || parameters[param] === undefined
+  );
+  
+  if (missingParams.length > 0) {
+    const paramList = missingParams.map(p => `"${p}"`).join(', ');
+    throw new Error(`Required parameters missing: ${paramList}`);
   }
 };

@@ -6,17 +6,12 @@ import { BulkOperationResult } from '../../types';
 // Mock the ForemanAPIClient
 const mockClient = {
   bulkUpdateHostgroup: vi.fn(),
-  bulkUpdateEnvironment: vi.fn(),
   bulkUpdateOwner: vi.fn(),
   bulkUpdateOrganization: vi.fn(),
   bulkUpdateLocation: vi.fn(),
-  bulkUpdateParameters: vi.fn(),
-  bulkChangeGroup: vi.fn(),
   bulkBuild: vi.fn(),
   bulkDestroy: vi.fn(),
   bulkDisown: vi.fn(),
-  bulkEnable: vi.fn(),
-  bulkDisable: vi.fn(),
 } as unknown as ForemanAPIClient;
 
 describe('BulkOperationsAPI', () => {
@@ -54,19 +49,6 @@ describe('BulkOperationsAPI', () => {
     });
   });
 
-  describe('updateEnvironment', () => {
-    it('should call client bulkUpdateEnvironment with correct parameters', async () => {
-      const hostIds = [1, 2];
-      const environmentId = 3;
-      
-      (mockClient.bulkUpdateEnvironment as ReturnType<typeof vi.fn>).mockResolvedValue(mockResult);
-      
-      const result = await bulkAPI.updateEnvironment(hostIds, environmentId);
-      
-      expect(mockClient.bulkUpdateEnvironment).toHaveBeenCalledWith(hostIds, environmentId);
-      expect(result).toEqual(mockResult);
-    });
-  });
 
   describe('updateOwner', () => {
     it('should call client bulkUpdateOwner with correct parameters', async () => {
@@ -107,17 +89,6 @@ describe('BulkOperationsAPI', () => {
       expect(result).toEqual(mockResult);
     });
 
-    it('should execute update_environment operation', async () => {
-      const hostIds = [1, 2];
-      const parameters = { environment_id: 3 };
-      
-      (mockClient.bulkUpdateEnvironment as ReturnType<typeof vi.fn>).mockResolvedValue(mockResult);
-      
-      const result = await bulkAPI.executeBulkOperation('update_environment', hostIds, parameters);
-      
-      expect(mockClient.bulkUpdateEnvironment).toHaveBeenCalledWith(hostIds, 3);
-      expect(result).toEqual(mockResult);
-    });
 
     it('should execute build operation without parameters', async () => {
       const hostIds = [1, 2];
@@ -180,9 +151,12 @@ describe('BulkOperationsAPI', () => {
       // Check that essential operations are present
       const operationIds = config.map(op => op.id);
       expect(operationIds).toContain('update_hostgroup');
-      expect(operationIds).toContain('update_environment');
+      expect(operationIds).toContain('update_owner');
+      expect(operationIds).toContain('update_organization');
+      expect(operationIds).toContain('update_location');
       expect(operationIds).toContain('build');
       expect(operationIds).toContain('destroy');
+      expect(operationIds).toContain('disown');
     });
 
     it('should include required metadata for each operation', () => {
@@ -231,49 +205,5 @@ describe('BulkOperationsAPI', () => {
     });
   });
 
-  describe('enable/disable operations', () => {
-    it('should execute enable operation', async () => {
-      const hostIds = [1, 2];
-      
-      (mockClient.bulkEnable as ReturnType<typeof vi.fn>).mockResolvedValue(mockResult);
-      
-      const result = await bulkAPI.enable(hostIds);
-      
-      expect(mockClient.bulkEnable).toHaveBeenCalledWith(hostIds);
-      expect(result).toEqual(mockResult);
-    });
 
-    it('should execute disable operation', async () => {
-      const hostIds = [1, 2];
-      
-      (mockClient.bulkDisable as ReturnType<typeof vi.fn>).mockResolvedValue(mockResult);
-      
-      const result = await bulkAPI.disable(hostIds);
-      
-      expect(mockClient.bulkDisable).toHaveBeenCalledWith(hostIds);
-      expect(result).toEqual(mockResult);
-    });
-  });
-
-  describe('parameter handling', () => {
-    it('should handle complex parameters for updateParameters', async () => {
-      const hostIds = [1, 2];
-      const parameters = { 
-        host_parameters: { 
-          'key1': 'value1', 
-          'key2': 42,
-          'key3': { nested: 'object' }
-        } 
-      };
-      
-      (mockClient.bulkUpdateParameters as ReturnType<typeof vi.fn>).mockResolvedValue(mockResult);
-      
-      await bulkAPI.executeBulkOperation('update_parameters', hostIds, parameters);
-      
-      expect(mockClient.bulkUpdateParameters).toHaveBeenCalledWith(
-        hostIds, 
-        parameters.host_parameters
-      );
-    });
-  });
 });

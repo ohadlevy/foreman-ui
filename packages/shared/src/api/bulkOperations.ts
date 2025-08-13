@@ -33,9 +33,6 @@ export class BulkOperationsAPI {
     return this.client.bulkUpdateHostgroup(hostIds, hostgroupId);
   }
 
-  async updateEnvironment(hostIds: number[], environmentId: number): Promise<BulkOperationResult> {
-    return this.client.bulkUpdateEnvironment(hostIds, environmentId);
-  }
 
   async updateOwner(hostIds: number[], ownerId: number, ownerType: string = 'User'): Promise<BulkOperationResult> {
     return this.client.bulkUpdateOwner(hostIds, ownerId, ownerType);
@@ -49,13 +46,7 @@ export class BulkOperationsAPI {
     return this.client.bulkUpdateLocation(hostIds, locationId);
   }
 
-  async updateParameters(hostIds: number[], parameters: Record<string, unknown>): Promise<BulkOperationResult> {
-    return this.client.bulkUpdateParameters(hostIds, parameters);
-  }
 
-  async changeGroup(hostIds: number[], groupName: string): Promise<BulkOperationResult> {
-    return this.client.bulkChangeGroup(hostIds, groupName);
-  }
 
   async build(hostIds: number[]): Promise<BulkOperationResult> {
     return this.client.bulkBuild(hostIds);
@@ -69,13 +60,6 @@ export class BulkOperationsAPI {
     return this.client.bulkDisown(hostIds);
   }
 
-  async enable(hostIds: number[]): Promise<BulkOperationResult> {
-    return this.client.bulkEnable(hostIds);
-  }
-
-  async disable(hostIds: number[]): Promise<BulkOperationResult> {
-    return this.client.bulkDisable(hostIds);
-  }
 
   // Generic bulk operation executor
   async executeBulkOperation(
@@ -90,21 +74,18 @@ export class BulkOperationsAPI {
         }
         return this.updateHostgroup(hostIds, Number(parameters!.hostgroup_id));
 
-      case 'update_environment':
-        if (this.isNullOrUndefined(parameters?.environment_id)) {
-          throw new Error('Environment ID is required');
-        }
-        return this.updateEnvironment(hostIds, Number(parameters!.environment_id));
 
-      case 'update_owner':
+      case 'update_owner': {
         if (this.isNullOrUndefined(parameters?.owner_id)) {
           throw new Error('Owner ID is required');
         }
+        const ownerType = this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.owner_type);
         return this.updateOwner(
           hostIds,
           Number(parameters!.owner_id),
-this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.owner_type)
+          ownerType
         );
+      }
 
       case 'update_organization':
         if (this.isNullOrUndefined(parameters?.organization_id)) {
@@ -118,17 +99,7 @@ this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.own
         }
         return this.updateLocation(hostIds, Number(parameters!.location_id));
 
-      case 'update_parameters':
-        if (this.isNullOrUndefined(parameters?.host_parameters)) {
-          throw new Error('Parameters are required');
-        }
-        return this.updateParameters(hostIds, parameters!.host_parameters as Record<string, unknown>);
 
-      case 'change_group':
-        if (this.isNullOrUndefined(parameters?.group)) {
-          throw new Error('Group name is required');
-        }
-        return this.changeGroup(hostIds, String(parameters!.group));
 
       case 'build':
         return this.build(hostIds);
@@ -139,11 +110,6 @@ this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.own
       case 'disown':
         return this.disown(hostIds);
 
-      case 'enable':
-        return this.enable(hostIds);
-
-      case 'disable':
-        return this.disable(hostIds);
 
       default:
         throw new Error(`Unknown bulk operation: ${operationId}`);
@@ -156,7 +122,7 @@ this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.own
       {
         id: 'update_hostgroup',
         label: 'Change Host Group',
-        endpoint: '/hosts/update_multiple_hostgroup',
+        endpoint: '/hosts/bulk/reassign_hostgroup',
         method: 'PUT',
         requiresConfirmation: true,
         parameters: [
@@ -170,51 +136,25 @@ this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.own
         ],
       },
       {
-        id: 'update_environment',
-        label: 'Change Environment',
-        endpoint: '/hosts/update_multiple_environment',
-        method: 'PUT',
-        requiresConfirmation: true,
-        parameters: [
-          {
-            key: 'environment_id',
-            label: 'Environment',
-            type: 'select',
-            required: true,
-            placeholder: 'Select an environment',
-          },
-        ],
-      },
-      {
         id: 'update_owner',
         label: 'Change Owner',
-        endpoint: '/hosts/update_multiple_owner',
+        endpoint: '/hosts/bulk/change_owner',
         method: 'PUT',
         requiresConfirmation: true,
         parameters: [
           {
             key: 'owner_id',
-            label: 'Owner',
+            label: 'Owner (User)',
             type: 'select',
             required: true,
-            placeholder: 'Select an owner',
-          },
-          {
-            key: 'owner_type',
-            label: 'Owner Type',
-            type: 'select',
-            required: true,
-            options: [
-              { value: 'User', label: 'User' },
-              { value: 'Usergroup', label: 'User Group' },
-            ],
+            placeholder: 'Select a user',
           },
         ],
       },
       {
         id: 'update_organization',
         label: 'Change Organization',
-        endpoint: '/hosts/update_multiple_organization',
+        endpoint: '/hosts/bulk/assign_organization',
         method: 'PUT',
         requiresConfirmation: true,
         parameters: [
@@ -230,7 +170,7 @@ this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.own
       {
         id: 'update_location',
         label: 'Change Location',
-        endpoint: '/hosts/update_multiple_location',
+        endpoint: '/hosts/bulk/assign_location',
         method: 'PUT',
         requiresConfirmation: true,
         parameters: [
@@ -244,40 +184,9 @@ this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.own
         ],
       },
       {
-        id: 'change_group',
-        label: 'Change Group',
-        endpoint: '/hosts/multiple_change_group',
-        method: 'PUT',
-        requiresConfirmation: true,
-        parameters: [
-          {
-            key: 'group',
-            label: 'Group Name',
-            type: 'text',
-            required: true,
-            placeholder: 'Enter group name',
-          },
-        ],
-      },
-      {
         id: 'build',
         label: 'Rebuild Hosts',
-        endpoint: '/hosts/multiple_build',
-        method: 'PUT',
-        requiresConfirmation: true,
-        destructive: false,
-      },
-      {
-        id: 'enable',
-        label: 'Enable Hosts',
-        endpoint: '/hosts/multiple_enable',
-        method: 'PUT',
-        requiresConfirmation: false,
-      },
-      {
-        id: 'disable',
-        label: 'Disable Hosts',
-        endpoint: '/hosts/multiple_disable',
+        endpoint: '/hosts/bulk/build',
         method: 'PUT',
         requiresConfirmation: true,
         destructive: false,
@@ -285,7 +194,7 @@ this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.own
       {
         id: 'disown',
         label: 'Remove Ownership',
-        endpoint: '/hosts/multiple_disown',
+        endpoint: '/hosts/bulk/disassociate',
         method: 'PUT',
         requiresConfirmation: true,
         destructive: false,
@@ -293,8 +202,8 @@ this.isNullOrUndefined(parameters?.owner_type) ? 'User' : String(parameters!.own
       {
         id: 'destroy',
         label: 'Delete Hosts',
-        endpoint: '/hosts/multiple_destroy',
-        method: 'PUT',
+        endpoint: '/hosts/bulk',
+        method: 'DELETE',
         requiresConfirmation: true,
         destructive: true,
       },

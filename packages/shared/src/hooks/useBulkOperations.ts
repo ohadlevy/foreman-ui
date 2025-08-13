@@ -6,7 +6,6 @@ import { useNotificationStore } from '../stores/notificationStore';
 import {
   validateHostIds,
   validateBulkOperationParameters,
-  validateBulkOperationResult,
   parseBulkOperationError,
   createBulkOperationSummary,
   getFailedItemIds,
@@ -54,7 +53,7 @@ export const useBulkOperations = () => {
       
       try {
         const result = await bulkAPI.executeBulkOperation(operationId, hostIds, parameters);
-        return validateBulkOperationResult(result);
+        return result; // Validation is now handled in the API client
       } catch (error) {
         const parsedError = parseBulkOperationError(error);
         throw new Error(parsedError.message);
@@ -63,6 +62,7 @@ export const useBulkOperations = () => {
     onSuccess: (result: BulkOperationResult, variables: BulkOperationParams) => {
       // Invalidate hosts cache to refresh the UI
       queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
       
       // Get operation name for better notifications
       const operationConfig = getOperationConfig(variables.operationId);
@@ -98,56 +98,70 @@ export const useBulkOperations = () => {
   const updateHostgroupMutation = useMutation({
     mutationFn: ({ hostIds, hostgroupId }: { hostIds: number[]; hostgroupId: number }) =>
       bulkAPI.updateHostgroup(hostIds, hostgroupId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
+    onSuccess: () => {
+      // Invalidate both hosts and myHosts queries to refresh all host data
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
+    },
   });
 
-  const updateEnvironmentMutation = useMutation({
-    mutationFn: ({ hostIds, environmentId }: { hostIds: number[]; environmentId: number }) =>
-      bulkAPI.updateEnvironment(hostIds, environmentId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
-  });
 
   const updateOwnerMutation = useMutation({
     mutationFn: ({ hostIds, ownerId, ownerType }: { hostIds: number[]; ownerId: number; ownerType?: string }) =>
       bulkAPI.updateOwner(hostIds, ownerId, ownerType),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
+    onSuccess: () => {
+      // Invalidate both hosts and myHosts queries to refresh all host data
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
+    },
   });
 
   const updateOrganizationMutation = useMutation({
     mutationFn: ({ hostIds, organizationId }: { hostIds: number[]; organizationId: number }) =>
       bulkAPI.updateOrganization(hostIds, organizationId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
+    onSuccess: () => {
+      // Invalidate both hosts and myHosts queries to refresh all host data
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
+    },
   });
 
   const updateLocationMutation = useMutation({
     mutationFn: ({ hostIds, locationId }: { hostIds: number[]; locationId: number }) =>
       bulkAPI.updateLocation(hostIds, locationId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
+    onSuccess: () => {
+      // Invalidate both hosts and myHosts queries to refresh all host data
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
+    },
   });
 
   const buildMutation = useMutation({
     mutationFn: (hostIds: number[]) => bulkAPI.build(hostIds),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
+    onSuccess: () => {
+      // Invalidate both hosts and myHosts queries to refresh all host data
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
+    },
   });
 
   const destroyMutation = useMutation({
     mutationFn: (hostIds: number[]) => bulkAPI.destroy(hostIds),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
+    onSuccess: () => {
+      // Invalidate both hosts and myHosts queries to refresh all host data
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
+    },
   });
 
-  const enableMutation = useMutation({
-    mutationFn: (hostIds: number[]) => bulkAPI.enable(hostIds),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
-  });
-
-  const disableMutation = useMutation({
-    mutationFn: (hostIds: number[]) => bulkAPI.disable(hostIds),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
-  });
 
   const disownMutation = useMutation({
     mutationFn: (hostIds: number[]) => bulkAPI.disown(hostIds),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hosts'] }),
+    onSuccess: () => {
+      // Invalidate both hosts and myHosts queries to refresh all host data
+      queryClient.invalidateQueries({ queryKey: ['hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['myHosts'] });
+    },
   });
 
   // Get available operations configuration
@@ -213,14 +227,11 @@ export const useBulkOperations = () => {
     
     // Individual operation mutations
     updateHostgroup: updateHostgroupMutation,
-    updateEnvironment: updateEnvironmentMutation,
     updateOwner: updateOwnerMutation,
     updateOrganization: updateOrganizationMutation,
     updateLocation: updateLocationMutation,
     build: buildMutation,
     destroy: destroyMutation,
-    enable: enableMutation,
-    disable: disableMutation,
     disown: disownMutation,
 
     // Helper functions

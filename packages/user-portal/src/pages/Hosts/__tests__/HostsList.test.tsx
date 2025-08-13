@@ -22,6 +22,10 @@ vi.mock('@foreman/shared', () => ({
   EXTENSION_POINTS: {
     HOST_TABLE_COLUMNS: 'host-table-columns',
   },
+  useBulkSelection: vi.fn(),
+  BulkActionsProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  BulkActionsContainer: () => <div>Bulk Actions Container</div>,
+  Host: {},
 }));
 
 // Mock navigation
@@ -101,6 +105,24 @@ describe('HostsList', () => {
 
     mockedShared.useActivityStore.mockReturnValue({
       addActivity: vi.fn(),
+    });
+
+    mockedShared.useBulkSelection.mockReturnValue({
+      selectedIds: [],
+      selectedObjects: [],
+      selectedCount: 0,
+      isSelected: () => false,
+      isAllSelected: false,
+      isAllCurrentPageSelected: false,
+      isPartiallySelected: false,
+      toggleItem: vi.fn(),
+      toggleAll: vi.fn(),
+      selectItems: vi.fn(),
+      deselectItems: vi.fn(),
+      clearSelection: vi.fn(),
+      selectAll: vi.fn(),
+      selectAllPages: vi.fn(),
+      totalCount: undefined,
     });
   });
 
@@ -270,10 +292,8 @@ describe('HostsList', () => {
 
     render(<HostsList />, { wrapper: createWrapper() });
     
-    const hostRow = screen.getByText('test-host-1').closest('tr');
-    if (hostRow) {
-      fireEvent.click(hostRow);
-      expect(mockNavigate).toHaveBeenCalledWith('/hosts/1');
-    }
+    // Click on the host name cell (which has the click handler)
+    fireEvent.click(screen.getByText('test-host-1'));
+    expect(mockNavigate).toHaveBeenCalledWith('/hosts/1');
   });
 });
