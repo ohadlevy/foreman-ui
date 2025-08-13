@@ -24,14 +24,27 @@ This project consists of main packages:
 
 ### Installation
 
-#### Option 1: Automated Setup (Recommended)
+#### Option 1: Container Deployment (Recommended)
+```bash
+git clone https://github.com/ohadlevy/foreman-ui.git
+cd foreman-ui
+
+# Edit compose.yml to set your FOREMAN_URL, then:
+podman compose up
+```
+
+Access the UI at https://localhost:8443
+
+**📦 For complete container setup guide, see [CONTAINER.md](./CONTAINER.md)**
+
+#### Option 2: Automated Development Setup
 ```bash
 git clone https://github.com/ohadlevy/foreman-ui.git
 cd foreman-ui
 ./setup.sh
 ```
 
-#### Option 2: Manual Setup
+#### Option 3: Manual Development Setup
 ```bash
 git clone https://github.com/ohadlevy/foreman-ui.git
 cd foreman-ui

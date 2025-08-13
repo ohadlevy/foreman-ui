@@ -1,19 +1,14 @@
-# Multi-stage build with Fedora 42
+# Multi-stage build - use Node.js Alpine for faster builds
 # Build stage
-FROM fedora:42 AS builder
+FROM node:20-alpine AS builder
 
-# Install build dependencies using Fedora packages
-RUN dnf update -y && \
-    dnf install -y \
-    nodejs \
-    npm \
-    yarn \
+# Install build dependencies (Alpine is much faster than Fedora)
+RUN apk add --no-cache \
     git \
     python3 \
     make \
-    gcc \
-    gcc-c++ \
-    && dnf clean all
+    g++ \
+    yarn
 
 # Create app directory
 WORKDIR /app
@@ -23,8 +18,10 @@ COPY package.json yarn.lock lerna.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/user-portal/package.json ./packages/user-portal/
 
-# Install dependencies
-RUN yarn install --frozen-lockfile
+# Install dependencies with timeout protection
+RUN yarn config set network-timeout 300000 && \
+    yarn config set registry https://registry.npmjs.org/ && \
+    yarn install --frozen-lockfile --network-timeout 300000
 
 # Copy only the source files we need (node_modules already installed)
 COPY packages/ ./packages/
@@ -33,20 +30,16 @@ COPY lerna.json tsconfig.json ./
 # Build the application
 RUN yarn build:shared && yarn build:user
 
-# Production stage
-FROM fedora:42
+# Production stage - use nginx alpine for smaller, faster runtime
+FROM nginx:alpine
 
-# Install runtime dependencies
-RUN dnf update -y && \
-    dnf install -y \
-    nodejs \
-    npm \
-    nginx \
-    openssl \
-    && dnf clean all
+# Install additional runtime dependencies
+RUN apk add --no-cache \
+    curl \
+    openssl
 
-# Create nginx user and directories
-RUN mkdir -p /var/log/nginx /var/cache/nginx /etc/nginx/ssl
+# Create directories (nginx user already exists in nginx:alpine)
+RUN mkdir -p /etc/nginx/ssl
 
 # Copy built application from builder stage
 COPY --from=builder /app/packages/user-portal/dist /usr/share/nginx/html

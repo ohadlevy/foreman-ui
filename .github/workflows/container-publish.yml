@@ -4,15 +4,51 @@ on:
   push:
     branches: [ main ]
     tags: [ 'v*' ]
-  pull_request:
-    branches: [ main ]
+    paths:
+      - 'Containerfile'
+      - 'compose*.yml'
+      - 'nginx*.conf'
+      - 'container-entrypoint.sh'
+      - '.github/workflows/container-publish.yml'
+  # Container builds disabled on PRs for faster development
+  # Only builds when merged to main or tagged for release
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
+  # Step 1: Build static assets once on fastest platform (amd64)
+  build-assets:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and export assets
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Containerfile
+        platforms: linux/amd64
+        target: builder
+        cache-from: type=gha,scope=builder
+        cache-to: type=gha,mode=max,scope=builder
+        outputs: type=local,dest=./dist
+
+    - name: Upload built assets
+      uses: actions/upload-artifact@v4
+      with:
+        name: built-assets
+        path: ./dist/app/packages/user-portal/dist/
+        retention-days: 1
+
+  # Step 2: Build multi-arch runtime images using pre-built assets
+  build-runtime:
+    needs: build-assets
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,8 +58,52 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Download built assets
+      uses: actions/download-artifact@v4
+      with:
+        name: built-assets
+        path: ./prebuilt-assets
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+
+    - name: Create runtime-only Containerfile
+      run: |
+        cat > Containerfile.runtime << 'EOF'
+        FROM nginx:alpine
+        
+        # Install additional runtime dependencies
+        RUN apk add --no-cache \
+            curl \
+            openssl
+        
+        # Create directories (nginx user already exists in nginx:alpine)
+        RUN mkdir -p /etc/nginx/ssl
+        
+        # Copy pre-built application
+        COPY prebuilt-assets /usr/share/nginx/html
+        
+        # Copy nginx configuration
+        COPY nginx.conf /etc/nginx/nginx.conf
+        COPY nginx-default.conf /etc/nginx/conf.d/default.conf
+        
+        # Create self-signed certificate for HTTPS (can be overridden with volume mount)
+        RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout /etc/nginx/ssl/nginx.key \
+            -out /etc/nginx/ssl/nginx.crt \
+            -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
+        
+        # Copy entrypoint script
+        COPY container-entrypoint.sh /container-entrypoint.sh
+        RUN chmod +x /container-entrypoint.sh
+        
+        # Expose both HTTP and HTTPS ports
+        EXPOSE 80 443
+        
+        # Use entrypoint script to handle configuration
+        ENTRYPOINT ["/container-entrypoint.sh"]
+        CMD ["nginx", "-g", "daemon off;"]
+        EOF
 
     - name: Log in to Container Registry
       if: github.event_name != 'pull_request'
@@ -45,14 +125,14 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push
+    - name: Build and push multi-arch runtime-only
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./Containerfile
+        file: ./Containerfile.runtime
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         platforms: linux/amd64,linux/arm64
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=runtime
+        cache-to: type=gha,mode=max,scope=runtime
