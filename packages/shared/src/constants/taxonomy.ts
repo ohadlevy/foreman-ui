@@ -98,6 +98,39 @@ export const TAXONOMY_CHANGE_REASONS = {
 } as const;
 
 /**
+ * Default values for taxonomy API responses when data is not available
+ */
+export const TAXONOMY_DEFAULT_VALUES = {
+  DESCRIPTION: '',
+  HOSTS_COUNT: 0,
+  USERS_COUNT: 0,
+  TIMESTAMP: '',
+  CREATED_AT: '',
+  UPDATED_AT: ''
+} as const;
+
+/**
+ * Special identifiers for system-generated entities
+ */
+export const SYSTEM_IDENTIFIERS = {
+  /**
+   * Virtual role ID for combined GraphQL permissions
+   * Using a large negative number to avoid conflicts with real role IDs
+   */
+  COMBINED_PERMISSIONS_ROLE_ID: -999999,
+  
+  /**
+   * Name for virtual role containing all GraphQL permissions
+   */
+  COMBINED_PERMISSIONS_ROLE_NAME: 'GraphQL Combined Permissions',
+  
+  /**
+   * Default auth source ID when not available from API
+   */
+  DEFAULT_AUTH_SOURCE_ID: 1
+} as const;
+
+/**
  * Default taxonomy context state
  */
 export const DEFAULT_TAXONOMY_CONTEXT = {

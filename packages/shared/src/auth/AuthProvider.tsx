@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useEffect, ReactNode, useRef } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { useAuthStore } from './store';
 import { createDefaultClient } from '../api/client';
-import { UsersAPI } from '../api/users';
+import { createGlobalStateAPI } from '../api/globalState';
 import { AxiosErrorResponse } from '../types';
 
 interface AuthContextType {
@@ -25,6 +25,7 @@ const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
   requireAdmin = false
 }) => {
   const authStore = useAuthStore();
+  const queryClient = useQueryClient();
   const isCompleteRef = useRef(false);
   const isInProgressRef = useRef(false);
 
@@ -60,9 +61,17 @@ const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
       isInProgressRef.current = true;
       try {
         const apiClient = createDefaultClient();
-        const usersAPI = new UsersAPI(apiClient);
-        const user = await usersAPI.getCurrent();
-        authStore.login(user, storedToken);
+        const globalStateAPI = createGlobalStateAPI(apiClient);
+        
+        // Use React Query to fetch and cache the global state data
+        const globalState = await queryClient.fetchQuery({
+          queryKey: ['globalState'],
+          queryFn: () => globalStateAPI.getGlobalState(),
+          staleTime: 5 * 60 * 1000, // 5 minutes
+          cacheTime: 10 * 60 * 1000, // 10 minutes
+        });
+        
+        authStore.login(globalState.currentUser, storedToken);
       } catch (error) {
         console.warn('Stored token verification failed, logging out:', error);
         authStore.logout();

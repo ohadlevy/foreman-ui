@@ -16,11 +16,11 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from '@patternfly/react-icons';
-import { useMyHosts, usePermissions, DashboardWidgets, useAuth } from '@foreman/shared';
+import { useHosts, usePermissions, DashboardWidgets, useAuth } from '@foreman/shared';
 import { useNavigate } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
-  const { data: hostsData, isLoading: hostsLoading } = useMyHosts();
+  const { data: hostsData, isLoading: hostsLoading } = useHosts();
   const { user } = useAuth();
   const { canCreateHosts, canViewHosts } = usePermissions();
   const navigate = useNavigate();

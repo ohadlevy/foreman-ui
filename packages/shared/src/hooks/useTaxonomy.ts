@@ -1,9 +1,8 @@
 import { useMemo } from 'react';
 import { useApi } from './useApi';
+import { useGlobalState } from './useGlobalState';
 import { useTaxonomyStore } from '../stores/taxonomyStore';
 import { 
-  useOrganizations, 
-  useLocations,
   useCreateOrganization,
   useUpdateOrganization,
   useDeleteOrganization,
@@ -11,7 +10,7 @@ import {
   useUpdateLocation,
   useDeleteLocation
 } from './useTaxonomyQueries';
-import type { TaxonomyQueryParams } from '../types/taxonomy';
+import type { TaxonomyQueryParams, EnhancedOrganization, EnhancedLocation } from '../types/taxonomy';
 
 /**
  * Helper function for safe error message extraction
@@ -23,7 +22,14 @@ const getErrorMessage = (error: unknown): string | null => {
   if (error && typeof error === 'object' && 'message' in error) {
     return String(error.message);
   }
-  return error ? String(error) : null;
+  if (error) {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return 'Unknown error';
+    }
+  }
+  return null;
 };
 
 /**
@@ -53,24 +59,22 @@ interface UseTaxonomyOptions {
 }
 
 /**
- * Main taxonomy hook that combines store state with React Query data fetching
+ * Main taxonomy hook that combines store state with global state data fetching
  * 
  * This hook provides a complete interface for taxonomy management including:
  * - Current context from store
- * - Data fetching with React Query
+ * - Data fetching from global state (optimized with single GraphQL query)
  * - Mutation functions for CRUD operations
  * - Loading and error states
  */
 export const useTaxonomy = (options: UseTaxonomyOptions = {}) => {
   const {
     enabled = true,
-    organizationParams = {},
-    locationParams = {},
     fetchOrganizations = true,
     fetchLocations = true
   } = options;
 
-  // Get API instance
+  // Get API instance for mutations
   const { taxonomyApi } = useApi();
 
   // Get store state
@@ -85,19 +89,14 @@ export const useTaxonomy = (options: UseTaxonomyOptions = {}) => {
     resetSelection
   } = useTaxonomyStore();
 
-  // Fetch organizations
-  const organizationsQuery = useOrganizations(
-    taxonomyApi,
-    organizationParams,
-    { enabled: enabled && fetchOrganizations }
-  );
-
-  // Fetch locations
-  const locationsQuery = useLocations(
-    taxonomyApi,
-    locationParams,
-    { enabled: enabled && fetchLocations }
-  );
+  // Get data from global state (consolidates user + taxonomies in one query)
+  const {
+    organizations: globalOrganizations,
+    locations: globalLocations,
+    isLoading: globalLoading,
+    isError: globalError,
+    error: globalErrorMessage
+  } = useGlobalState();
 
   // Mutation hooks
   const createOrganization = useCreateOrganization(taxonomyApi);
@@ -108,15 +107,11 @@ export const useTaxonomy = (options: UseTaxonomyOptions = {}) => {
   const deleteLocation = useDeleteLocation(taxonomyApi);
 
   // Combine loading states
-  const isLoading = storeLoading || 
-    (fetchOrganizations && organizationsQuery.isLoading) ||
-    (fetchLocations && locationsQuery.isLoading);
+  const isLoading = storeLoading || (enabled && globalLoading);
 
   // Combine error states
   const error = storeError || 
-    getErrorMessage(organizationsQuery.error) || 
-    getErrorMessage(locationsQuery.error) || 
-    null;
+    (globalError ? getErrorMessage(globalErrorMessage) : null);
 
   // Memoized result
   return useMemo(() => ({
@@ -125,19 +120,17 @@ export const useTaxonomy = (options: UseTaxonomyOptions = {}) => {
     permissions,
     isInitialized,
 
-    // Data from queries with clear precedence order
-    organizations: getDataWithFallback(organizationsQuery.data?.results, context.availableOrganizations),
-    locations: getDataWithFallback(locationsQuery.data?.results, context.availableLocations),
+    // Data from global state with fallback to context store
+    organizations: fetchOrganizations ? 
+      getDataWithFallback(globalOrganizations, context.availableOrganizations) : 
+      (context.availableOrganizations || []),
+    locations: fetchLocations ? 
+      getDataWithFallback(globalLocations, context.availableLocations) : 
+      (context.availableLocations || []),
 
     // Loading and error states
     isLoading,
     error,
-
-    // Individual query states
-    queries: {
-      organizations: organizationsQuery,
-      locations: locationsQuery
-    },
 
     // Store actions
     actions: {
@@ -154,19 +147,13 @@ export const useTaxonomy = (options: UseTaxonomyOptions = {}) => {
       createLocation,
       updateLocation,
       deleteLocation
-    },
-
-    // Utility functions
-    refetch: () => {
-      if (fetchOrganizations) organizationsQuery.refetch();
-      if (fetchLocations) locationsQuery.refetch();
     }
   }), [
     context,
     permissions,
     isInitialized,
-    organizationsQuery,
-    locationsQuery,
+    globalOrganizations,
+    globalLocations,
     isLoading,
     error,
     setCurrentOrganization,
@@ -184,9 +171,13 @@ export const useTaxonomy = (options: UseTaxonomyOptions = {}) => {
 };
 
 /**
- * Hook that provides only organization-related functionality
+ * Hook that provides only organization-related functionality  
+ * Takes global data as parameters to avoid redundant queries
  */
-export const useOrganizationManagement = (params: TaxonomyQueryParams = {}) => {
+export const useOrganizationManagement = (
+  _params: TaxonomyQueryParams = {},
+  globalData?: { organizations?: EnhancedOrganization[]; isLoading?: boolean; error?: string | null }
+) => {
   const { taxonomyApi } = useApi();
   const { 
     context, 
@@ -194,16 +185,23 @@ export const useOrganizationManagement = (params: TaxonomyQueryParams = {}) => {
     setCurrentOrganization 
   } = useTaxonomyStore();
 
-  const query = useOrganizations(taxonomyApi, params);
+  // Use provided global data or fetch independently if not provided
+  const fallbackData = useGlobalState();
+  const { organizations, isLoading, error } = globalData || {
+    organizations: fallbackData.organizations,
+    isLoading: fallbackData.isLoading,
+    error: fallbackData.isError ? getErrorMessage(fallbackData.error) : null
+  };
+  
   const createMutation = useCreateOrganization(taxonomyApi);
   const updateMutation = useUpdateOrganization(taxonomyApi);
   const deleteMutation = useDeleteOrganization(taxonomyApi);
 
   return useMemo(() => ({
     currentOrganization: context.organization,
-    organizations: query.data?.results || [],
-    isLoading: query.isLoading,
-    error: getErrorMessage(query.error),
+    organizations: organizations || [],
+    isLoading,
+    error,
     permissions: {
       canView: permissions.canViewOrganizations,
       canEdit: permissions.canEditOrganizations,
@@ -214,8 +212,7 @@ export const useOrganizationManagement = (params: TaxonomyQueryParams = {}) => {
       setCurrent: setCurrentOrganization,
       create: createMutation.mutate,
       update: updateMutation.mutate,
-      delete: deleteMutation.mutate,
-      refetch: query.refetch
+      delete: deleteMutation.mutate
     },
     mutations: {
       create: createMutation,
@@ -224,7 +221,9 @@ export const useOrganizationManagement = (params: TaxonomyQueryParams = {}) => {
     }
   }), [
     context.organization,
-    query,
+    organizations,
+    isLoading,
+    error,
     permissions,
     setCurrentOrganization,
     createMutation,
@@ -235,8 +234,12 @@ export const useOrganizationManagement = (params: TaxonomyQueryParams = {}) => {
 
 /**
  * Hook that provides only location-related functionality
+ * Takes global data as parameters to avoid redundant queries
  */
-export const useLocationManagement = (params: TaxonomyQueryParams = {}) => {
+export const useLocationManagement = (
+  _params: TaxonomyQueryParams = {},
+  globalData?: { locations?: EnhancedLocation[]; isLoading?: boolean; error?: string | null }
+) => {
   const { taxonomyApi } = useApi();
   const { 
     context, 
@@ -244,16 +247,23 @@ export const useLocationManagement = (params: TaxonomyQueryParams = {}) => {
     setCurrentLocation 
   } = useTaxonomyStore();
 
-  const query = useLocations(taxonomyApi, params);
+  // Use provided global data or fetch independently if not provided
+  const fallbackData = useGlobalState();
+  const { locations, isLoading, error } = globalData || {
+    locations: fallbackData.locations,
+    isLoading: fallbackData.isLoading,
+    error: fallbackData.isError ? getErrorMessage(fallbackData.error) : null
+  };
+  
   const createMutation = useCreateLocation(taxonomyApi);
   const updateMutation = useUpdateLocation(taxonomyApi);
   const deleteMutation = useDeleteLocation(taxonomyApi);
 
   return useMemo(() => ({
     currentLocation: context.location,
-    locations: query.data?.results || [],
-    isLoading: query.isLoading,
-    error: getErrorMessage(query.error),
+    locations: locations || [],
+    isLoading,
+    error,
     permissions: {
       canView: permissions.canViewLocations,
       canEdit: permissions.canEditLocations,
@@ -264,8 +274,7 @@ export const useLocationManagement = (params: TaxonomyQueryParams = {}) => {
       setCurrent: setCurrentLocation,
       create: createMutation.mutate,
       update: updateMutation.mutate,
-      delete: deleteMutation.mutate,
-      refetch: query.refetch
+      delete: deleteMutation.mutate
     },
     mutations: {
       create: createMutation,
@@ -274,7 +283,9 @@ export const useLocationManagement = (params: TaxonomyQueryParams = {}) => {
     }
   }), [
     context.location,
-    query,
+    locations,
+    isLoading,
+    error,
     permissions,
     setCurrentLocation,
     createMutation,

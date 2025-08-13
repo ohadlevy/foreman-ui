@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { OrganizationsAPI, LocationsAPI, TaxonomyAPI } from '../taxonomy';
 import type { ForemanAPIClient } from '../client';
+
+// Mock GraphQL client to prevent network issues in tests
+vi.mock('../graphqlClient', () => ({
+  createGraphQLClient: vi.fn(() => ({
+    query: vi.fn().mockResolvedValue({ data: null, errors: ['GraphQL mocked in tests'] })
+  }))
+}));
 import type {
   EnhancedOrganization,
   EnhancedLocation,
@@ -15,7 +22,8 @@ const mockApiClient = {
   post: vi.fn(),
   put: vi.fn(),
   delete: vi.fn(),
-  getPaginated: vi.fn()
+  getPaginated: vi.fn(),
+  getToken: vi.fn().mockReturnValue('mock-token')
 } as unknown as ForemanAPIClient;
 
 // Mock data
@@ -83,7 +91,7 @@ describe('OrganizationsAPI', () => {
       const result = await organizationsApi.list();
 
       expect(mockApiClient.getPaginated).toHaveBeenCalledWith(
-        '/api/v2/organizations',
+        '/organizations',
         {
           per_page: 100,
           include_hosts_count: true,
@@ -99,7 +107,7 @@ describe('OrganizationsAPI', () => {
       await organizationsApi.list({ page: 2, per_page: 50, search: 'test' });
 
       expect(mockApiClient.getPaginated).toHaveBeenCalledWith(
-        '/api/v2/organizations',
+        '/organizations',
         {
           per_page: 50,
           include_hosts_count: true,
@@ -118,7 +126,7 @@ describe('OrganizationsAPI', () => {
       const result = await organizationsApi.get(1);
 
       expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/api/v2/organizations/1',
+        '/organizations/1',
         { params: { include_hosts_count: true, include_users_count: true } }
       );
       expect(result).toEqual(mockOrganizations[0]);
@@ -139,7 +147,7 @@ describe('OrganizationsAPI', () => {
       const result = await organizationsApi.create(createData);
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/api/v2/organizations',
+        '/organizations',
         { organization: createData }
       );
       expect(result).toEqual(newOrg);
@@ -156,7 +164,7 @@ describe('OrganizationsAPI', () => {
       const result = await organizationsApi.update(1, updateData);
 
       expect(mockApiClient.put).toHaveBeenCalledWith(
-        '/api/v2/organizations/1',
+        '/organizations/1',
         { organization: updateData }
       );
       expect(result).toEqual(updatedOrg);
@@ -170,7 +178,7 @@ describe('OrganizationsAPI', () => {
       await organizationsApi.delete(1);
 
       expect(mockApiClient.delete).toHaveBeenCalledWith(
-        '/api/v2/organizations/1'
+        '/organizations/1'
       );
     });
   });
@@ -182,7 +190,7 @@ describe('OrganizationsAPI', () => {
       await organizationsApi.search('test query', { page: 1 });
 
       expect(mockApiClient.getPaginated).toHaveBeenCalledWith(
-        '/api/v2/organizations',
+        '/organizations',
         {
           per_page: 100,
           include_hosts_count: true,
@@ -201,7 +209,7 @@ describe('OrganizationsAPI', () => {
       const result = await organizationsApi.getHostsCount(1);
 
       expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/api/v2/organizations/1/hosts',
+        '/organizations/1/hosts',
         { params: { per_page: 1 } }
       );
       expect(result).toBe(25);
@@ -215,7 +223,7 @@ describe('OrganizationsAPI', () => {
       const result = await organizationsApi.getUsersCount(1);
 
       expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/api/v2/organizations/1/users',
+        '/organizations/1/users',
         { params: { per_page: 1 } }
       );
       expect(result).toBe(15);
@@ -247,7 +255,7 @@ describe('LocationsAPI', () => {
       const result = await locationsApi.list();
 
       expect(mockApiClient.getPaginated).toHaveBeenCalledWith(
-        '/api/v2/locations',
+        '/locations',
         {
           per_page: 100,
           include_hosts_count: true,
@@ -265,7 +273,7 @@ describe('LocationsAPI', () => {
       const result = await locationsApi.get(1);
 
       expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/api/v2/locations/1',
+        '/locations/1',
         { params: { include_hosts_count: true, include_users_count: true } }
       );
       expect(result).toEqual(mockLocations[0]);
@@ -286,7 +294,7 @@ describe('LocationsAPI', () => {
       const result = await locationsApi.create(createData);
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/api/v2/locations',
+        '/locations',
         { location: createData }
       );
       expect(result).toEqual(newLoc);
@@ -330,11 +338,11 @@ describe('TaxonomyAPI', () => {
 
       expect(mockApiClient.getPaginated).toHaveBeenCalledTimes(2);
       expect(mockApiClient.getPaginated).toHaveBeenCalledWith(
-        '/api/v2/organizations',
+        '/organizations',
         expect.any(Object)
       );
       expect(mockApiClient.getPaginated).toHaveBeenCalledWith(
-        '/api/v2/locations',
+        '/locations',
         expect.any(Object)
       );
       expect(result).toEqual({

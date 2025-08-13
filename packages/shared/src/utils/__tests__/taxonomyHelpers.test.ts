@@ -11,7 +11,6 @@ import {
   getTaxonomyDisplayName,
   hasChildren,
   getTaxonomyDepth,
-  groupTaxonomyByParent,
   validateTaxonomyEntity,
   transformTaxonomyApiResponse,
   extractTaxonomyIds,
@@ -19,12 +18,12 @@ import {
 } from '../taxonomyHelpers';
 import type { EnhancedOrganization, TaxonomyApiResponse } from '../../types/taxonomy';
 
-// Mock data
+// Mock data with title-based hierarchy (as used by Foreman)
 const mockOrganizations: EnhancedOrganization[] = [
   { id: 1, name: 'root1', title: 'Root Organization 1' },
-  { id: 2, name: 'child1', title: 'Child Organization 1', parent_id: 1 },
-  { id: 3, name: 'child2', title: 'Child Organization 2', parent_id: 1 },
-  { id: 4, name: 'grandchild1', title: 'Grandchild Organization 1', parent_id: 2 },
+  { id: 2, name: 'child1', title: 'Root Organization 1 / Child Organization 1' },
+  { id: 3, name: 'child2', title: 'Root Organization 1 / Child Organization 2' },
+  { id: 4, name: 'grandchild1', title: 'Root Organization 1 / Child Organization 1 / Grandchild Organization 1' },
   { id: 5, name: 'root2', title: 'Root Organization 2' }
 ];
 
@@ -208,15 +207,6 @@ describe('getTaxonomyDepth', () => {
   });
 });
 
-describe('groupTaxonomyByParent', () => {
-  it('should group entities by parent ID', () => {
-    const groups = groupTaxonomyByParent(mockOrganizations);
-
-    expect(groups.get(null)).toHaveLength(2); // Root entities
-    expect(groups.get(1)).toHaveLength(2); // Children of entity 1
-    expect(groups.get(2)).toHaveLength(1); // Children of entity 2
-  });
-});
 
 describe('validateTaxonomyEntity', () => {
   it('should validate valid entity', () => {

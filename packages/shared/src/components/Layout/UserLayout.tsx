@@ -36,6 +36,8 @@ import { hasPluginPermissions } from '../../plugins/utils';
 import { ForemanBrand } from '../Branding';
 import { NotificationBell, NotificationDrawer } from '../Notifications';
 import { QuickNav } from '../QuickNav';
+import { TaxonomyCompactSelector } from '../TaxonomySelector';
+import { TaxonomyProvider } from '../../providers';
 import { SkipToContent } from './SkipToContent';
 
 interface UserLayoutProps {
@@ -195,6 +197,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
             onClick={() => navigate('/dashboard')}
           />
         </MastheadBrand>
+        <TaxonomyCompactSelector />
       </MastheadMain>
       <MastheadContent>{headerToolbar}</MastheadContent>
     </Masthead>
@@ -207,21 +210,23 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
   );
 
   return (
-    <NotificationDrawer>
-      <Page
-        header={header}
-        sidebar={sidebar}
-        isManagedSidebar
-        skipToContent={
-          <SkipToContent href="#main-content">
-            Skip to content
-          </SkipToContent>
-        }
-      >
-        <div id="main-content">
-          {children}
-        </div>
-      </Page>
-    </NotificationDrawer>
+    <TaxonomyProvider>
+      <NotificationDrawer>
+        <Page
+          header={header}
+          sidebar={sidebar}
+          isManagedSidebar
+          skipToContent={
+            <SkipToContent href="#main-content">
+              Skip to content
+            </SkipToContent>
+          }
+        >
+          <div id="main-content">
+            {children}
+          </div>
+        </Page>
+      </NotificationDrawer>
+    </TaxonomyProvider>
   );
 };

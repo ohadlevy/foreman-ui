@@ -99,6 +99,9 @@ export const useAuthStore = create<AuthStore>()(
         localStorage.removeItem('foreman_auth_user_id');
         // Clear Zustand persisted state
         localStorage.removeItem('foreman-auth');
+        // Clear taxonomy preferences to prevent user context bleeding (both naming conventions)
+        localStorage.removeItem('foreman_taxonomy_preferences');
+        localStorage.removeItem('foreman-taxonomy');
         sessionStorage.clear();
 
         // Clear only Foreman-specific session cookies to avoid affecting other applications

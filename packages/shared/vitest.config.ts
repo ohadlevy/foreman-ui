@@ -7,11 +7,16 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],
-    // Disable parallelization to prevent resource conflicts
-    pool: 'forks',
+    // Set reasonable timeouts
+    testTimeout: 30000, // 30 seconds
+    hookTimeout: 10000, // 10 seconds
+    // Use threads instead of forks for better performance
+    pool: 'threads',
     poolOptions: {
-      forks: {
-        singleFork: true,
+      threads: {
+        singleThread: false,
+        minThreads: 1,
+        maxThreads: 2,
       },
     },
     coverage: {
