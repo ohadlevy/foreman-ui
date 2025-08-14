@@ -7,6 +7,7 @@ import initI18n from './i18n';
 
 // Import PatternFly CSS
 import '@patternfly/patternfly/patternfly.css';
+import './styles/theme-fixes.css';
 
 // Initialize i18next before React renders
 const startApp = async () => {

@@ -9,7 +9,7 @@ import { Registration } from './pages/Registration';
 import { Profile } from './pages/Profile';
 import { Settings } from './pages/Settings';
 import { SystemStatus } from './pages/SystemStatus';
-import { SimpleLogin } from './pages/SimpleLogin';
+import { Login } from './pages/Login';
 import { useAuth } from '@foreman/shared';
 import { pluginLoader } from './plugins/pluginLoader';
 import { useUserSettingsInitializer } from './hooks/useUserSettingsInitializer';
@@ -46,7 +46,7 @@ function App() {
   }
 
   if (!isAuthenticated) {
-    return <SimpleLogin />;
+    return <Login />;
   }
 
   return (

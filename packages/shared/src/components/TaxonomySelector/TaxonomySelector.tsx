@@ -7,7 +7,6 @@ import {
   MenuToggleElement,
   Divider,
   EmptyState,
-  EmptyStateIcon,
   EmptyStateBody,
   Spinner,
   Alert,
@@ -210,8 +209,11 @@ export const TaxonomySelector: React.FC<TaxonomySelectorProps> = ({
           {/* Entity options */}
           {filteredEntities.length === 0 && !isLoading ? (
             <DropdownItem key="empty" isDisabled>
-              <EmptyState>
-                <EmptyStateIcon icon={filterValue ? SearchIcon : ExclamationTriangleIcon} />
+              <EmptyState
+                titleText={filterValue ? `No ${type}s match` : `No ${type}s available`}
+                icon={filterValue ? SearchIcon : ExclamationTriangleIcon}
+                variant="xs"
+              >
                 <EmptyStateBody>
                   {filterValue 
                     ? `No ${type}s match "${filterValue}"`
@@ -233,17 +235,26 @@ export const TaxonomySelector: React.FC<TaxonomySelectorProps> = ({
                 countsText = ` (${hostCount} hosts, ${userCount} users)`;
               }
 
+              const isCurrentlySelected = selectedId === entity.id;
+              
               return (
                 <DropdownItem
                   key={entity.id}
                   onClick={() => handleSelect(undefined, entity.id)}
-                  isSelected={selectedId === entity.id}
+                  isSelected={isCurrentlySelected}
                   description={entity.description}
                   role="treeitem"
                   aria-level={level + 1}
+                  style={isCurrentlySelected ? {
+                    backgroundColor: 'var(--pf-v6-global--active-color--100)',
+                    borderLeft: '3px solid var(--pf-v6-global--primary-color--100)',
+                    fontWeight: 'var(--pf-v6-global--FontWeight--semi-bold)'
+                  } : undefined}
                 >
                   <div style={{ marginLeft: `${indentation}px` }}>
-                    <span>{displayName}</span>
+                    <span style={isCurrentlySelected ? { color: 'var(--pf-v6-global--primary-color--100)' } : undefined}>
+                      {displayName}
+                    </span>
                     {countsText && <span className="pf-c-select__menu-item-count">{countsText}</span>}
                   </div>
                 </DropdownItem>

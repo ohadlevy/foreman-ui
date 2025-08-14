@@ -10,6 +10,9 @@ import { hasRetryableErrors, BulkOperationValidationError, BulkOperationExecutio
 // Error message constants
 const NO_RESULT_ERROR_MESSAGE = 'Bulk operation failed to return a result - this indicates an internal error. Please try again or contact your system administrator.';
 
+// Layout constants
+const BULK_ACTIONS_CONTAINER_MIN_HEIGHT = '64px';
+
 
 // Helper function to build bulk operation error result
 const buildBulkOperationErrorResult = (
@@ -219,22 +222,24 @@ export const BulkActionsContainer: React.FC<BulkActionsContainerProps> = ({
   }
 
   return (
-    <div className={className}>
+    <div className={className} style={{ minHeight: selectedItems.length === 0 ? BULK_ACTIONS_CONTAINER_MIN_HEIGHT : undefined }}>
       {/* Aria-live region for auto-clear announcements */}
-      <div aria-live="polite" aria-atomic="true" className="pf-v5-u-sr-only">
+      <div aria-live="polite" aria-atomic="true" className="pf-v6-u-sr-only">
         {autoClearMessage}
       </div>
       
-      {/* Bulk Action Toolbar */}
-      <BulkActionToolbar
-        selectedCount={selectedItems.length}
-        totalCount={totalCount}
-        onClearSelection={onClearSelection}
-        actions={actions}
-        onActionClick={handleActionClick}
-        onSelectAllPages={onSelectAllPages}
-        showSelectAllPages={showSelectAllPages}
-      />
+      {/* Bulk Action Toolbar - only show when items are selected */}
+      {selectedItems.length > 0 && (
+        <BulkActionToolbar
+          selectedCount={selectedItems.length}
+          totalCount={totalCount}
+          onClearSelection={onClearSelection}
+          actions={actions}
+          onActionClick={handleActionClick}
+          onSelectAllPages={onSelectAllPages}
+          showSelectAllPages={showSelectAllPages}
+        />
+      )}
 
       {/* Modal for actions requiring confirmation/parameters */}
       {activeModal && (
@@ -254,7 +259,7 @@ export const BulkActionsContainer: React.FC<BulkActionsContainerProps> = ({
 
       {/* Progress tracking for long-running operations */}
       {operationProgress && (
-        <div className="pf-v5-u-mt-md">
+        <div className="pf-v6-u-mt-md">
           <BulkOperationProgressComponent
             operationId={operationProgress.operation.id}
             operationLabel={operationProgress.operation.label}

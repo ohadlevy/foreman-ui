@@ -11,7 +11,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   className
 }) => {
   return (
-    <div className={`pf-v5-u-display-flex pf-v5-u-justify-content-center pf-v5-u-align-items-center ${className || ''}`}>
+    <div className={`pf-v6-u-display-flex pf-v6-u-justify-content-center pf-v6-u-align-items-center ${className || ''}`}>
       <Spinner size={size} />
     </div>
   );

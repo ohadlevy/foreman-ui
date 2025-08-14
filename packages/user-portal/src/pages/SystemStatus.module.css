@@ -1,0 +1,105 @@
+/* SystemStatus page styles */
+
+.centerLoading {
+  text-align: center;
+  padding: 2rem;
+}
+
+.errorContainer {
+  text-align: center;
+  padding: 2rem;
+}
+
+.warningIcon {
+  color: var(--pf-v6-global--warning-color--100);
+  margin-right: 0.5rem;
+}
+
+.infoIcon {
+  color: var(--pf-v6-global--info-color--100);
+  margin-right: 0.5rem;
+}
+
+.secondaryText {
+  color: var(--pf-v6-global--Color--200);
+}
+
+.componentCard {
+  padding: var(--pf-v6-global--spacer--md);
+  border: 1px solid var(--pf-v6-global--BorderColor--100);
+  border-radius: var(--pf-v6-global--BorderRadius--sm);
+}
+
+.iconContainer {
+  margin-right: 0.5rem;
+  color: var(--pf-v6-global--Color--200);
+}
+
+.statusContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.successIcon {
+  color: var(--pf-v6-global--success-color--100);
+}
+
+.dangerIcon {
+  color: var(--pf-v6-global--danger-color--100);
+}
+
+.healthMetricCard {
+  padding: var(--pf-v6-global--spacer--md);
+  border: 1px solid var(--pf-v6-global--BorderColor--100);
+  border-radius: var(--pf-v6-global--BorderRadius--sm);
+}
+
+.healthMetricHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.healthMetricIcon {
+  margin-right: 0.5rem;
+}
+
+.versionContainer {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.versionText {
+  font-weight: bold;
+}
+
+.statsCard {
+  padding: var(--pf-v6-global--spacer--md);
+  border: 1px solid var(--pf-v6-global--BorderColor--100);
+  border-radius: var(--pf-v6-global--BorderRadius--sm);
+}
+
+.workingExtensionsTitle {
+  color: var(--pf-v6-global--success-color--100);
+}
+
+.extensionsDescription {
+  margin-bottom: 1rem;
+}
+
+.errorLabel {
+  margin-top: 1rem;
+}
+
+.featuresCard {
+  padding: var(--pf-v6-global--spacer--md);
+  border: 1px solid var(--pf-v6-global--BorderColor--100);
+  border-radius: var(--pf-v6-global--BorderRadius--sm);
+}
+
+.featuresTitle {
+  font-weight: bold;
+  margin-bottom: var(--pf-v6-global--spacer--sm);
+}

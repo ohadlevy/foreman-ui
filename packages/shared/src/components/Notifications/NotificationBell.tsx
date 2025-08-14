@@ -9,7 +9,7 @@ import { useNotificationStore } from '../../stores/notificationStore';
 import { useNotifications } from '../../hooks/useNotifications';
 
 export const NotificationBell: React.FC = () => {
-  const { toggleDrawer, unreadCount, isDrawerOpen } = useNotificationStore();
+  const { toggleDrawer, unreadCount } = useNotificationStore();
 
   // Initialize notifications on mount
   useNotifications();
@@ -23,7 +23,6 @@ export const NotificationBell: React.FC = () => {
       <Button
         variant="plain"
         onClick={handleClick}
-        isActive={isDrawerOpen}
         icon={
           <div style={{ position: 'relative', display: 'inline-block' }}>
             <BellIcon />

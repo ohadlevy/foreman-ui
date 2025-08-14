@@ -8,9 +8,13 @@ vi.mock('@foreman/shared', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('../../stores/userSettingsStore', () => ({
-  useUserSettingsStore: vi.fn(),
-}));
+vi.mock('../../stores/userSettingsStore', async () => {
+  const actual = await vi.importActual<typeof import('../../stores/userSettingsStore')>('../../stores/userSettingsStore');
+  return {
+    ...actual,
+    useUserSettingsStore: vi.fn(),
+  };
+});
 
 vi.mock('../../i18n', () => ({
   i18next: {
@@ -31,6 +35,7 @@ describe('useUserSettingsInitializer', () => {
     mockUseUserSettingsStore.mockReturnValue({
       setCurrentUser: mockSetCurrentUser,
       getCurrentUserSettings: mockGetCurrentUserSettings,
+      getEffectiveTheme: vi.fn().mockReturnValue('light'),
     });
     
     mockGetCurrentUserSettings.mockReturnValue({

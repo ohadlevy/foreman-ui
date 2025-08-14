@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import {
   Popover,
   Button,
-  Menu,
-  MenuContent,
-  MenuList,
-  MenuItem,
   Divider,
   EmptyState,
-  EmptyStateIcon,
   EmptyStateBody,
 } from '@patternfly/react-core';
 import {
@@ -21,9 +16,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useActivityStore } from '../../stores/activityStore';
 import { formatRelativeTime } from '../../utils/formatting';
+import styles from './QuickNav.module.css';
 
-// UI constants - use PatternFly sizing token for consistency
-const RECENT_ITEM_MAX_WIDTH = 'var(--pf-global--Width--sm)';
+// QuickNav component for quick access to common actions and recent activity
 
 export interface QuickNavProps {
   maxRecentItems?: number;
@@ -52,68 +47,84 @@ export const QuickNav: React.FC<QuickNavProps> = ({
   };
 
   const popoverContent = (
-    <div className="pf-v5-u-min-width-280px pf-v5-u-max-width-400px">
-      {/* Quick Links */}
-      <div className="pf-v5-u-mb-md">
-        <div className="pf-v5-u-font-weight-bold pf-v5-u-mb-sm pf-v5-u-px-md pf-v5-u-color-200">
-          Quick Links
-        </div>
-        <Menu>
-          <MenuContent>
-            <MenuList>
-              {quickLinks.map((link) => (
-                <MenuItem
-                  key={link.url}
-                  onClick={() => handleItemClick(link.url)}
-                  icon={link.icon}
-                >
-                  {link.label}
-                </MenuItem>
-              ))}
-            </MenuList>
-          </MenuContent>
-        </Menu>
-      </div>
-
-      <Divider />
-
-      {/* Recent Activity */}
-      <div className="pf-v5-u-mt-md">
-        <div className="pf-v5-u-font-weight-bold pf-v5-u-mb-sm pf-v5-u-px-md pf-v5-u-color-200">
-          Recent Activity
+    <div className={styles.popoverContent}>
+      <div className="pf-v6-l-flex pf-m-space-items-sm pf-m-column">
+        {/* Quick Links Section */}
+        <div className="">
+          <div className="pf-v6-l-flex pf-m-space-items-xs pf-m-column">
+            <h6 className={`pf-v6-c-content--h6 ${styles.sectionTitle}`}>Quick Links</h6>
+            
+            {quickLinks.map((link) => (
+              <button 
+                key={link.url}
+                className={styles.quickLinkItem}
+                onClick={() => handleItemClick(link.url)}
+                type="button"
+                aria-label={`Navigate to ${link.label}`}
+              >
+                <span className="pf-v6-c-icon pf-m-sm">
+                  <span className="pf-v6-c-icon__content">
+                    {link.icon}
+                  </span>
+                </span>
+                {link.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {recentItems.length === 0 ? (
-          <EmptyState variant="xs">
-            <EmptyStateIcon icon={HistoryIcon} />
-            <EmptyStateBody>
-              No recent activity
-            </EmptyStateBody>
-          </EmptyState>
-        ) : (
-          <Menu>
-            <MenuContent>
-              <MenuList>
-                {recentItems.map((activity) => (
-                  <MenuItem
-                    key={activity.id}
-                    onClick={() => handleItemClick(activity.url)}
-                    icon={
-                      activity.type.includes('host') ? <ServerIcon /> :
-                      activity.type === 'search' ? <SearchIcon /> :
-                      <ExternalLinkAltIcon />
-                    }
-                    description={formatRelativeTime(activity.timestamp)}
+        <Divider />
+
+        {/* Recent Activity Section */}
+        <div className="">
+          <div className="pf-v6-l-flex pf-m-space-items-xs pf-m-column">
+            <h6 className={`pf-v6-c-content--h6 ${styles.sectionTitle}`}>Recent Activity</h6>
+            
+            <div className={styles.recentActivityContainer}>
+              {recentItems.length === 0 ? (
+                <div className={styles.emptyStateContainer}>
+                  <EmptyState 
+                    variant="xs"
+                    titleText="No recent activity"
+                    icon={HistoryIcon}
                   >
-                    <div className="pf-v5-u-text-truncate pf-v5-u-text-nowrap" style={{ maxWidth: RECENT_ITEM_MAX_WIDTH }}>
-                      {activity.title}
+                    <EmptyStateBody>
+                      Your recent activities will appear here
+                    </EmptyStateBody>
+                  </EmptyState>
+                </div>
+              ) : (
+                recentItems.map((activity) => (
+                  <button 
+                    key={activity.id}
+                    className={styles.recentItem}
+                    onClick={() => handleItemClick(activity.url)}
+                    type="button"
+                    aria-label={`Navigate to ${activity.title}`}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                      <span className="pf-v6-c-icon pf-m-sm">
+                        <span className="pf-v6-c-icon__content">
+                          {activity.type.includes('host') ? <ServerIcon /> :
+                           activity.type === 'search' ? <SearchIcon /> :
+                           <ExternalLinkAltIcon />}
+                        </span>
+                      </span>
+                      <div className={styles.recentItemContent}>
+                        <div className={styles.recentItemLabel}>
+                          {activity.title}
+                        </div>
+                        <div className={styles.recentItemTime}>
+                          {formatRelativeTime(activity.timestamp)}
+                        </div>
+                      </div>
                     </div>
-                  </MenuItem>
-                ))}
-              </MenuList>
-            </MenuContent>
-          </Menu>
-        )}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -125,17 +136,14 @@ export const QuickNav: React.FC<QuickNavProps> = ({
       isVisible={isOpen}
       onHidden={() => setIsOpen(false)}
       position="bottom-start"
-      hasAutoWidth
     >
       <Button
-        variant="tertiary"
-        icon={<CubesIcon />}
+        variant="plain"
         onClick={() => setIsOpen(!isOpen)}
         className={className}
         aria-label="Quick navigation"
-      >
-        Quick Nav
-      </Button>
+        icon={<CubesIcon />}
+      />
     </Popover>
   );
 };

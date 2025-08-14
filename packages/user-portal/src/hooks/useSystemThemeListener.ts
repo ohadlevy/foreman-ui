@@ -9,6 +9,10 @@ export const useSystemThemeListener = () => {
   const { getCurrentUserSettings, getEffectiveTheme } = useUserSettingsStore();
 
   useEffect(() => {
+    // Apply initial theme on component mount
+    const effectiveTheme = getEffectiveTheme();
+    applyThemeToDocument(effectiveTheme);
+
     // Only add listener if window.matchMedia is available
     if (typeof window === 'undefined' || !window.matchMedia) {
       return;

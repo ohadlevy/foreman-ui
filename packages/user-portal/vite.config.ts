@@ -4,6 +4,11 @@ import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@foreman/shared': resolve(__dirname, '../shared/src'),
+    },
+  },
   server: {
     port: 3001,
     host: true,

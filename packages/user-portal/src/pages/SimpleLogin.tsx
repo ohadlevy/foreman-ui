@@ -1,7 +1,5 @@
 import React from 'react';
 import {
-  Page,
-  PageSection,
   Card,
   CardBody,
   Title,
@@ -25,23 +23,23 @@ export const SimpleLogin: React.FC = () => {
   };
 
   return (
-    <Page>
-      <PageSection
-        isFilled
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          background: `linear-gradient(135deg, ${FOREMAN_BRANDING.colors.primary} 0%, ${FOREMAN_BRANDING.colors.primaryGradientStart} 50%, ${FOREMAN_BRANDING.colors.secondary} 100%)`,
-        }}
-      >
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        width: '100vw',
+        padding: '1rem',
+        background: `linear-gradient(135deg, ${FOREMAN_BRANDING.colors.primary} 0%, ${FOREMAN_BRANDING.colors.primaryGradientStart} 50%, ${FOREMAN_BRANDING.colors.secondary} 100%)`,
+      }}
+    >
         <Card
           style={{
             width: '500px',
             maxWidth: '31.25rem', // Same as PatternFly LoginPage
             margin: '0 auto',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            boxShadow: 'var(--pf-v6-global--BoxShadow--lg)',
             borderRadius: '24px', // Same as PatternFly v6
             border: 'none',
           }}
@@ -51,7 +49,7 @@ export const SimpleLogin: React.FC = () => {
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <div style={{ marginBottom: '1rem' }}>
                 <img
-                  src="/assets/foreman-logo.svg"
+                  src={FOREMAN_BRANDING.logoPath}
                   alt="Foreman"
                   style={{
                     height: '80px',
@@ -66,7 +64,7 @@ export const SimpleLogin: React.FC = () => {
               <div
                 style={{
                   fontSize: '14px',
-                  color: '#6c757d',
+                  color: 'var(--pf-v6-global--Color--200)',
                   lineHeight: '1.4',
                 }}
               >
@@ -87,7 +85,7 @@ export const SimpleLogin: React.FC = () => {
                 textAlign: 'center',
                 marginTop: '1.5rem',
                 fontSize: '14px',
-                color: '#6c757d',
+                color: 'var(--pf-v6-global--Color--200)',
               }}
             >
               Need an account? Contact your system administrator.
@@ -143,7 +141,6 @@ export const SimpleLogin: React.FC = () => {
             </div>
           </CardBody>
         </Card>
-      </PageSection>
-    </Page>
+    </div>
   );
 };

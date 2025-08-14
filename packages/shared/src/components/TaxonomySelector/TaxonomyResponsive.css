@@ -1,0 +1,101 @@
+/* 
+ * CSS-only responsive behavior for TaxonomyCompactSelector
+ * This automatically adjusts the selector based on sidebar state without JavaScript
+ */
+
+/* Force masthead to stay horizontal and components to stay on one line - ONLY in masthead */
+.pf-v6-c-page__header .pf-v6-c-masthead {
+  flex-direction: row !important;
+}
+
+.pf-v6-c-page__header .pf-v6-c-masthead__main {
+  flex-wrap: nowrap !important;
+  min-width: fit-content;
+  display: flex !important;
+  align-items: center !important;
+  flex-direction: row !important;
+}
+
+.pf-v6-c-page__header .pf-v6-c-masthead__brand {
+  flex-shrink: 0 !important;
+  min-width: fit-content;
+  white-space: nowrap !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Force the brand logo container to stay inline - ONLY in masthead brand */
+.pf-v6-c-page__header .pf-v6-c-masthead__brand > .pf-v6-u-display-flex {
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  display: flex !important;
+}
+
+/* Ensure brand elements don't break to new lines - ONLY in masthead */
+.pf-v6-c-page__header .pf-v6-c-masthead__brand .pf-v6-c-brand,
+.pf-v6-c-page__header .pf-v6-c-masthead__brand .pf-v6-c-title {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Default (normal) styling */
+.foreman-taxonomy-selector {
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.foreman-taxonomy-selector-text {
+  max-width: 280px;
+  min-width: 180px;
+}
+
+/* 
+ * Compact mode: When sidebar is collapsed
+ * PatternFly adds classes to the Page component when sidebar state changes
+ * We can detect collapsed sidebar and apply compact styles
+ */
+
+/* When sidebar is collapsed, PatternFly Page component gets modified classes */
+/* Targeting when the page content area expands (indicating collapsed sidebar) */
+@media (max-width: 1400px) {
+  .foreman-taxonomy-selector {
+    min-width: 160px;
+    max-width: 240px;
+  }
+  
+  .foreman-taxonomy-selector-text {
+    max-width: 200px;
+    min-width: 120px;
+  }
+}
+
+/* Alternative approach: Use container queries if sidebar state is detectable */
+/* This will work when PatternFly adds specific classes for sidebar state */
+
+/* Hide logo text when screen is smaller to prevent line breaks and give more space - ONLY in masthead */
+@media (max-width: 1400px) {
+  .pf-v6-c-page__header .pf-v6-c-masthead__brand .pf-v6-c-title {
+    display: none;
+  }
+}
+
+/* Ensure login page links have proper spacing - override any conflicting rules */
+.foreman-login-links {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 1rem !important;
+  flex-wrap: wrap !important;
+}
+
+/* Fine-tune for very small screens */
+@media (max-width: 768px) {
+  .foreman-taxonomy-selector {
+    min-width: 120px;
+    max-width: 150px;
+  }
+  
+  .foreman-taxonomy-selector-text {
+    max-width: 100px;
+    min-width: 60px;
+  }
+}

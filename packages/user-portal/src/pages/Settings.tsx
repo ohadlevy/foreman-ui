@@ -11,8 +11,8 @@ import {
   Switch,
   Grid,
   GridItem,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   Select,
   SelectOption,
   SelectList,
@@ -56,13 +56,13 @@ export const Settings: React.FC = () => {
 
   return (
     <>
-      <PageSection variant="light">
+      <PageSection variant="secondary">
         <Title headingLevel="h1" size="2xl">
           Settings
         </Title>
-        <Text component={TextVariants.p}>
+        <Content component={ContentVariants.p}>
           Customize your Foreman experience with these personal preferences.
-        </Text>
+        </Content>
       </PageSection>
 
       <PageSection>
@@ -76,7 +76,7 @@ export const Settings: React.FC = () => {
                     label="Theme"
                     fieldId="theme-options"
                   >
-                    <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--pf-v5-global--Color--200)' }}>
+                    <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--pf-v6-global--Color--200)' }}>
                       Choose how Foreman UI appears. System will follow your browser&apos;s preference.
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -108,7 +108,7 @@ export const Settings: React.FC = () => {
                     label="Language"
                     fieldId="language-select"
                   >
-                    <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--pf-v5-global--Color--200)' }}>
+                    <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--pf-v6-global--Color--200)' }}>
                       Choose your preferred language for the interface.
                     </div>
                     <Select
@@ -158,21 +158,18 @@ export const Settings: React.FC = () => {
                       <Switch
                         id="desktop-notifications"
                         label="Desktop notifications"
-                        labelOff="Desktop notifications disabled"
                         isChecked={currentSettings.notificationPreferences?.desktop ?? true}
                         onChange={(_, checked) => handleNotificationChange('desktop', checked)}
                       />
                       <Switch
                         id="email-notifications"
                         label="Email notifications"
-                        labelOff="Email notifications disabled"
                         isChecked={currentSettings.notificationPreferences?.email ?? true}
                         onChange={(_, checked) => handleNotificationChange('email', checked)}
                       />
                       <Switch
                         id="sound-notifications"
                         label="Sound notifications"
-                        labelOff="Sound notifications disabled"
                         isChecked={currentSettings.notificationPreferences?.sound ?? false}
                         onChange={(_, checked) => handleNotificationChange('sound', checked)}
                       />

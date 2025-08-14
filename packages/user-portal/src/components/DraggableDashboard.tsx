@@ -81,19 +81,19 @@ const DraggableWidget = React.forwardRef<HTMLDivElement, DraggableWidgetProps>((
   const title = isDashboardWidget(widget) && widget.titleKey ? widget.titleKey : widget.title;
 
   const opacity = isDragging ? 0.5 : 1;
-  const backgroundColor = isOver ? 'var(--pf-v5-global--BackgroundColor--200)' : undefined;
+  const backgroundColor = isOver ? 'var(--pf-v6-global--BackgroundColor--200)' : undefined;
 
   return (
     <GridItem span={4}>
       <div
         ref={(node) => preview(drop(node))}
-        style={{ opacity, backgroundColor, transition: 'background-color var(--pf-v5-global--TransitionDuration)' }}
+        style={{ opacity, backgroundColor, transition: 'background-color var(--pf-v6-global--TransitionDuration)' }}
       >
       <Card 
         isFullHeight
         style={isEditMode ? {
-          border: '2px dashed var(--pf-v5-global--primary-color--100)',
-          backgroundColor: 'var(--pf-v5-global--BackgroundColor--200)'
+          border: '2px dashed var(--pf-v6-global--primary-color--100)',
+          backgroundColor: 'var(--pf-v6-global--BackgroundColor--200)'
         } : {}}
       >
         {(title || isEditMode) && (
@@ -109,9 +109,9 @@ const DraggableWidget = React.forwardRef<HTMLDivElement, DraggableWidgetProps>((
                     cursor: 'grab',
                     marginLeft: '0.5rem',
                     padding: '0.25rem',
-                    border: '1px solid var(--pf-v5-global--BorderColor--100)',
-                    borderRadius: 'var(--pf-v5-global--BorderRadius--sm)',
-                    backgroundColor: 'var(--pf-v5-global--BackgroundColor--100)'
+                    border: '1px solid var(--pf-v6-global--BorderColor--100)',
+                    borderRadius: 'var(--pf-v6-global--BorderRadius--sm)',
+                    backgroundColor: 'var(--pf-v6-global--BackgroundColor--100)'
                   }}
                 >
                   <GripVerticalIcon />
@@ -139,7 +139,7 @@ const demoWidgets = [
     component: () => (
       <div style={{ padding: '1rem', textAlign: 'center' }}>
         <p>Latest system activities would appear here</p>
-        <small style={{ color: 'var(--pf-v5-global--Color--200)' }}>
+        <small style={{ color: 'var(--pf-v6-global--Color--200)' }}>
           Demo widget - drag to reorder
         </small>
       </div>
@@ -151,9 +151,9 @@ const demoWidgets = [
     title: 'System Health',
     component: () => (
       <div style={{ padding: '1rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '2rem', color: 'var(--pf-v5-global--success-color--100)' }}>✓</div>
+        <div style={{ fontSize: '2rem', color: 'var(--pf-v6-global--success-color--100)' }}>✓</div>
         <p>All systems operational</p>
-        <small style={{ color: 'var(--pf-v5-global--Color--200)' }}>
+        <small style={{ color: 'var(--pf-v6-global--Color--200)' }}>
           Demo widget - drag to reorder
         </small>
       </div>
@@ -175,7 +175,7 @@ const demoWidgets = [
             <small>Pending</small>
           </div>
         </div>
-        <small style={{ color: 'var(--pf-v5-global--Color--200)', display: 'block', textAlign: 'center', marginTop: '0.5rem' }}>
+        <small style={{ color: 'var(--pf-v6-global--Color--200)', display: 'block', textAlign: 'center', marginTop: '0.5rem' }}>
           Demo widget - drag to reorder
         </small>
       </div>
@@ -312,7 +312,7 @@ export const DraggableDashboard: React.FC = () => {
       </Title>
       <Toolbar>
         <ToolbarContent>
-          <ToolbarGroup align={{ default: 'alignRight' }}>
+          <ToolbarGroup align={{ default: 'alignEnd' }}>
             <ToolbarItem>
               {!isEditMode ? (
                 <Button

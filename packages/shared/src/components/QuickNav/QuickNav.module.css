@@ -1,0 +1,93 @@
+/* QuickNav component styles */
+
+.popoverContent {
+  min-width: 320px;
+  max-width: 400px;
+}
+
+.sectionTitle {
+  font-weight: bold;
+}
+
+.quickLinkItem {
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  text-decoration: none;
+}
+
+.quickLinkItem:hover,
+.quickLinkItem:focus {
+  background-color: var(--pf-v6-global--BackgroundColor--200);
+  outline: 2px solid var(--pf-v6-global--primary-color--100);
+  outline-offset: -2px;
+}
+
+.quickLinkItem:focus {
+  outline: 2px solid var(--pf-v6-global--primary-color--100);
+}
+
+.recentActivityContainer {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.emptyStateContainer {
+  text-align: center;
+  padding: 16px;
+}
+
+.recentItem {
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.recentItem:hover,
+.recentItem:focus {
+  background-color: var(--pf-v6-global--BackgroundColor--200);
+}
+
+.recentItem:focus {
+  outline: 2px solid var(--pf-v6-global--primary-color--100);
+  outline-offset: -2px;
+}
+
+.recentItemLabel {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 250px;
+}
+
+.recentItemContent {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.recentItemTime {
+  font-size: var(--pf-v6-global--FontSize--sm);
+  color: var(--pf-v6-global--Color--200);
+}

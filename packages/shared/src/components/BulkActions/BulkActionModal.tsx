@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import {
   Modal,
   ModalVariant,
+  ModalBody,
+  ModalFooter,
   Button,
   Form,
   FormGroup,
   FormSelect,
   FormSelectOption,
+  TextInput,
   Alert,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   Progress,
   ProgressSize,
   List,
@@ -127,22 +130,34 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
         );
       case 'number':
         return (
-          <input
+          <TextInput
             type="number"
-            className="pf-v5-c-form-control"
-            value={parameterValues[param.key] as number || ''}
-            onChange={(e) => handleParameterChange(param.key, Number(e.target.value) || 0)}
+            value={String(parameterValues[param.key] || '')}
+            onChange={(_event, value) => {
+              // Allow empty string for intermediate state
+              if (value === '') {
+                handleParameterChange(param.key, '');
+                return;
+              }
+              const numValue = Number(value);
+              // Only set if it's a valid number
+              if (!Number.isNaN(numValue)) {
+                handleParameterChange(param.key, numValue);
+              }
+            }}
             placeholder={param.placeholder}
+            aria-label={param.label}
+            required={param.required}
+            inputMode="numeric"
           />
         );
       default:
         return (
-          <input
-            type="text"
-            className="pf-v5-c-form-control"
+          <TextInput
             value={parameterValues[param.key] as string || ''}
-            onChange={(e) => handleParameterChange(param.key, e.target.value)}
+            onChange={(_event, value) => handleParameterChange(param.key, value)}
             placeholder={param.placeholder}
+            aria-label={param.label}
           />
         );
     }
@@ -193,94 +208,97 @@ export const BulkActionModal: React.FC<BulkActionModalProps> = ({
       title={title}
       isOpen={isOpen}
       onClose={handleClose}
-      actions={
-        result ? [
-          <Button key="close" variant="primary" onClick={handleClose}>
+    >
+      <ModalBody>
+        {result ? resultContent : (
+          <>
+            {isLoading && (
+              <Progress size={ProgressSize.sm} title="Processing..." />
+            )}
+
+            {!isLoading && (
+              <>
+                {destructive && (
+                  <Alert
+                    variant="warning"
+                    title="Destructive action"
+                    className="pf-v6-u-mb-md"
+                  >
+                    <ExclamationTriangleIcon /> This action cannot be undone.
+                  </Alert>
+                )}
+
+                {confirmationMessage && (
+                  <Content component={ContentVariants.p} className="pf-v6-u-mb-md">
+                    {confirmationMessage}
+                  </Content>
+                )}
+
+                <Content component={ContentVariants.p} className="pf-v6-u-mb-md">
+                  This action will affect <strong>{selectedCount}</strong> selected items:
+                </Content>
+
+                <div className="pf-v6-u-mb-md" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                  <List>
+                    {selectedItems.slice(0, 10).map(item => (
+                      <ListItem key={item.id}>{item.name}</ListItem>
+                    ))}
+                    {selectedItems.length > 10 && (
+                      <ListItem>... and {selectedItems.length - 10} more items</ListItem>
+                    )}
+                  </List>
+                </div>
+
+                {parameters.length > 0 && (
+                  <Form>
+                    {parameters.map(param => (
+                      <FormGroup
+                        key={param.key}
+                        label={param.label}
+                        isRequired={param.required}
+                        fieldId={param.key}
+                      >
+                        {renderParameterField(param)}
+                      </FormGroup>
+                    ))}
+                  </Form>
+                )}
+
+                {validationErrors.length > 0 && (
+                  <Alert variant="danger" title="Please fix the following errors:">
+                    <List>
+                      {validationErrors.map((error, index) => (
+                        <ListItem key={index}>{error}</ListItem>
+                      ))}
+                    </List>
+                  </Alert>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </ModalBody>
+      <ModalFooter>
+        {result ? (
+          <Button variant="primary" onClick={handleClose}>
             Close
           </Button>
-        ] : [
-          <Button
-            key="confirm"
-            variant={destructive ? 'danger' : 'primary'}
-            onClick={handleConfirm}
-            isLoading={isLoading}
-            isDisabled={isLoading}
-          >
-            {destructive ? 'Delete' : 'Apply'}
-          </Button>,
-          <Button key="cancel" variant="link" onClick={handleClose} isDisabled={isLoading}>
-            Cancel
-          </Button>,
-        ]
-      }
-    >
-      {result ? resultContent : (
-        <>
-          {isLoading && (
-            <Progress size={ProgressSize.sm} title="Processing..." />
-          )}
-
-          {!isLoading && (
-            <>
-              {destructive && (
-                <Alert
-                  variant="warning"
-                  title="Destructive action"
-                  className="pf-v5-u-mb-md"
-                >
-                  <ExclamationTriangleIcon /> This action cannot be undone.
-                </Alert>
-              )}
-
-              {confirmationMessage && (
-                <Text component={TextVariants.p} className="pf-v5-u-mb-md">
-                  {confirmationMessage}
-                </Text>
-              )}
-
-              <Text component={TextVariants.p} className="pf-v5-u-mb-md">
-                This action will affect <strong>{selectedCount}</strong> selected items:
-              </Text>
-
-              <div className="pf-v5-u-mb-md" style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                <List>
-                  {selectedItems.slice(0, 10).map(item => (
-                    <ListItem key={item.id}>{item.name}</ListItem>
-                  ))}
-                  {selectedItems.length > 10 && (
-                    <ListItem>... and {selectedItems.length - 10} more items</ListItem>
-                  )}
-                </List>
-              </div>
-
-              {parameters.length > 0 && (
-                <Form>
-                  {parameters.map(param => (
-                    <FormGroup
-                      key={param.key}
-                      label={param.label}
-                      isRequired={param.required}
-                      fieldId={param.key}
-                    >
-                      {renderParameterField(param)}
-                    </FormGroup>
-                  ))}
-                </Form>
-              )}
-
-              {validationErrors.length > 0 && (
-                <Alert variant="danger" title="Please fix the following errors:">
-                  <List>
-                    {validationErrors.map((error, index) => (
-                      <ListItem key={index}>{error}</ListItem>
-                    ))}
-                  </List>
-                </Alert>
-              )}
-            </>
-          )}
-        </>
-      )}
+        ) : (
+          <>
+            <Button variant="link" onClick={handleClose} isDisabled={isLoading}>
+              Cancel
+            </Button>
+            <Button
+              variant={destructive ? 'danger' : 'primary'}
+              onClick={handleConfirm}
+              isLoading={isLoading}
+              isDisabled={isLoading}
+            >
+              {destructive ? 'Delete' : 'Apply'}
+            </Button>
+          </>
+        )}
+      </ModalFooter>
     </Modal>
   );
 };

@@ -160,7 +160,6 @@ export const TaxonomyContextSelector: React.FC<TaxonomyContextSelectorProps> = (
               <FormGroup
                 label="Organization"
                 fieldId="organization-selector"
-                labelIcon={<BuildingIcon />}
               >
                 {organizationsLoading ? (
                   renderSkeleton()
@@ -198,7 +197,6 @@ export const TaxonomyContextSelector: React.FC<TaxonomyContextSelectorProps> = (
               <FormGroup
                 label="Location"
                 fieldId="location-selector"
-                labelIcon={<MapMarkerAltIcon />}
               >
                 {locationsLoading ? (
                   renderSkeleton()
@@ -224,7 +222,6 @@ export const TaxonomyContextSelector: React.FC<TaxonomyContextSelectorProps> = (
               <FormGroup
                 label="Organization"
                 fieldId="organization-selector"
-                labelIcon={<BuildingIcon />}
               >
                 {organizationsLoading ? (
                   renderSkeleton()
@@ -261,7 +258,6 @@ export const TaxonomyContextSelector: React.FC<TaxonomyContextSelectorProps> = (
               <FormGroup
                 label="Location"
                 fieldId="location-selector"
-                labelIcon={<MapMarkerAltIcon />}
               >
                 {locationsLoading ? (
                   renderSkeleton()

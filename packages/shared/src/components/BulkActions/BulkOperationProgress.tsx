@@ -133,10 +133,10 @@ export const BulkOperationProgressComponent: React.FC<BulkOperationProgressProps
   };
 
   const getStatusIcon = () => {
-    if (!isCompleted) return <InProgressIcon className="pf-v5-u-mr-sm" />;
-    if (progress.failed_items === 0) return <CheckCircleIcon className="pf-v5-u-mr-sm pf-v5-u-success-color-100" />;
-    if (progress.completed_items === 0) return <TimesIcon className="pf-v5-u-mr-sm pf-v5-u-danger-color-100" />;
-    return <ExclamationTriangleIcon className="pf-v5-u-mr-sm pf-v5-u-warning-color-100" />;
+    if (!isCompleted) return <InProgressIcon className="pf-v6-u-mr-sm" />;
+    if (progress.failed_items === 0) return <CheckCircleIcon className="pf-v6-u-mr-sm pf-v6-u-success-color-100" />;
+    if (progress.completed_items === 0) return <TimesIcon className="pf-v6-u-mr-sm pf-v6-u-danger-color-100" />;
+    return <ExclamationTriangleIcon className="pf-v6-u-mr-sm pf-v6-u-warning-color-100" />;
   };
 
   const progressPercentage = Math.round(((progress.completed_items + progress.failed_items) / progress.total_items) * 100);
@@ -159,7 +159,7 @@ export const BulkOperationProgressComponent: React.FC<BulkOperationProgressProps
         </Flex>
       </CardTitle>
       <CardBody>
-        <div className="pf-v5-u-mb-md">
+        <div className="pf-v6-u-mb-md">
           <Progress
             value={progressPercentage}
             title="Operation Progress"
@@ -169,7 +169,7 @@ export const BulkOperationProgressComponent: React.FC<BulkOperationProgressProps
           />
         </div>
 
-        <div className="pf-v5-u-mb-sm">
+        <div className="pf-v6-u-mb-sm">
           <Flex spaceItems={{ default: 'spaceItemsSm' }}>
             <FlexItem>
               <Label color="green">{progress.completed_items} completed</Label>
@@ -185,22 +185,22 @@ export const BulkOperationProgressComponent: React.FC<BulkOperationProgressProps
           </Flex>
         </div>
 
-        <div className="pf-v5-u-mb-md">
-          <span className="pf-v5-u-text-color-100">{progress.current_status}</span>
+        <div className="pf-v6-u-mb-md">
+          <span className="pf-v6-u-text-color-100">{progress.current_status}</span>
         </div>
 
         {isCompleted && progress.failed_items > 0 && showDetails && (
-          <div className="pf-v5-u-mb-md">
+          <div className="pf-v6-u-mb-md">
             <Button
               variant="link"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="pf-v5-u-pl-0"
+              className="pf-v6-u-pl-0"
             >
               {isExpanded ? 'Hide' : 'Show'} error details
             </Button>
 
             {isExpanded && result?.errors && (
-              <Alert variant="danger" title="Failed Operations" className="pf-v5-u-mt-sm">
+              <Alert variant="danger" title="Failed Operations" className="pf-v6-u-mt-sm">
                 <List>
                   {result.errors.map((error, index) => (
                     <ListItem key={index}>
@@ -214,7 +214,7 @@ export const BulkOperationProgressComponent: React.FC<BulkOperationProgressProps
         )}
 
         {isCompleted && progress.failed_items > 0 && onRetry && (
-          <div className="pf-v5-u-mt-md">
+          <div className="pf-v6-u-mt-md">
             <Button variant="secondary" onClick={onRetry}>
               Retry Failed Operations
             </Button>

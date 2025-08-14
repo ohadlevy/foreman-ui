@@ -6,19 +6,24 @@ import {
   Button,
   Alert,
   ActionGroup,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
+import { TimesIcon } from '@patternfly/react-icons';
 import { LoginCredentials } from '../../types';
 
 interface LoginFormProps {
   onSubmit: (credentials: LoginCredentials) => void;
   isLoading?: boolean;
   error?: string | null;
+  clearError?: () => void;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({
   onSubmit,
   isLoading = false,
   error,
+  clearError,
 }) => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
@@ -31,8 +36,25 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   return (
     <Form onSubmit={handleSubmit}>
       {error && (
-        <Alert variant="danger" title="Login failed" isInline className="pf-v5-u-mb-md">
-          {error}
+        <Alert variant="danger" title="Login failed" isInline className="pf-v6-u-mb-md">
+          <Flex>
+            <FlexItem flex={{ default: 'flex_1' }}>
+              {error}
+            </FlexItem>
+            {clearError && (
+              <FlexItem>
+                <Button
+                  variant="plain"
+                  aria-label="Close login error"
+                  onClick={clearError}
+                  data-testid="clear-error"
+                  style={{ padding: '0', minHeight: 'auto' }}
+                >
+                  <TimesIcon />
+                </Button>
+              </FlexItem>
+            )}
+          </Flex>
         </Alert>
       )}
 

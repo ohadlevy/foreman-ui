@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Settings } from '../Settings';
 import { useUserSettingsStore } from '../../stores/userSettingsStore';

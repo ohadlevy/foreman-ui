@@ -7,7 +7,6 @@ import {
   MenuToggleElement,
   SearchInput,
   EmptyState,
-  EmptyStateIcon,
   EmptyStateBody,
   Spinner,
   Bullseye,
@@ -137,23 +136,33 @@ export const TaxonomyDropdown: React.FC<TaxonomyDropdownProps> = ({
       countsText = ` (${hostCount} hosts, ${userCount} users)`;
     }
 
+    const isCurrentlySelected = entity.id === selectedId;
+    
     return (
       <DropdownItem
         key={entity.id}
         onClick={() => handleSelect(entity.id)}
         description={entity.description}
+        isSelected={isCurrentlySelected}
+        style={isCurrentlySelected ? {
+          backgroundColor: 'var(--pf-v6-global--active-color--100)',
+          borderLeft: '3px solid var(--pf-v6-global--primary-color--100)',
+          fontWeight: 'var(--pf-v6-global--FontWeight--semi-bold)'
+        } : undefined}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>{displayName}</span>
+          <span style={isCurrentlySelected ? { color: 'var(--pf-v6-global--primary-color--100)' } : undefined}>
+            {displayName}
+          </span>
           {countsText && (
-            <span style={{ fontSize: '0.875rem', color: 'var(--pf-global--Color--200)' }}>
+            <span style={{ fontSize: '0.875rem', color: 'var(--pf-v6-global--Color--200)' }}>
               {countsText}
             </span>
           )}
         </div>
       </DropdownItem>
     );
-  }, [getDisplayName, showCounts, handleSelect]);
+  }, [getDisplayName, showCounts, handleSelect, selectedId]);
 
   // Render dropdown items
   const renderDropdownItems = () => (
@@ -185,7 +194,7 @@ export const TaxonomyDropdown: React.FC<TaxonomyDropdownProps> = ({
       {/* Error state */}
       {error && (
         <DropdownItem key="error" isDisabled>
-          <div style={{ color: 'var(--pf-global--danger-color--100)' }}>
+          <div style={{ color: 'var(--pf-v6-global--danger-color--100)' }}>
             Error: {error}
           </div>
         </DropdownItem>
@@ -211,8 +220,11 @@ export const TaxonomyDropdown: React.FC<TaxonomyDropdownProps> = ({
           {/* Entity items */}
           {filteredEntities.length === 0 ? (
             <DropdownItem key="empty" isDisabled>
-              <EmptyState>
-                <EmptyStateIcon icon={SearchIcon} />
+              <EmptyState
+                titleText={searchValue ? `No ${type}s match` : `No ${type}s available`}
+                icon={SearchIcon}
+                variant="xs"
+              >
                 <EmptyStateBody>
                   {searchValue
                     ? `No ${type}s match "${searchValue}"`

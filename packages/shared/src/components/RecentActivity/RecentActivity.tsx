@@ -6,7 +6,6 @@ import {
   MenuItem,
   Divider,
   EmptyState,
-  EmptyStateIcon,
   EmptyStateBody,
   Badge,
 } from '@patternfly/react-core';
@@ -60,10 +59,13 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({
 
   if (recentActivity.length === 0) {
     return (
-      <EmptyState variant="xs">
-        <EmptyStateIcon icon={HistoryIcon} />
+      <EmptyState 
+        variant="xs"
+        titleText="No recent activity"
+        icon={HistoryIcon}
+      >
         <EmptyStateBody>
-          No recent activity
+          Your recent interactions will appear here.
         </EmptyStateBody>
       </EmptyState>
     );
@@ -79,13 +81,13 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({
               onClick={() => handleItemClick(activity)}
               icon={getActivityIcon(activity.type)}
               description={
-                <div className="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-sm">
+                <div className="pf-v6-u-display-flex pf-v6-u-align-items-center pf-v6-u-gap-sm">
                   {activity.subtitle && (
                     <Badge isRead={false}>
                       {activity.subtitle}
                     </Badge>
                   )}
-                  <span className="pf-v5-u-color-200 pf-v5-u-font-size-sm">
+                  <span className="pf-v6-u-color-200 pf-v6-u-font-size-sm">
                     {formatRelativeTime(activity.timestamp)}
                   </span>
                 </div>
@@ -98,7 +100,7 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({
           {showClearButton && (
             <>
               <Divider />
-              <MenuItem onClick={clearActivity} icon={<HistoryIcon />}>
+              <MenuItem onClick={clearActivity}>
                 Clear history
               </MenuItem>
             </>
@@ -117,10 +119,13 @@ export const RecentHosts: React.FC<Omit<RecentActivityProps, 'maxItems'>> = (pro
 
   if (recentHosts.length === 0) {
     return (
-      <EmptyState variant="xs">
-        <EmptyStateIcon icon={ServerIcon} />
+      <EmptyState 
+        variant="xs"
+        titleText="No recent hosts"
+        icon={ServerIcon}
+      >
         <EmptyStateBody>
-          No recent hosts
+          Your recently viewed hosts will appear here.
         </EmptyStateBody>
       </EmptyState>
     );
@@ -137,7 +142,6 @@ export const RecentHosts: React.FC<Omit<RecentActivityProps, 'maxItems'>> = (pro
                 props.onItemSelect?.(activity);
                 navigate(activity.url);
               }}
-              icon={<ServerIcon />}
               description={formatRelativeTime(activity.timestamp)}
             >
               {activity.title}
@@ -156,10 +160,13 @@ export const RecentSearches: React.FC<Omit<RecentActivityProps, 'maxItems'>> = (
 
   if (recentSearches.length === 0) {
     return (
-      <EmptyState variant="xs">
-        <EmptyStateIcon icon={SearchIcon} />
+      <EmptyState 
+        variant="xs"
+        titleText="No recent searches"
+        icon={SearchIcon}
+      >
         <EmptyStateBody>
-          No recent searches
+          Your recent search queries will appear here.
         </EmptyStateBody>
       </EmptyState>
     );
@@ -176,7 +183,6 @@ export const RecentSearches: React.FC<Omit<RecentActivityProps, 'maxItems'>> = (
                 props.onItemSelect?.(activity);
                 navigate(activity.url);
               }}
-              icon={<SearchIcon />}
               description={activity.subtitle}
             >
               {activity.title}

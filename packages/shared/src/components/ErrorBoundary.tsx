@@ -2,12 +2,10 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import {
   EmptyState,
   EmptyStateBody,
-  EmptyStateIcon,
-  Title,
-  Button,
-  EmptyStateActions
+  EmptyStateFooter,
+  EmptyStateActions,
+  Button
 } from '@patternfly/react-core';
-import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 
 interface Props {
   children: ReactNode;
@@ -38,22 +36,23 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <EmptyState>
-          <EmptyStateIcon icon={ExclamationTriangleIcon} />
-          <Title headingLevel="h4" size="lg">
-            Something went wrong
-          </Title>
+        <EmptyState
+          titleText="Something went wrong"
+          variant="lg"
+        >
           <EmptyStateBody>
             {this.state.error?.message || 'An unexpected error occurred'}
           </EmptyStateBody>
-          <EmptyStateActions>
-            <Button variant="primary" onClick={this.handleRetry}>
-              Try again
-            </Button>
-            <Button variant="link" onClick={() => window.location.reload()}>
-              Reload page
-            </Button>
-          </EmptyStateActions>
+          <EmptyStateFooter>
+            <EmptyStateActions>
+              <Button variant="primary" onClick={this.handleRetry}>
+                Try again
+              </Button>
+              <Button variant="link" onClick={() => window.location.reload()}>
+                Reload page
+              </Button>
+            </EmptyStateActions>
+          </EmptyStateFooter>
         </EmptyState>
       );
     }
