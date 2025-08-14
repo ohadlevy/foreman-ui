@@ -30,11 +30,11 @@
     "generate-types": "openapi-typescript http://localhost:3000/apidoc/v2.json -o src/types/generated/api.ts"
   },
   "dependencies": {
-    "@patternfly/react-core": "^5.2.0",
-    "@patternfly/react-icons": "^5.2.0",
-    "@patternfly/react-styles": "^5.2.0",
-    "@patternfly/react-table": "^5.2.0",
-    "@patternfly/react-tokens": "^5.2.0",
+    "@patternfly/react-core": "^6.3.1",
+    "@patternfly/react-icons": "^6.3.1",
+    "@patternfly/react-styles": "^6.3.1",
+    "@patternfly/react-table": "^6.3.1",
+    "@patternfly/react-tokens": "^6.3.1",
     "@tanstack/react-query": "^4.29.0",
     "axios": "^1.4.0",
     "date-fns": "^2.30.0",

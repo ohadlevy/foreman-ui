@@ -142,7 +142,7 @@ export const Profile: React.FC = () => {
 
   return (
     <>
-      <PageSection variant="light">
+      <PageSection variant="secondary">
         <Title headingLevel="h1" size="2xl">
           My Profile
         </Title>

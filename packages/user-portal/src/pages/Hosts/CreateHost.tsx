@@ -84,7 +84,7 @@ export const CreateHost: React.FC = () => {
 
   return (
     <>
-      <PageSection variant="light">
+      <PageSection variant="secondary">
         <Title headingLevel="h1" size="2xl">
           Create New Host
         </Title>
@@ -98,7 +98,7 @@ export const CreateHost: React.FC = () => {
                 variant="danger"
                 title="Failed to create host"
                 isInline
-                className="pf-v5-u-mb-md"
+                className="pf-v6-u-mb-md"
               >
                 {submitError}
               </Alert>
@@ -149,8 +149,7 @@ export const CreateHost: React.FC = () => {
                   <div>
                     <Switch
                       id="host-enabled"
-                      label="Enabled"
-                      labelOff="Disabled"
+                      label={formData.enabled ? "Enabled" : "Disabled"}
                       isChecked={formData.enabled || false}
                       onChange={(_event, checked) => handleInputChange('enabled', checked)}
                     />
@@ -160,8 +159,7 @@ export const CreateHost: React.FC = () => {
                   <div>
                     <Switch
                       id="host-managed"
-                      label="Managed"
-                      labelOff="Unmanaged"
+                      label={formData.managed ? "Managed" : "Unmanaged"}
                       isChecked={formData.managed || false}
                       onChange={(_event, checked) => handleInputChange('managed', checked)}
                     />
@@ -171,8 +169,7 @@ export const CreateHost: React.FC = () => {
                   <div>
                     <Switch
                       id="host-build"
-                      label="Build mode"
-                      labelOff="Normal mode"
+                      label={formData.build ? "Build mode" : "Normal mode"}
                       isChecked={formData.build || false}
                       onChange={(_event, checked) => handleInputChange('build', checked)}
                     />

@@ -7,6 +7,7 @@ import {
   MastheadToggle,
   MastheadMain,
   MastheadBrand,
+  MastheadLogo,
   MastheadContent,
   Nav,
   NavList,
@@ -51,15 +52,10 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
   const { canViewHosts, canCreateHosts } = usePermissions();
   const pluginMenuItems = usePluginMenuItems();
 
-  const [isNavOpen, setIsNavOpen] = React.useState(true);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = React.useState(false);
 
   // Get user permissions for filtering plugin menu items
   const userPermissions = user?.roles?.flatMap(role => role.permissions || []) || [];
-
-  const onNavToggle = () => {
-    setIsNavOpen(!isNavOpen);
-  };
 
   const onUserDropdownToggle = () => {
     setIsUserDropdownOpen(!isUserDropdownOpen);
@@ -141,65 +137,69 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     </DropdownList>
   );
 
-  const headerToolbar = (
-    <Toolbar id="toolbar" isFullHeight>
-      <ToolbarContent>
-        <ToolbarGroup align={{ default: 'alignRight' }}>
-          <ToolbarItem>
-            <QuickNav />
-          </ToolbarItem>
-          <ToolbarItem>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <NotificationBell />
-              <Dropdown
-                isOpen={isUserDropdownOpen}
-                onSelect={onUserDropdownToggle}
-                onOpenChange={(isOpen: boolean) => setIsUserDropdownOpen(isOpen)}
-                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                  <MenuToggle
-                    ref={toggleRef}
-                    onClick={onUserDropdownToggle}
-                    isExpanded={isUserDropdownOpen}
-                    icon={<UserIcon />}
-                  >
-                    {user?.firstname && user?.lastname
-                      ? `${user.firstname} ${user.lastname}`
-                      : user?.login || 'User'}
-                  </MenuToggle>
-                )}
-              >
-                {userDropdownItems}
-              </Dropdown>
-            </div>
-          </ToolbarItem>
-        </ToolbarGroup>
-      </ToolbarContent>
-    </Toolbar>
-  );
 
   const header = (
     <Masthead>
-      <MastheadToggle>
-        <PageToggleButton
-          variant="plain"
-          aria-label="Global navigation"
-          isSidebarOpen={isNavOpen}
-          onSidebarToggle={onNavToggle}
-        >
-          <BarsIcon />
-        </PageToggleButton>
-      </MastheadToggle>
       <MastheadMain>
+        <MastheadToggle>
+          <PageToggleButton
+            variant="plain"
+            aria-label="Global navigation"
+          >
+            <BarsIcon />
+          </PageToggleButton>
+        </MastheadToggle>
         <MastheadBrand>
-          <ForemanBrand
-            size="md"
-            showText={true}
-            onClick={() => navigate('/dashboard')}
-          />
+          <MastheadLogo>
+            <ForemanBrand
+              size="md"
+              showText={true}
+              onClick={() => navigate('/dashboard')}
+            />
+          </MastheadLogo>
         </MastheadBrand>
-        <TaxonomyCompactSelector />
       </MastheadMain>
-      <MastheadContent>{headerToolbar}</MastheadContent>
+      <MastheadContent>
+        <Toolbar id="masthead-toolbar" isFullHeight>
+          <ToolbarContent>
+            <ToolbarGroup>
+              <ToolbarItem>
+                <TaxonomyCompactSelector />
+              </ToolbarItem>
+            </ToolbarGroup>
+            <ToolbarGroup align={{ default: 'alignEnd' }}>
+              <ToolbarItem>
+                <QuickNav />
+              </ToolbarItem>
+              <ToolbarItem>
+                <NotificationBell />
+              </ToolbarItem>
+              <ToolbarItem>
+                <Dropdown
+                  isOpen={isUserDropdownOpen}
+                  onSelect={onUserDropdownToggle}
+                  onOpenChange={(isOpen: boolean) => setIsUserDropdownOpen(isOpen)}
+                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      onClick={onUserDropdownToggle}
+                      isExpanded={isUserDropdownOpen}
+                      variant="plain"
+                      icon={<UserIcon />}
+                    >
+                      {user?.firstname && user?.lastname
+                        ? `${user.firstname} ${user.lastname}`
+                        : user?.login || 'User'}
+                    </MenuToggle>
+                  )}
+                >
+                  {userDropdownItems}
+                </Dropdown>
+              </ToolbarItem>
+            </ToolbarGroup>
+          </ToolbarContent>
+        </Toolbar>
+      </MastheadContent>
     </Masthead>
   );
 
@@ -213,7 +213,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
     <TaxonomyProvider>
       <NotificationDrawer>
         <Page
-          header={header}
+          masthead={header}
           sidebar={sidebar}
           isManagedSidebar
           skipToContent={

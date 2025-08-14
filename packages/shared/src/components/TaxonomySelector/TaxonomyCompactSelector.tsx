@@ -6,8 +6,8 @@ import {
   Icon,
   Flex,
   FlexItem,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   Divider,
   Spinner,
   Alert,
@@ -22,6 +22,7 @@ import { TaxonomyTree } from './TaxonomyTree';
 import { useGlobalState } from '../../hooks/useGlobalState';
 import { useTaxonomyStore } from '../../stores/taxonomyStore';
 import type { EnhancedOrganization, EnhancedLocation } from '../../types/taxonomy';
+import './TaxonomyResponsive.css';
 
 export interface TaxonomyCompactSelectorProps {
   /** Whether to show organization selector */
@@ -129,22 +130,22 @@ export const TaxonomyCompactSelector: React.FC<TaxonomyCompactSelectorProps> = (
             <Icon size="sm">
               <BuildingIcon />
             </Icon>
-            <Text component={TextVariants.small}>
+            <Content component={ContentVariants.small}>
               {currentOrg ? (currentOrg.title || currentOrg.name) : 'All Organizations'}
-            </Text>
+            </Content>
           </>
         )}
         {showOrganization && showLocation && (
-          <Text component={TextVariants.small}> • </Text>
+          <Content component={ContentVariants.small}> • </Content>
         )}
         {showLocation && (
           <>
             <Icon size="sm">
               <MapMarkerAltIcon />
             </Icon>
-            <Text component={TextVariants.small}>
+            <Content component={ContentVariants.small}>
               {currentLoc ? (currentLoc.title || currentLoc.name) : 'All Locations'}
-            </Text>
+            </Content>
           </>
         )}
       </Flex>
@@ -156,12 +157,12 @@ export const TaxonomyCompactSelector: React.FC<TaxonomyCompactSelectorProps> = (
       <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
         {/* Current Context Display */}
         <FlexItem>
-          <Text component={TextVariants.small} style={{ color: 'var(--pf-v5-global--Color--200)' }}>
+          <Content component={ContentVariants.small} style={{ color: 'var(--pf-v6-global--Color--200)' }}>
             Current context
-          </Text>
-          <Text component={TextVariants.p} style={{ fontWeight: 'bold' }}>
+          </Content>
+          <Content component={ContentVariants.p} style={{ fontWeight: 'bold' }}>
             {getDisplayText()}
-          </Text>
+          </Content>
         </FlexItem>
         
         <Divider />
@@ -179,9 +180,9 @@ export const TaxonomyCompactSelector: React.FC<TaxonomyCompactSelectorProps> = (
         {taxonomyData.isLoading && !taxonomyData.error && !taxonomyData.isError && (
           <FlexItem style={{ textAlign: 'center', padding: '16px' }}>
             <Spinner size="md" />
-            <Text component={TextVariants.small} style={{ marginTop: '8px' }}>
+            <Content component={ContentVariants.small} style={{ marginTop: '8px' }}>
               Loading taxonomy data...
-            </Text>
+            </Content>
           </FlexItem>
         )}
         
@@ -189,24 +190,23 @@ export const TaxonomyCompactSelector: React.FC<TaxonomyCompactSelectorProps> = (
         {!taxonomyData.isLoading && !taxonomyData.error && !taxonomyData.isError && showOrganization && permissions.canViewOrganizations && (
           <FlexItem>
             <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsXs' }}>
-              <Text component={TextVariants.h6} style={{ fontWeight: 'bold' }}>
+              <Content component={ContentVariants.h6} style={{ fontWeight: 'bold' }}>
                 Organization
-              </Text>
+              </Content>
               
               {/* All Organizations Option */}
               <div 
                 style={{ 
                   padding: '8px 16px', 
                   cursor: 'pointer',
-                  backgroundColor: !currentOrg ? 'var(--pf-v5-global--BackgroundColor--200)' : 'transparent',
-                  color: !currentOrg ? 'var(--pf-v5-global--primary-color--100)' : 'var(--pf-v5-global--link-color)',
+                  backgroundColor: !currentOrg ? 'var(--pf-v6-global--BackgroundColor--200)' : 'transparent',
+                  color: !currentOrg ? 'var(--pf-v6-global--primary-color--100)' : 'var(--pf-v6-global--link-color)',
                   borderRadius: '4px',
                   fontWeight: !currentOrg ? 'bold' : 'normal',
                   marginBottom: '4px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  border: !currentOrg ? '1px solid var(--pf-v5-global--primary-color--100)' : '1px solid transparent'
+                  gap: '8px'
                 }}
                 onClick={() => handleSelectionChange({ organization: undefined, location: currentLoc })}
               >
@@ -247,24 +247,23 @@ export const TaxonomyCompactSelector: React.FC<TaxonomyCompactSelectorProps> = (
         {!taxonomyData.isLoading && !taxonomyData.error && !taxonomyData.isError && showLocation && permissions.canViewLocations && (
           <FlexItem>
             <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsXs' }}>
-              <Text component={TextVariants.h6} style={{ fontWeight: 'bold' }}>
+              <Content component={ContentVariants.h6} style={{ fontWeight: 'bold' }}>
                 Location
-              </Text>
+              </Content>
               
               {/* All Locations Option */}
               <div 
                 style={{ 
                   padding: '8px 16px', 
                   cursor: 'pointer',
-                  backgroundColor: !currentLoc ? 'var(--pf-v5-global--BackgroundColor--200)' : 'transparent',
-                  color: !currentLoc ? 'var(--pf-v5-global--primary-color--100)' : 'var(--pf-v5-global--link-color)',
+                  backgroundColor: !currentLoc ? 'var(--pf-v6-global--BackgroundColor--200)' : 'transparent',
+                  color: !currentLoc ? 'var(--pf-v6-global--primary-color--100)' : 'var(--pf-v6-global--link-color)',
                   borderRadius: '4px',
                   fontWeight: !currentLoc ? 'bold' : 'normal',
                   marginBottom: '4px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  border: !currentLoc ? '1px solid var(--pf-v5-global--primary-color--100)' : '1px solid transparent'
+                  gap: '8px'
                 }}
                 onClick={() => handleSelectionChange({ organization: currentOrg, location: undefined })}
               >
@@ -322,18 +321,11 @@ export const TaxonomyCompactSelector: React.FC<TaxonomyCompactSelectorProps> = (
         onClick={handleToggle}
         isExpanded={isOpen}
         isDisabled={taxonomyData.isLoading || taxonomyData.error !== null || taxonomyData.isError}
-        className={className}
+        className={['foreman-taxonomy-selector', className].filter(Boolean).join(' ')}
         aria-label={getAriaLabel()}
-        variant="plainText"
-        style={{
-          borderRadius: '6px',
-          border: '1px solid var(--pf-v5-global--BorderColor--100)',
-          backgroundColor: 'var(--pf-v5-global--BackgroundColor--100)',
-          minHeight: '32px',
-          padding: '6px 12px'
-        }}
+        variant="secondary"
       >
-        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsXs' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--pf-v6-global--spacer--xs)' }}>
           {/* Loading indicator */}
           {taxonomyData.isLoading && (
             <Spinner size="sm" />
@@ -341,21 +333,21 @@ export const TaxonomyCompactSelector: React.FC<TaxonomyCompactSelectorProps> = (
           
           {/* Error indicator */}
           {(taxonomyData.error || taxonomyData.isError) && (
-            <Icon size="sm" style={{ color: 'var(--pf-v5-global--danger-color--100)' }}>
+            <Icon size="sm" style={{ color: 'var(--pf-v6-global--danger-color--100)' }}>
               <InfoCircleIcon />
             </Icon>
           )}
           
           {/* Organization indicator */}
           {!taxonomyData.isLoading && !taxonomyData.error && !taxonomyData.isError && showOrganization && (
-            <Icon size="sm" style={{ color: currentOrg ? 'var(--pf-v5-global--success-color--100)' : 'var(--pf-v5-global--Color--200)' }}>
+            <Icon size="sm" style={{ color: currentOrg ? 'var(--pf-v6-global--success-color--100)' : 'var(--pf-v6-global--Color--200)' }}>
               <BuildingIcon />
             </Icon>
           )}
           
           {/* Location indicator */}
           {!taxonomyData.isLoading && !taxonomyData.error && !taxonomyData.isError && showLocation && (
-            <Icon size="sm" style={{ color: currentLoc ? 'var(--pf-v5-global--success-color--100)' : 'var(--pf-v5-global--Color--200)' }}>
+            <Icon size="sm" style={{ color: currentLoc ? 'var(--pf-v6-global--success-color--100)' : 'var(--pf-v6-global--Color--200)' }}>
               <MapMarkerAltIcon />
             </Icon>
           )}
@@ -365,20 +357,22 @@ export const TaxonomyCompactSelector: React.FC<TaxonomyCompactSelectorProps> = (
             content={(taxonomyData.error || taxonomyData.isError) ? 'Error loading data' : (taxonomyData.isLoading ? 'Loading...' : getDisplayText())}
             isVisible={!taxonomyData.isLoading && !taxonomyData.error && !taxonomyData.isError && getDisplayText().length > 20 ? undefined : false}
           >
-            <Text 
-              component={TextVariants.small}
-              style={{ 
-                maxWidth: '180px',
+            <Content 
+              component={ContentVariants.small}
+              className="foreman-taxonomy-selector-text"
+              style={{
+                maxWidth: '280px',
+                minWidth: '180px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                color: (taxonomyData.error || taxonomyData.isError) ? 'var(--pf-v5-global--danger-color--100)' : 'inherit'
+                color: (taxonomyData.error || taxonomyData.isError) ? 'var(--pf-v6-global--danger-color--100)' : undefined
               }}
             >
               {(taxonomyData.error || taxonomyData.isError) ? 'Error loading data' : (taxonomyData.isLoading ? 'Loading...' : getDisplayText())}
-            </Text>
+            </Content>
           </Tooltip>
-        </Flex>
+        </div>
       </MenuToggle>
     </Popover>
   );

@@ -91,8 +91,8 @@ describe('Registration Component', () => {
     // Test that key form elements are present
     expect(screen.getByLabelText(/Host Group/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Smart Proxy/)).toBeInTheDocument();
-    // For PatternFly Switch components, look for the text content instead
-    expect(screen.getByText(/Allow insecure registration/)).toBeInTheDocument();
+    // For PatternFly Switch components, check for the default secure registration text
+    expect(screen.getByText(/Secure registration/)).toBeInTheDocument();
   });
 
   it('should render generate command button', () => {

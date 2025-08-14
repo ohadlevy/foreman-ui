@@ -14,7 +14,6 @@ import {
   FlexItem,
   Badge,
   EmptyState,
-  EmptyStateIcon,
   EmptyStateBody,
   Spinner
 } from '@patternfly/react-core';
@@ -282,8 +281,11 @@ export const TaxonomyTree: React.FC<TaxonomyTreeProps> = ({
   const renderTreeContent = () => {
     if (isLoading) {
       return (
-        <EmptyState>
-          <EmptyStateIcon icon={Spinner} />
+        <EmptyState
+          titleText={`Loading ${type}s...`}
+          icon={Spinner}
+          variant="lg"
+        >
           <EmptyStateBody>Loading {type}s...</EmptyStateBody>
         </EmptyState>
       );
@@ -299,8 +301,11 @@ export const TaxonomyTree: React.FC<TaxonomyTreeProps> = ({
 
     if (treeViewData.length === 0) {
       return (
-        <EmptyState>
-          <EmptyStateIcon icon={SearchIcon} />
+        <EmptyState
+          titleText={searchValue ? `No ${type}s match` : `No ${type}s available`}
+          icon={SearchIcon}
+          variant="lg"
+        >
           <EmptyStateBody>
             {searchValue 
               ? `No ${type}s match "${searchValue}"`

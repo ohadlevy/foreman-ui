@@ -99,7 +99,7 @@ export const Registration: React.FC = () => {
 
   return (
     <>
-      <PageSection variant="light">
+      <PageSection variant="secondary">
         <Title headingLevel="h1" size="2xl">
           Host Registration
         </Title>
@@ -228,8 +228,7 @@ export const Registration: React.FC = () => {
                   >
                     <Switch
                       id="insecure-registration"
-                      label="Allow insecure registration"
-                      labelOff="Secure registration (requires certificates)"
+                      label={formData.insecure ? "Allow insecure registration" : "Secure registration (requires certificates)"}
                       isChecked={formData.insecure || false}
                       onChange={(_event, checked) => handleInputChange('insecure', checked)}
                     />
@@ -264,14 +263,14 @@ export const Registration: React.FC = () => {
                     variant="danger"
                     title="Failed to generate command"
                     isInline
-                    className="pf-v5-u-mb-md"
+                    className="pf-v6-u-mb-md"
                   >
                     {(generateCommand.error as Error)?.message || 'Unable to generate registration command'}
                   </Alert>
                 ) : null}
 
                 {generateCommand.isPending && (
-                  <div className="pf-v5-u-text-align-center pf-v5-u-p-lg">
+                  <div className="pf-v6-u-text-align-center pf-v6-u-p-lg">
                     <Spinner size="lg" />
                     <p>Generating registration token...</p>
                   </div>
@@ -307,7 +306,7 @@ export const Registration: React.FC = () => {
                 )}
 
                 {!generatedCommand && !generateCommand.isPending && (
-                  <p className="pf-v5-u-color-200">
+                  <p className="pf-v6-u-color-200">
                     Configure the registration settings and click &quot;Generate Registration Command&quot; to get started.
                   </p>
                 )}

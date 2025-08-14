@@ -7,9 +7,9 @@ import {
   CardBody,
   Gallery,
   GalleryItem,
-  Text,
-  TextContent,
-  TextVariants,
+  Content,
+  ContentVariants,
+  Button,
 } from '@patternfly/react-core';
 import {
   ServerIcon,
@@ -81,16 +81,16 @@ export const Dashboard: React.FC = () => {
   ];
 
   return (
-    <>
-      <PageSection variant="light">
-        <TextContent>
+    <div data-testid="dashboard-page">
+      <PageSection variant="secondary">
+        <Content>
           <Title headingLevel="h1" size="2xl">
             Welcome{user?.firstname ? `, ${user.firstname}` : ''}!
           </Title>
-          <Text component={TextVariants.p}>
+          <Content component={ContentVariants.p}>
             Manage your infrastructure and monitor your hosts from this dashboard.
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
       </PageSection>
 
       <PageSection>
@@ -108,9 +108,9 @@ export const Dashboard: React.FC = () => {
                   <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '8px' }}>
                     {hostsLoading ? '...' : stat.value}
                   </div>
-                  <Text component={TextVariants.small}>
+                  <Content component={ContentVariants.small}>
                     {stat.description}
-                  </Text>
+                  </Content>
                 </CardBody>
               </Card>
             </GalleryItem>
@@ -126,14 +126,19 @@ export const Dashboard: React.FC = () => {
               <Gallery hasGutter>
                 {quickActions.map((action) => (
                   <GalleryItem key={action.title}>
-                    <Card isClickable onClick={action.onClick}>
-                      <CardBody>
-                        <Title headingLevel="h3" size="lg">
+                    <Card>
+                      <CardBody style={{ textAlign: 'center', padding: '2rem' }}>
+                        <Button 
+                          variant="primary" 
+                          size="lg"
+                          onClick={action.onClick}
+                          style={{ marginBottom: '1rem', minWidth: '200px' }}
+                        >
                           {action.title}
-                        </Title>
-                        <Text>
+                        </Button>
+                        <Content style={{ color: 'var(--pf-v6-global--Color--200)', fontSize: '0.9rem' }}>
                           {action.description}
-                        </Text>
+                        </Content>
                       </CardBody>
                     </Card>
                   </GalleryItem>
@@ -148,6 +153,6 @@ export const Dashboard: React.FC = () => {
       <PageSection>
         <DraggableDashboard />
       </PageSection>
-    </>
+    </div>
   );
 };

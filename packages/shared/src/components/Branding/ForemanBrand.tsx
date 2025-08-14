@@ -28,15 +28,35 @@ export const ForemanBrand: React.FC<ForemanBrandProps> = ({
   };
 
   const brandElement = (
-    <div className={`pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-sm ${className}`}>
+    <div 
+      className={`pf-v6-u-display-flex pf-v6-u-align-items-center pf-v6-u-gap-sm ${className}`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        flexWrap: 'nowrap',
+        whiteSpace: 'nowrap',
+        gap: 'var(--pf-v6-global--spacer--sm)'
+      }}
+    >
       <Brand
         src={FOREMAN_BRANDING.logoPath}
         alt={FOREMAN_BRANDING.name}
         heights={{ default: heights[size] }}
-        style={{ filter: 'none' }} // Remove any filtering
+        style={{ flexShrink: 0, display: 'inline-block' }}
       />
       {showText && (
-        <Title headingLevel="h1" size={titleSizes[size]} style={{ color: FOREMAN_BRANDING.colors.primary }}>
+        <Title 
+          headingLevel="h1" 
+          size={titleSizes[size]} 
+          className="pf-v6-c-title"
+          style={{ 
+            color: FOREMAN_BRANDING.colors.primary,
+            margin: 0,
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            display: 'inline-block'
+          }}
+        >
           {FOREMAN_BRANDING.name}
         </Title>
       )}
@@ -48,7 +68,7 @@ export const ForemanBrand: React.FC<ForemanBrandProps> = ({
       <div
         onClick={onClick}
         style={{ cursor: 'pointer' }}
-        className="pf-v5-u-display-inline-block"
+        className="pf-v6-u-display-inline-block"
       >
         {brandElement}
       </div>

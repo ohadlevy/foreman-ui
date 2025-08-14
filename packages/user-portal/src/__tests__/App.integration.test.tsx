@@ -35,9 +35,53 @@ vi.mock('@foreman/shared', () => {
         secondary: '#0187b6',
       }
     },
+    FOREMAN_URLS: {
+      website: 'https://theforeman.org',
+      documentation: 'https://theforeman.org/manuals',
+      community: 'https://community.theforeman.org',
+    },
+    EXTENSION_POINTS: {
+      DASHBOARD_WIDGETS: 'dashboard_widgets',
+      HOST_DETAILS_TABS: 'host_details_tabs',
+      USER_MENU_ITEMS: 'user_menu_items',
+    },
     AuthProvider: vi.fn(({ children }) => <div data-testid="auth-provider">{children}</div>),
     ErrorBoundary: vi.fn(({ children }) => <div data-testid="error-boundary">{children}</div>),
+    LoginForm: vi.fn(({ onSubmit, error, clearError }) => (
+      <form data-testid="login-form" onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit({ login: 'ohad', password: 'secret' });
+      }}>
+        <input data-testid="login-input" type="text" />
+        <input data-testid="password-input" type="password" />
+        <button type="submit" data-testid="login-submit">Login</button>
+        {error && (
+          <div>
+            <div data-testid="error-message">{error}</div>
+            <button type="button" data-testid="clear-error" onClick={clearError}>
+              Clear Error
+            </button>
+          </div>
+        )}
+      </form>
+    )),
+    getSystemTheme: vi.fn().mockReturnValue('light'),
   };
+});
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 });
 
 const mockLogin = vi.fn<[LoginCredentials], Promise<AuthResponse>>().mockResolvedValue({
@@ -247,6 +291,9 @@ describe('App Integration Tests', () => {
 
       renderApp();
 
+      // The LoginForm should receive the error and show clear button
+      expect(screen.getByTestId('error-message')).toHaveTextContent('Some error');
+      
       await user.click(screen.getByTestId('clear-error'));
 
       expect(mockClearError).toHaveBeenCalled();

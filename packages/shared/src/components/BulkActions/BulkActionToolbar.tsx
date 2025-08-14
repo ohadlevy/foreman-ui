@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Toolbar,
-  ToolbarContent,
-  ToolbarItem,
   Button,
   Dropdown,
   DropdownList,
@@ -41,105 +38,90 @@ export const BulkActionToolbar: React.FC<BulkActionToolbarProps> = ({
   const [isActionsOpen, setIsActionsOpen] = useState(false);
 
 
-  // Always render the container to prevent layout jumps
-  if (selectedCount === 0) {
-    return (
-      <div style={{ minHeight: '56px', visibility: 'hidden' }}>
-        <Toolbar><ToolbarContent></ToolbarContent></Toolbar>
-      </div>
-    );
-  }
-
   const enabledActions = actions.filter(action => !action.disabled);
   const primaryActions = enabledActions.slice(0, 2);
   const secondaryActions = enabledActions.slice(2);
 
   return (
-    <Toolbar>
-      <ToolbarContent>
-        <ToolbarItem>
-          <Split hasGutter>
-            <SplitItem>
-              <Badge isRead>
-                {selectedCount} of {totalCount} selected
-              </Badge>
-            </SplitItem>
-            <SplitItem>
-              <Button
-                variant="link"
-                icon={<TimesIcon />}
-                onClick={onClearSelection}
-                size="sm"
-              >
-                Clear selection
-              </Button>
-            </SplitItem>
-            {showSelectAllPages && selectedCount < totalCount && (
-              <SplitItem>
-                <Button
-                  variant="link"
-                  onClick={onSelectAllPages}
-                  size="sm"
-                >
-                  Select all {totalCount} items
-                </Button>
-              </SplitItem>
-            )}
-          </Split>
-        </ToolbarItem>
-
-        {primaryActions.length > 0 && (
-          <>
-            {primaryActions.map((action) => (
-              <ToolbarItem key={action.id}>
-                <Button
-                  variant={action.destructive ? 'danger' : 'secondary'}
-                  onClick={() => onActionClick(action)}
-                  isDisabled={action.disabled}
-                  title={action.disabledReason}
-                >
-                  {action.label}
-                </Button>
-              </ToolbarItem>
-            ))}
-          </>
-        )}
-
-        {secondaryActions.length > 0 && (
-          <ToolbarItem>
-            <Dropdown
-              isOpen={isActionsOpen}
-              onOpenChange={setIsActionsOpen}
-              toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                <MenuToggle
-                  ref={toggleRef}
-                  onClick={() => setIsActionsOpen(!isActionsOpen)}
-                  variant="secondary"
-                  icon={<EllipsisVIcon />}
-                >
-                  More actions
-                </MenuToggle>
-              )}
+    <div className="pf-v6-l-flex pf-m-align-items-center pf-m-gap-sm">
+      {/* Selection info */}
+      <Split hasGutter>
+        <SplitItem>
+          <Badge isRead>
+            {selectedCount} of {totalCount} selected
+          </Badge>
+        </SplitItem>
+        <SplitItem>
+          <Button
+            variant="link"
+            icon={<TimesIcon />}
+            onClick={onClearSelection}
+          >
+            Clear selection
+          </Button>
+        </SplitItem>
+        {showSelectAllPages && selectedCount < totalCount && (
+          <SplitItem>
+            <Button
+              variant="link"
+              onClick={onSelectAllPages}
             >
-              <DropdownList>
-                {secondaryActions.map((action) => (
-                  <DropdownItem
-                    key={action.id}
-                    onClick={() => {
-                      onActionClick(action);
-                      setIsActionsOpen(false);
-                    }}
-                    isDisabled={action.disabled}
-                    isDanger={action.destructive}
-                  >
-                    {action.label}
-                  </DropdownItem>
-                ))}
-              </DropdownList>
-            </Dropdown>
-          </ToolbarItem>
+              Select all {totalCount} items
+            </Button>
+          </SplitItem>
         )}
-      </ToolbarContent>
-    </Toolbar>
+      </Split>
+
+      {/* Primary actions */}
+      {primaryActions.length > 0 && (
+        <div className="pf-v6-l-flex pf-m-gap-sm">
+          {primaryActions.map((action) => (
+            <Button
+              key={action.id}
+              variant={action.destructive ? 'danger' : 'secondary'}
+              onClick={() => onActionClick(action)}
+              isDisabled={action.disabled}
+              title={action.disabledReason}
+            >
+              {action.label}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {/* Secondary actions dropdown */}
+      {secondaryActions.length > 0 && (
+        <Dropdown
+          isOpen={isActionsOpen}
+          onOpenChange={setIsActionsOpen}
+          toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+            <MenuToggle
+              ref={toggleRef}
+              onClick={() => setIsActionsOpen(!isActionsOpen)}
+              variant="secondary"
+              icon={<EllipsisVIcon />}
+            >
+              More actions
+            </MenuToggle>
+          )}
+        >
+          <DropdownList>
+            {secondaryActions.map((action) => (
+              <DropdownItem
+                key={action.id}
+                onClick={() => {
+                  onActionClick(action);
+                  setIsActionsOpen(false);
+                }}
+                isDisabled={action.disabled}
+                isDanger={action.destructive}
+              >
+                {action.label}
+              </DropdownItem>
+            ))}
+          </DropdownList>
+        </Dropdown>
+      )}
+    </div>
   );
 };

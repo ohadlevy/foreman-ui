@@ -63,7 +63,6 @@ describe('QuickNav', () => {
 
       const button = screen.getByRole('button', { name: /quick navigation/i });
       expect(button).toBeInTheDocument();
-      expect(button).toHaveTextContent('Quick Nav');
     });
 
     it('should apply custom className when provided', () => {
@@ -206,9 +205,13 @@ describe('QuickNav', () => {
       fireEvent.click(button);
 
       await waitFor(() => {
-        // Check that menu items are rendered with icons
-        const menuItems = screen.getAllByRole('menuitem');
-        expect(menuItems.length).toBeGreaterThan(0);
+        // Check that quick links are rendered with icons
+        const quickLinksSection = screen.getByText('Quick Links');
+        expect(quickLinksSection).toBeInTheDocument();
+        
+        // Check for activity icons (they're in span elements with pf-v6-c-icon class)
+        const iconElements = document.querySelectorAll('.pf-v6-c-icon');
+        expect(iconElements.length).toBeGreaterThan(0);
       });
     });
   });

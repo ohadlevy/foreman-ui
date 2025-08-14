@@ -5,12 +5,11 @@ import {
   Toolbar,
   ToolbarContent,
   ToolbarItem,
+  ToolbarGroup,
   Button,
   SearchInput,
   Pagination,
-  Card,
   EmptyState,
-  EmptyStateIcon,
   EmptyStateBody,
   Dropdown,
   DropdownList,
@@ -20,9 +19,12 @@ import {
   Divider,
   Modal,
   ModalVariant,
+  ModalBody,
+  ModalFooter,
   Checkbox,
   Form,
   FormGroup,
+  Card,
 } from '@patternfly/react-core';
 import {
   Table,
@@ -61,9 +63,7 @@ import {
 } from '@foreman/shared';
 import { Host } from '@foreman/shared';
 
-// Layout constants - using PatternFly design tokens for consistent spacing
-// Standard PatternFly toolbar height based on design system specifications
-const BULK_ACTIONS_TOOLBAR_HEIGHT = '48px'; // Matches PatternFly v5 toolbar minimum height
+// Layout constants removed - using CSS-based spacing instead
 
 // Column type definition
 interface ColumnConfig {
@@ -388,14 +388,14 @@ export const HostsList: React.FC = () => {
     switch (columnKey) {
       case 'name':
         return (
-          <div className="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-sm">
+          <div className="pf-v6-u-display-flex pf-v6-u-align-items-center pf-v6-u-gap-sm">
             <ServerIcon />
             {host.name}
           </div>
         );
       case 'status':
         return (
-          <div className="pf-v5-u-display-flex pf-v5-u-align-items-center pf-v5-u-gap-sm">
+          <div className="pf-v6-u-display-flex pf-v6-u-align-items-center pf-v6-u-gap-sm">
             {getStatusIcon(host)}
             {getStatusText(host)}
           </div>
@@ -435,11 +435,11 @@ export const HostsList: React.FC = () => {
     return (
       <PageSection>
         <Card>
-          <EmptyState>
-            <EmptyStateIcon icon={ExclamationTriangleIcon} />
-            <Title headingLevel="h4" size="lg">
-              Error loading hosts
-            </Title>
+          <EmptyState
+            titleText="Error loading hosts"
+            icon={ExclamationTriangleIcon}
+            variant="lg"
+          >
             <EmptyStateBody>
               {(error as Error)?.message || 'Failed to load hosts'}
             </EmptyStateBody>
@@ -462,101 +462,106 @@ export const HostsList: React.FC = () => {
       ]}
       userPermissions={userPermissions}
     >
-      <PageSection variant="light">
+      <PageSection variant="secondary">
         <Title headingLevel="h1" size="2xl">
           Hosts
         </Title>
       </PageSection>
 
       <PageSection>
-        <Card>
-          <Toolbar id="hosts-toolbar">
+        <Toolbar id="hosts-toolbar">
             <ToolbarContent>
-              <ToolbarItem>
-                <SearchInput
-                  placeholder="Search hosts..."
-                  value={search}
-                  onChange={(_event, value) => setSearch(value)}
-                  onClear={() => setSearch('')}
-                />
-              </ToolbarItem>
+              {/* Left group - Search and filters */}
+              <ToolbarGroup>
+                <ToolbarItem>
+                  <SearchInput
+                    placeholder="Search hosts..."
+                    value={search}
+                    onChange={(_event, value) => setSearch(value)}
+                    onClear={() => setSearch('')}
+                  />
+                </ToolbarItem>
 
-              <ToolbarItem>
-                <Dropdown
-                  isOpen={recentDropdownOpen}
-                  onOpenChange={setRecentDropdownOpen}
-                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                    <MenuToggle
-                      ref={toggleRef}
-                      onClick={() => setRecentDropdownOpen(!recentDropdownOpen)}
-                      variant="secondary"
-                      icon={<HistoryIcon />}
-                    >
-                      Recent
-                    </MenuToggle>
-                  )}
-                >
-                  <DropdownList>
-                    <DropdownItem isDisabled>
-                      <strong>Recent Hosts</strong>
-                    </DropdownItem>
-                    <RecentHosts onItemSelect={() => setRecentDropdownOpen(false)} />
-                    <Divider />
-                    <DropdownItem isDisabled>
-                      <strong>Recent Searches</strong>
-                    </DropdownItem>
-                    <RecentSearches onItemSelect={() => setRecentDropdownOpen(false)} />
-                  </DropdownList>
-                </Dropdown>
-              </ToolbarItem>
-
-              <ToolbarItem>
-                <Button
-                  variant="secondary"
-                  icon={<CogIcon />}
-                  onClick={() => setColumnManagerOpen(true)}
-                >
-                  Manage columns
-                </Button>
-              </ToolbarItem>
-
-              {canCreateHosts() && (
-                <ToolbarItem align={{ default: 'alignRight' }}>
-                  <Button
-                    variant="primary"
-                    icon={<PlusIcon />}
-                    onClick={() => navigate('/hosts/new')}
+                <ToolbarItem>
+                  <Dropdown
+                    isOpen={recentDropdownOpen}
+                    onOpenChange={setRecentDropdownOpen}
+                    toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                      <MenuToggle
+                        ref={toggleRef}
+                        onClick={() => setRecentDropdownOpen(!recentDropdownOpen)}
+                        variant="secondary"
+                        icon={<HistoryIcon />}
+                      >
+                        Recent
+                      </MenuToggle>
+                    )}
                   >
-                    Create Host
+                    <DropdownList>
+                      <DropdownItem isDisabled>
+                        <strong>Recent Hosts</strong>
+                      </DropdownItem>
+                      <RecentHosts onItemSelect={() => setRecentDropdownOpen(false)} />
+                      <Divider />
+                      <DropdownItem isDisabled>
+                        <strong>Recent Searches</strong>
+                      </DropdownItem>
+                      <RecentSearches onItemSelect={() => setRecentDropdownOpen(false)} />
+                    </DropdownList>
+                  </Dropdown>
+                </ToolbarItem>
+
+                <ToolbarItem>
+                  <Button
+                    variant="secondary"
+                    icon={<CogIcon />}
+                    onClick={() => setColumnManagerOpen(true)}
+                  >
+                    Manage columns
                   </Button>
                 </ToolbarItem>
-              )}
+              </ToolbarGroup>
+
+              {/* Right group - Actions */}
+              <ToolbarGroup align={{ default: 'alignEnd' }}>
+                {canCreateHosts() && (
+                  <ToolbarItem>
+                    <Button
+                      variant="primary"
+                      icon={<PlusIcon />}
+                      onClick={() => navigate('/hosts/new')}
+                    >
+                      Create Host
+                    </Button>
+                  </ToolbarItem>
+                )}
+              </ToolbarGroup>
             </ToolbarContent>
+
+            {/* Bulk Actions - Show in separate toolbar row when active */}
+            {hosts.length > 0 && selectedCount > 0 && (
+              <ToolbarContent>
+                <ToolbarItem>
+                  <BulkActionsContainer
+                    selectedItems={selectedItems}
+                    totalCount={total}
+                    onClearSelection={clearSelection}
+                    onSelectAllPages={selectAllPages}
+                    showSelectAllPages={selectedCount > 0 && selectedCount < total}
+                    onSuccess={refetch}
+                  />
+                </ToolbarItem>
+              </ToolbarContent>
+            )}
           </Toolbar>
 
-          {/* Bulk Actions - always render container to prevent layout jump */}
-          {hosts.length > 0 && (
-            <div style={{ minHeight: BULK_ACTIONS_TOOLBAR_HEIGHT, marginBottom: '1rem' }}>
-              {selectedCount > 0 && (
-                <BulkActionsContainer
-                  selectedItems={selectedItems}
-                  totalCount={total}
-                  onClearSelection={clearSelection}
-                  onSelectAllPages={selectAllPages}
-                  showSelectAllPages={selectedCount > 0 && selectedCount < total}
-                  onSuccess={refetch}
-                  className="pf-v5-u-mb-md"
-                />
-              )}
-            </div>
-          )}
 
           {hosts.length === 0 ? (
-            <EmptyState>
-              <EmptyStateIcon icon={ServerIcon} />
-              <Title headingLevel="h4" size="lg">
-                No hosts found
-              </Title>
+            <EmptyState
+              titleText="No hosts found"
+              icon={ServerIcon}
+              variant="lg"
+            >
               <EmptyStateBody>
                 {search
                   ? 'No hosts match your search criteria.'
@@ -623,7 +628,7 @@ export const HostsList: React.FC = () => {
               {total > perPage && (
                 <Toolbar>
                   <ToolbarContent>
-                    <ToolbarItem align={{ default: 'alignRight' }}>
+                    <ToolbarItem align={{ default: 'alignEnd' }}>
                       <Pagination
                         itemCount={total}
                         perPage={perPage}
@@ -641,7 +646,6 @@ export const HostsList: React.FC = () => {
               )}
             </>
           )}
-        </Card>
       </PageSection>
 
       {/* Column Management Modal */}
@@ -650,43 +654,45 @@ export const HostsList: React.FC = () => {
         title="Manage columns"
         isOpen={columnManagerOpen}
         onClose={() => setColumnManagerOpen(false)}
-        actions={[
-          <Button key="confirm" variant="primary" onClick={() => setColumnManagerOpen(false)}>
-            Apply
-          </Button>,
-          <Button key="cancel" variant="link" onClick={() => setColumnManagerOpen(false)}>
-            Cancel
-          </Button>,
-        ]}
       >
-        <Form>
-          <FormGroup label="Core columns" fieldId="core-columns">
-            {columns.filter(col => col.source === 'core').map(column => (
-              <Checkbox
-                key={column.key}
-                id={`column-${column.key}`}
-                label={column.label}
-                isChecked={column.enabled}
-                isDisabled={column.required}
-                onChange={() => toggleColumn(column.key)}
-              />
-            ))}
-          </FormGroup>
-
-          {columns.some(col => col.source === 'plugin') && (
-            <FormGroup label="Plugin columns" fieldId="plugin-columns">
-              {columns.filter(col => col.source === 'plugin').map(column => (
+        <ModalBody>
+          <Form>
+            <FormGroup label="Core columns" fieldId="core-columns">
+              {columns.filter(col => col.source === 'core').map(column => (
                 <Checkbox
                   key={column.key}
                   id={`column-${column.key}`}
-                  label={`${column.label} (${column.plugin || 'Plugin'})`}
+                  label={column.label}
                   isChecked={column.enabled}
+                  isDisabled={column.required}
                   onChange={() => toggleColumn(column.key)}
                 />
               ))}
             </FormGroup>
-          )}
-        </Form>
+
+            {columns.some(col => col.source === 'plugin') && (
+              <FormGroup label="Plugin columns" fieldId="plugin-columns">
+                {columns.filter(col => col.source === 'plugin').map(column => (
+                  <Checkbox
+                    key={column.key}
+                    id={`column-${column.key}`}
+                    label={`${column.label} (${column.plugin || 'Plugin'})`}
+                    isChecked={column.enabled}
+                    onChange={() => toggleColumn(column.key)}
+                  />
+                ))}
+              </FormGroup>
+            )}
+          </Form>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="link" onClick={() => setColumnManagerOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={() => setColumnManagerOpen(false)}>
+            Apply
+          </Button>
+        </ModalFooter>
       </Modal>
     </BulkActionsProvider>
   );

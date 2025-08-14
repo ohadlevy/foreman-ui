@@ -3,7 +3,7 @@ import {
   Card,
   CardBody,
   CardTitle,
-  Text,
+  Content,
   Button,
   List,
   ListItem,
@@ -63,17 +63,17 @@ export const UserProfile: React.FC = () => {
         <CardBody>
           <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsMd' }}>
             <FlexItem>
-              <Text component="h3">{user.firstname} {user.lastname}</Text>
-              <Text component="small" style={{ color: 'var(--pf-global--Color--200)' }}>
+              <Content component="h3">{user.firstname} {user.lastname}</Content>
+              <Content component="small" style={{ color: 'var(--pf-v6-global--Color--200)' }}>
                 {user.login} • {user.mail}
-              </Text>
+              </Content>
               {user.admin && (
                 <Label color="red" style={{ marginLeft: '8px' }}>Administrator</Label>
               )}
             </FlexItem>
 
             <FlexItem>
-              <Text component="h4">Organizations</Text>
+              <Content component="h4">Organizations</Content>
               {user.organizations.length > 0 ? (
                 <List>
                   {user.organizations.map(org => (
@@ -81,12 +81,12 @@ export const UserProfile: React.FC = () => {
                   ))}
                 </List>
               ) : (
-                <Text component="small">No organizations assigned</Text>
+                <Content component="small">No organizations assigned</Content>
               )}
             </FlexItem>
 
             <FlexItem>
-              <Text component="h4">Locations</Text>
+              <Content component="h4">Locations</Content>
               {user.locations.length > 0 ? (
                 <List>
                   {user.locations.map(loc => (
@@ -94,7 +94,7 @@ export const UserProfile: React.FC = () => {
                   ))}
                 </List>
               ) : (
-                <Text component="small">No locations assigned</Text>
+                <Content component="small">No locations assigned</Content>
               )}
             </FlexItem>
           </Flex>
@@ -107,7 +107,7 @@ export const UserProfile: React.FC = () => {
           {isLoading ? (
             <Flex justifyContent={{ default: 'justifyContentCenter' }}>
               <Spinner size="md" />
-              <Text style={{ marginLeft: '8px' }}>Loading tokens...</Text>
+              <Content style={{ marginLeft: '8px' }}>Loading tokens...</Content>
             </Flex>
           ) : error ? (
             <Alert variant={AlertVariant.danger} title="Error loading tokens">
@@ -123,12 +123,12 @@ export const UserProfile: React.FC = () => {
                   title="Current Session"
                 >
                   {currentToken ? (
-                    <Text component="small">
+                    <Content component="small">
                       Created: {formatUserFriendlyDate(currentToken.created_at)}
                       {currentToken.last_used_at && ` • Last used: ${formatUserFriendlyDate(currentToken.last_used_at)}`}
-                    </Text>
+                    </Content>
                   ) : (
-                    <Text component="small">Session information not available</Text>
+                    <Content component="small">Session information not available</Content>
                   )}
                   <Button
                     variant="danger"
@@ -145,9 +145,9 @@ export const UserProfile: React.FC = () => {
               <FlexItem>
                 <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
                   <FlexItem>
-                    <Text component="h4">
+                    <Content component="h4">
                       Personal Access Tokens ({activeTokens.length} active{tokens.length > activeTokens.length ? `, ${tokens.length - activeTokens.length} inactive` : ''})
-                    </Text>
+                    </Content>
                   </FlexItem>
                   <FlexItem>
                     <Switch
@@ -160,11 +160,11 @@ export const UserProfile: React.FC = () => {
                   </FlexItem>
                 </Flex>
                 {filteredTokens.length === 0 ? (
-                  <Text component="small">
+                  <Content component="small">
                     {showInactiveTokens
                       ? "No personal access tokens found."
                       : "No active personal access tokens found. Toggle 'Show inactive tokens' to see all tokens."}
-                  </Text>
+                  </Content>
                 ) : (
                   <List>
                     {filteredTokens.map(token => {
@@ -186,19 +186,19 @@ export const UserProfile: React.FC = () => {
                                     </FlexItem>
                                     <FlexItem>
                                       {(token['active?'] !== false && token.active !== false) ? (
-                                        <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
+                                        <CheckCircleIcon style={{ color: 'var(--pf-v6-global--success-color--100)' }} />
                                       ) : (
-                                        <TimesIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
+                                        <TimesIcon style={{ color: 'var(--pf-v6-global--danger-color--100)' }} />
                                       )}
                                     </FlexItem>
                                   </Flex>
                                 </FlexItem>
                                 <FlexItem>
-                                  <Text component="small">
+                                  <Content component="small">
                                     Created: {formatUserFriendlyDate(token.created_at)}
                                     {token.last_used_at && ` • Last used: ${formatUserFriendlyDate(token.last_used_at)}`}
                                     {token.expires_at && ` • Expires: ${formatUserFriendlyDate(token.expires_at)}`}
-                                  </Text>
+                                  </Content>
                                 </FlexItem>
                               </Flex>
                             </SplitItem>
@@ -225,11 +225,11 @@ export const UserProfile: React.FC = () => {
               {/* Security Notice */}
               <FlexItem>
                 <Alert variant={AlertVariant.info} isInline title="Security Notice">
-                  <Text component="small">
+                  <Content component="small">
                     Personal Access Tokens provide secure access to the Foreman API.
                     Keep your tokens secure and revoke any tokens you no longer need.
                     If you suspect a token has been compromised, revoke it immediately.
-                  </Text>
+                  </Content>
                 </Alert>
               </FlexItem>
             </Flex>

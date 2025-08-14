@@ -58,7 +58,7 @@ export const PluginMenu: React.FC<PluginMenuProps> = ({
     // For now, render all items as flat nav items
     // TODO: Implement proper expandable nav groups when needed
     return (
-      <NavItem key={item.id} hasNavLinkWrapper>
+      <NavItem key={item.id}>
         {item.path ? (
           <Link to={item.path}>{label}</Link>
         ) : (

@@ -102,7 +102,6 @@ vi.mock('@patternfly/react-core', async () => {
     ),
     Bullseye: ({ children }: any) => <div data-testid="bullseye">{children}</div>,
     EmptyState: ({ children }: any) => <div data-testid="empty-state">{children}</div>,
-    EmptyStateIcon: ({ icon }: any) => <div data-testid="empty-state-icon">{icon?.name}</div>,
     EmptyStateBody: ({ children }: any) => <div data-testid="empty-state-body">{children}</div>,
     Spinner: () => <div data-testid="spinner">Loading...</div>
   };

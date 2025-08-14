@@ -221,12 +221,17 @@ export const useUserSettingsStore = create<UserSettingsState>()(
 
 export const applyThemeToDocument = (theme: 'light' | 'dark') => {
   const html = document.documentElement;
+  const body = document.body;
   
   if (theme === 'dark') {
-    html.classList.add('pf-v5-theme-dark');
-    html.classList.remove('pf-v5-theme-light');
+    html.classList.add('pf-v6-theme-dark');
+    html.classList.remove('pf-v6-theme-light');
+    body.classList.add('pf-v6-theme-dark');
+    body.classList.remove('pf-v6-theme-light');
   } else {
-    html.classList.add('pf-v5-theme-light');
-    html.classList.remove('pf-v5-theme-dark');
+    html.classList.add('pf-v6-theme-light');
+    html.classList.remove('pf-v6-theme-dark');
+    body.classList.add('pf-v6-theme-light');
+    body.classList.remove('pf-v6-theme-dark');
   }
 };

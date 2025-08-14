@@ -62,11 +62,6 @@ vi.mock('@patternfly/react-core', async () => {
     FlexItem: ({ children }: any) => <div data-testid="flex-item">{children}</div>,
     Badge: ({ children }: any) => <span data-testid="badge">{children}</span>,
     EmptyState: ({ children }: any) => <div data-testid="empty-state">{children}</div>,
-    EmptyStateIcon: ({ icon, component }: any) => (
-      <div data-testid="empty-state-icon">
-        {component ? React.createElement(component) : icon?.name}
-      </div>
-    ),
     EmptyStateBody: ({ children }: any) => <div data-testid="empty-state-body">{children}</div>,
     Spinner: () => <div data-testid="spinner">Loading...</div>
   };
@@ -257,7 +252,6 @@ describe('TaxonomyTree', () => {
       );
       
       expect(screen.getByTestId('empty-state')).toBeInTheDocument();
-      expect(screen.getByTestId('empty-state-icon')).toBeInTheDocument();
       expect(screen.getByText('Loading organizations...')).toBeInTheDocument();
     });
 

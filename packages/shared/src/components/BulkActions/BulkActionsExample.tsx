@@ -6,8 +6,8 @@ import {
   CardBody,
   CardTitle,
   Checkbox,
-  Text,
-  TextVariants,
+  Content,
+  ContentVariants,
   Label,
 } from '@patternfly/react-core';
 import {
@@ -129,14 +129,14 @@ export const BulkActionsExample: React.FC = () => {
         <PageSection>
           <Card>
             <CardTitle>
-              <Text component={TextVariants.h2}>
+              <Content component={ContentVariants.h2}>
                 Host Management with Bulk Actions
-              </Text>
-              <Text component={TextVariants.p}>
+              </Content>
+              <Content component={ContentVariants.p}>
                 Select hosts below to perform bulk operations. This example demonstrates 
                 the complete bulk actions workflow including selection management, 
                 action execution, and progress tracking.
-              </Text>
+              </Content>
             </CardTitle>
             <CardBody>
               {/* Bulk Actions Toolbar */}
@@ -146,7 +146,7 @@ export const BulkActionsExample: React.FC = () => {
                 onClearSelection={handleClearSelection}
                 onSelectAllPages={handleSelectAllPages}
                 showSelectAllPages={shouldShowSelectAllPages}
-                className="pf-v5-u-mb-md"
+                className="pf-v6-u-mb-md"
                 autoClearTimeoutMs={5000} // Custom 5-second timeout for demo
               />
 
@@ -199,10 +199,10 @@ export const BulkActionsExample: React.FC = () => {
               </Table>
 
               {selectedHostIds.length === 0 && (
-                <div className="pf-v5-u-text-align-center pf-v5-u-py-xl">
-                  <Text component={TextVariants.p}>
+                <div className="pf-v6-u-text-align-center pf-v6-u-py-xl">
+                  <Content component={ContentVariants.p}>
                     Select one or more hosts to see available bulk actions.
-                  </Text>
+                  </Content>
                 </div>
               )}
             </CardBody>
@@ -213,26 +213,26 @@ export const BulkActionsExample: React.FC = () => {
           <Card>
             <CardTitle>Integration Notes</CardTitle>
             <CardBody>
-              <Text component={TextVariants.h3}>How to integrate bulk actions:</Text>
-              <ol className="pf-v5-u-pl-lg">
-                <li className="pf-v5-u-mb-sm">
+              <Content component={ContentVariants.h3}>How to integrate bulk actions:</Content>
+              <ol className="pf-v6-u-pl-lg">
+                <li className="pf-v6-u-mb-sm">
                   <strong>Wrap your application with BulkActionsProvider:</strong> Configure available actions and user permissions
                 </li>
-                <li className="pf-v5-u-mb-sm">
+                <li className="pf-v6-u-mb-sm">
                   <strong>Use BulkActionsContainer:</strong> Provides the toolbar, modal, and progress components
                 </li>
-                <li className="pf-v5-u-mb-sm">
+                <li className="pf-v6-u-mb-sm">
                   <strong>Implement selection state:</strong> Track selected items and provide selection management
                 </li>
-                <li className="pf-v5-u-mb-sm">
+                <li className="pf-v6-u-mb-sm">
                   <strong>Pass selected items:</strong> Provide the container with selected items in the expected format
                 </li>
               </ol>
 
-              <Text component={TextVariants.h3} className="pf-v5-u-mt-lg">
+              <Content component={ContentVariants.h3} className="pf-v6-u-mt-lg">
                 Available Configuration Options:
-              </Text>
-              <ul className="pf-v5-u-pl-lg">
+              </Content>
+              <ul className="pf-v6-u-pl-lg">
                 <li><strong>enabledActions:</strong> Array of action IDs to enable</li>
                 <li><strong>userPermissions:</strong> Array of user permissions for action filtering</li>
                 <li><strong>showSelectAllPages:</strong> Enable &quot;select all&quot; functionality for paginated data</li>

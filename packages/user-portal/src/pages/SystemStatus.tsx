@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './SystemStatus.module.css';
 import {
   PageSection,
   Title,
@@ -9,16 +10,13 @@ import {
   GridItem,
   List,
   ListItem,
-  Text,
-  TextContent,
-  TextVariants,
+  Content,
+  ContentVariants,
   Label,
   Flex,
   FlexItem,
   EmptyState,
-  EmptyStateIcon,
   EmptyStateBody,
-  EmptyStateHeader,
   ExpandableSection,
   Progress,
   ProgressMeasureLocation,
@@ -169,20 +167,20 @@ const SystemStatusComponents: React.FC<{
 }) => {
   if (statusesLoading) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <Text>Loading system statuses...</Text>
+      <div className={styles.centerLoading}>
+        <Content>Loading system statuses...</Content>
       </div>
     );
   }
 
   if (statusesError) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <ExclamationTriangleIcon style={{ color: 'var(--pf-global--warning-color--100)', marginRight: '0.5rem' }} />
-        <Text>Unable to fetch system statuses</Text>
-        <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
+      <div className={styles.errorContainer}>
+        <ExclamationTriangleIcon className={styles.warningIcon} />
+        <Content>Unable to fetch system statuses</Content>
+        <Content component={ContentVariants.small} className={styles.secondaryText}>
           This may indicate the Foreman API is not accessible or the /api/statuses endpoint is not available.
-        </Text>
+        </Content>
       </div>
     );
   }
@@ -190,12 +188,12 @@ const SystemStatusComponents: React.FC<{
   const foremanData = statuses?.results?.foreman;
   if (!foremanData) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <InfoIcon style={{ color: 'var(--pf-global--info-color--100)', marginRight: '0.5rem' }} />
-        <Text>No system status information available</Text>
-        <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
+      <div className={styles.errorContainer}>
+        <InfoIcon className={styles.infoIcon} />
+        <Content>No system status information available</Content>
+        <Content component={ContentVariants.small} className={styles.secondaryText}>
           The Foreman API did not return any status components to monitor.
-        </Text>
+        </Content>
       </div>
     );
   }
@@ -233,41 +231,39 @@ const SystemStatusComponents: React.FC<{
     <Grid hasGutter>
       {systemComponents.map((component) => (
         <GridItem key={component.key} span={6} xl={4}>
-          <Card isCompact>
-            <CardBody>
-              <Flex>
-                <FlexItem>
-                  <div style={{ marginRight: '0.5rem', color: 'var(--pf-global--Color--200)' }}>
-                    {component.icon}
-                  </div>
-                </FlexItem>
-                <FlexItem>
-                  <div>
-                    <Text component={TextVariants.small}>{component.label}</Text>
-                    <Text component={TextVariants.small} style={{ color: 'var(--pf-global--Color--200)' }}>
-                      {component.description}
-                      {component.duration && ` (${component.duration}ms)`}
-                    </Text>
-                  </div>
-                </FlexItem>
-                <FlexItem align={{ default: 'alignRight' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    {component.status === STATUS.OK ? (
-                      <CheckCircleIcon style={{ color: 'var(--pf-global--success-color--100)' }} />
-                    ) : (
-                      <ExclamationTriangleIcon style={{ color: 'var(--pf-global--danger-color--100)' }} />
-                    )}
-                    <Label
-                      color={component.status === STATUS.OK ? 'green' : 'red'}
-                      isCompact
-                    >
-                      {component.status.toUpperCase()}
-                    </Label>
-                  </div>
-                </FlexItem>
-              </Flex>
-            </CardBody>
-          </Card>
+          <div className={styles.componentCard}>
+            <Flex>
+              <FlexItem>
+                <div className={styles.iconContainer}>
+                  {component.icon}
+                </div>
+              </FlexItem>
+              <FlexItem>
+                <div>
+                  <Content component={ContentVariants.small}>{component.label}</Content>
+                  <Content component={ContentVariants.small} className={styles.secondaryText}>
+                    {component.description}
+                    {component.duration && ` (${component.duration}ms)`}
+                  </Content>
+                </div>
+              </FlexItem>
+              <FlexItem align={{ default: 'alignRight' }}>
+                <div className={styles.statusContainer}>
+                  {component.status === STATUS.OK ? (
+                    <CheckCircleIcon className={styles.successIcon} />
+                  ) : (
+                    <ExclamationTriangleIcon className={styles.dangerIcon} />
+                  )}
+                  <Label
+                    color={component.status === STATUS.OK ? 'green' : 'red'}
+                    isCompact
+                  >
+                    {component.status.toUpperCase()}
+                  </Label>
+                </div>
+              </FlexItem>
+            </Flex>
+          </div>
         </GridItem>
       ))}
     </Grid>
@@ -324,19 +320,19 @@ export const SystemStatus: React.FC = () => {
   };
 
   const getHealthIcon = (percentage: number) => {
-    if (percentage >= HEALTH_THRESHOLDS.HEALTHY) return <CheckCircleIcon color="var(--pf-global--success-color--100)" />;
-    if (percentage >= HEALTH_THRESHOLDS.WARNING) return <ExclamationTriangleIcon color="var(--pf-global--warning-color--100)" />;
-    return <ExclamationTriangleIcon color="var(--pf-global--danger-color--100)" />;
+    if (percentage >= HEALTH_THRESHOLDS.HEALTHY) return <CheckCircleIcon color="var(--pf-v6-global--success-color--100)" />;
+    if (percentage >= HEALTH_THRESHOLDS.WARNING) return <ExclamationTriangleIcon color="var(--pf-v6-global--warning-color--100)" />;
+    return <ExclamationTriangleIcon color="var(--pf-v6-global--danger-color--100)" />;
   };
 
   const getStatusIcon = (pluginName: string) => {
     if (loadState.failed.some(f => f.name === pluginName)) {
-      return <ExclamationTriangleIcon color="var(--pf-global--danger-color--100)" />;
+      return <ExclamationTriangleIcon color="var(--pf-v6-global--danger-color--100)" />;
     }
     if (loadState.loaded.includes(pluginName)) {
-      return <CheckCircleIcon color="var(--pf-global--success-color--100)" />;
+      return <CheckCircleIcon color="var(--pf-v6-global--success-color--100)" />;
     }
-    return <InfoIcon color="var(--pf-global--info-color--100)" />;
+    return <InfoIcon color="var(--pf-v6-global--info-color--100)" />;
   };
 
   const getStatusLabel = (pluginName: string) => {
@@ -377,12 +373,11 @@ export const SystemStatus: React.FC = () => {
   if (plugins.length === 0) {
     return (
       <PageSection>
-        <EmptyState>
-          <EmptyStateHeader
-            titleText="No additional extensions found"
-            headingLevel="h1"
-            icon={<EmptyStateIcon icon={CubesIcon} />}
-          />
+        <EmptyState
+          titleText="No additional extensions found"
+          headingLevel="h1"
+          icon={CubesIcon}
+        >
           <EmptyStateBody>
             Your Foreman installation is running with the core features only.
             Extensions (also called plugins) can be installed by your system administrator
@@ -396,16 +391,16 @@ export const SystemStatus: React.FC = () => {
 
   return (
     <>
-      <PageSection variant="light">
-        <TextContent>
+      <PageSection variant="secondary">
+        <Content>
           <Title headingLevel="h1" size="2xl">
             System Status
           </Title>
-          <Text component={TextVariants.p}>
+          <Content component={ContentVariants.p}>
             Overview of your Foreman system health, including core services and installed extensions.
             This page helps you understand what features are available and if everything is working properly.
-          </Text>
-        </TextContent>
+          </Content>
+        </Content>
       </PageSection>
 
       <PageSection>
@@ -429,67 +424,59 @@ export const SystemStatus: React.FC = () => {
               <CardBody>
                 <Grid hasGutter>
                   <GridItem span={3}>
-                    <Card isCompact>
-                      <CardBody>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                          <DatabaseIcon style={{ marginRight: '0.5rem' }} />
-                          <Text component={TextVariants.small}>API Connection</Text>
-                        </div>
-                        <Progress
-                          value={systemHealth.api}
-                          measureLocation={ProgressMeasureLocation.outside}
-                          variant={getHealthColor(systemHealth.api)}
-                          aria-label={`API Connection health: ${systemHealth.api}%`}
-                        />
-                      </CardBody>
-                    </Card>
+                    <div className={styles.healthMetricCard}>
+                      <div className={styles.healthMetricHeader}>
+                        <DatabaseIcon className={styles.healthMetricIcon} />
+                        <Content component={ContentVariants.small}>API Connection</Content>
+                      </div>
+                      <Progress
+                        value={systemHealth.api}
+                        measureLocation={ProgressMeasureLocation.outside}
+                        variant={getHealthColor(systemHealth.api)}
+                        aria-label={`API Connection health: ${systemHealth.api}%`}
+                      />
+                    </div>
                   </GridItem>
                   <GridItem span={3}>
-                    <Card isCompact>
-                      <CardBody>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                          <NetworkIcon style={{ marginRight: '0.5rem' }} />
-                          <Text component={TextVariants.small}>Authentication</Text>
-                        </div>
-                        <Progress
-                          value={systemHealth.auth}
-                          measureLocation={ProgressMeasureLocation.outside}
-                          variant={getHealthColor(systemHealth.auth)}
-                          aria-label={`Authentication health: ${systemHealth.auth}%`}
-                        />
-                      </CardBody>
-                    </Card>
+                    <div className={styles.healthMetricCard}>
+                      <div className={styles.healthMetricHeader}>
+                        <NetworkIcon className={styles.healthMetricIcon} />
+                        <Content component={ContentVariants.small}>Authentication</Content>
+                      </div>
+                      <Progress
+                        value={systemHealth.auth}
+                        measureLocation={ProgressMeasureLocation.outside}
+                        variant={getHealthColor(systemHealth.auth)}
+                        aria-label={`Authentication health: ${systemHealth.auth}%`}
+                      />
+                    </div>
                   </GridItem>
                   <GridItem span={3}>
-                    <Card isCompact>
-                      <CardBody>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                          <CubesIcon style={{ marginRight: '0.5rem' }} />
-                          <Text component={TextVariants.small}>Extensions</Text>
-                        </div>
-                        <Progress
-                          value={systemHealth.plugins}
-                          measureLocation={ProgressMeasureLocation.outside}
-                          variant={getHealthColor(systemHealth.plugins)}
-                          aria-label={`Extensions health: ${systemHealth.plugins}%`}
-                        />
-                      </CardBody>
-                    </Card>
+                    <div className={styles.healthMetricCard}>
+                      <div className={styles.healthMetricHeader}>
+                        <CubesIcon className={styles.healthMetricIcon} />
+                        <Content component={ContentVariants.small}>Extensions</Content>
+                      </div>
+                      <Progress
+                        value={systemHealth.plugins}
+                        measureLocation={ProgressMeasureLocation.outside}
+                        variant={getHealthColor(systemHealth.plugins)}
+                        aria-label={`Extensions health: ${systemHealth.plugins}%`}
+                      />
+                    </div>
                   </GridItem>
                   <GridItem span={3}>
-                    <Card isCompact>
-                      <CardBody>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                          <ClockIcon style={{ marginRight: '0.5rem' }} />
-                          <Text component={TextVariants.small}>Foreman Version</Text>
-                        </div>
-                        <div style={{ minHeight: '24px', display: 'flex', alignItems: 'center' }}>
-                          <Text component={TextVariants.small} style={{ fontWeight: 'bold' }}>
-                            {statusesLoading ? 'Loading...' : statusesError ? 'Unknown' : statuses?.results?.foreman?.version || 'Unknown'}
-                          </Text>
-                        </div>
-                      </CardBody>
-                    </Card>
+                    <div className={styles.healthMetricCard}>
+                      <div className={styles.healthMetricHeader}>
+                        <ClockIcon className={styles.healthMetricIcon} />
+                        <Content component={ContentVariants.small}>Foreman Version</Content>
+                      </div>
+                      <div className={styles.versionContainer}>
+                        <Content component={ContentVariants.small} className={styles.versionText}>
+                          {statusesLoading ? 'Loading...' : statusesError ? 'Unknown' : statuses?.results?.foreman?.version || 'Unknown'}
+                        </Content>
+                      </div>
+                    </div>
                   </GridItem>
                 </Grid>
               </CardBody>
@@ -503,44 +490,36 @@ export const SystemStatus: React.FC = () => {
               <CardBody>
                 <Grid hasGutter>
                   <GridItem span={3}>
-                    <Card isCompact>
-                      <CardBody>
-                        <Text component={TextVariants.small}>Installed Extensions</Text>
-                        <Title headingLevel="h3" size="2xl">
-                          {plugins.length}
-                        </Title>
-                      </CardBody>
-                    </Card>
+                    <div className={styles.statsCard}>
+                      <Content component={ContentVariants.small}>Installed Extensions</Content>
+                      <Title headingLevel="h3" size="2xl">
+                        {plugins.length}
+                      </Title>
+                    </div>
                   </GridItem>
                   <GridItem span={3}>
-                    <Card isCompact>
-                      <CardBody>
-                        <Text component={TextVariants.small}>Working Extensions</Text>
-                        <Title headingLevel="h3" size="2xl" style={{ color: 'var(--pf-global--success-color--100)' }}>
-                          {loadState.loaded.length}
-                        </Title>
-                      </CardBody>
-                    </Card>
+                    <div className={styles.statsCard}>
+                      <Content component={ContentVariants.small}>Working Extensions</Content>
+                      <Title headingLevel="h3" size="2xl" className={styles.workingExtensionsTitle}>
+                        {loadState.loaded.length}
+                      </Title>
+                    </div>
                   </GridItem>
                   <GridItem span={3}>
-                    <Card isCompact>
-                      <CardBody>
-                        <Text component={TextVariants.small}>Extra Dashboard Items</Text>
-                        <Title headingLevel="h3" size="2xl">
-                          {dashboardWidgets.length}
-                        </Title>
-                      </CardBody>
-                    </Card>
+                    <div className={styles.statsCard}>
+                      <Content component={ContentVariants.small}>Extra Dashboard Items</Content>
+                      <Title headingLevel="h3" size="2xl">
+                        {dashboardWidgets.length}
+                      </Title>
+                    </div>
                   </GridItem>
                   <GridItem span={3}>
-                    <Card isCompact>
-                      <CardBody>
-                        <Text component={TextVariants.small}>Additional Menu Items</Text>
-                        <Title headingLevel="h3" size="2xl">
-                          {menuItems.length}
-                        </Title>
-                      </CardBody>
-                    </Card>
+                    <div className={styles.statsCard}>
+                      <Content component={ContentVariants.small}>Additional Menu Items</Content>
+                      <Title headingLevel="h3" size="2xl">
+                        {menuItems.length}
+                      </Title>
+                    </div>
                   </GridItem>
                 </Grid>
               </CardBody>
@@ -554,12 +533,12 @@ export const SystemStatus: React.FC = () => {
               <Card>
                 <CardTitle>Installed Extensions</CardTitle>
                 <CardBody>
-                  <TextContent style={{ marginBottom: '1rem' }}>
-                    <Text component={TextVariants.p}>
+                  <Content className={styles.extensionsDescription}>
+                    <Content component={ContentVariants.p}>
                       Your Foreman installation includes additional features called extensions or plugins.
                       These add extra functionality like new dashboard widgets, menu items, and specialized tools.
-                    </Text>
-                  </TextContent>
+                    </Content>
+                  </Content>
                   <ExpandableSection
                     toggleText={`Show ${plugins.length} extension${plugins.length !== 1 ? 's' : ''}`}
                     isIndented
@@ -589,24 +568,24 @@ export const SystemStatus: React.FC = () => {
                   <CardBody>
                     <Grid hasGutter>
                       <GridItem span={8}>
-                        <TextContent>
-                          <Text component={TextVariants.p}>
+                        <Content>
+                          <Content component={ContentVariants.p}>
                             {plugin.description}
-                          </Text>
-                          <Text component={TextVariants.small}>
+                          </Content>
+                          <Content component={ContentVariants.small}>
                             <strong>Version:</strong> {plugin.version} |
                             <strong> Author:</strong> {plugin.author} |
                             <strong> Plugin Name:</strong> {plugin.name}
-                          </Text>
+                          </Content>
                           {plugin.foremanVersions && (
-                            <Text component={TextVariants.small}>
+                            <Content component={ContentVariants.small}>
                               <strong>Compatible with Foreman:</strong> {plugin.foremanVersions.join(', ')}
-                            </Text>
+                            </Content>
                           )}
-                        </TextContent>
+                        </Content>
 
                         {error && (
-                          <div style={{ marginTop: '1rem' }}>
+                          <div className={styles.errorLabel}>
                             <Label color="red" icon={<ExclamationTriangleIcon />}>
                               Error: {error}
                             </Label>
@@ -615,59 +594,57 @@ export const SystemStatus: React.FC = () => {
                       </GridItem>
 
                       <GridItem span={4}>
-                        <Card isCompact>
-                          <CardTitle>Features Provided</CardTitle>
-                          <CardBody>
-                            <List isPlain>
-                              {(features.dashboardWidgets || 0) > 0 && (
-                                <ListItem>
-                                  <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}
-                                  {features.dashboardWidgets} Dashboard Widget{(features.dashboardWidgets || 0) !== 1 ? 's' : ''}
+                        <div className={styles.featuresCard}>
+                          <Content component={ContentVariants.h6} className={styles.featuresTitle}>Features Provided</Content>
+                          <List isPlain>
+                            {(features.dashboardWidgets || 0) > 0 && (
+                              <ListItem>
+                                <CheckCircleIcon color="var(--pf-v6-global--success-color--100)" />{' '}
+                                {features.dashboardWidgets} Dashboard Widget{(features.dashboardWidgets || 0) !== 1 ? 's' : ''}
+                              </ListItem>
+                            )}
+                            {(features.menuItems || 0) > 0 && (
+                              <ListItem>
+                                <CheckCircleIcon color="var(--pf-v6-global--success-color--100)" />{' '}
+                                {features.menuItems} Menu Item{(features.menuItems || 0) !== 1 ? 's' : ''}
+                              </ListItem>
+                            )}
+                            {(features.routes || 0) > 0 && (
+                              <ListItem>
+                                <CheckCircleIcon color="var(--pf-v6-global--success-color--100)" />{' '}
+                                {features.routes} Route{(features.routes || 0) !== 1 ? 's' : ''}
+                              </ListItem>
+                            )}
+                            {features.extensionsByType && Object.entries(features.extensionsByType).map(([extensionType, count]) => {
+                              // Convert extension point names to user-friendly labels
+                              const getExtensionLabel = (type: string) => {
+                                switch (type) {
+                                  case 'host-table-columns':
+                                    return 'Host Table Column';
+                                  case 'host-details-tabs':
+                                    return 'Host Details Tab';
+                                  case 'dashboard-widgets':
+                                    return 'Dashboard Widget Extension';
+                                  default:
+                                    return type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                }
+                              };
+                              
+                              return (
+                                <ListItem key={extensionType}>
+                                  <CheckCircleIcon color="var(--pf-v6-global--success-color--100)" />{' '}
+                                  {count} {getExtensionLabel(extensionType)}{count !== 1 ? 's' : ''}
                                 </ListItem>
-                              )}
-                              {(features.menuItems || 0) > 0 && (
-                                <ListItem>
-                                  <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}
-                                  {features.menuItems} Menu Item{(features.menuItems || 0) !== 1 ? 's' : ''}
-                                </ListItem>
-                              )}
-                              {(features.routes || 0) > 0 && (
-                                <ListItem>
-                                  <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}
-                                  {features.routes} Route{(features.routes || 0) !== 1 ? 's' : ''}
-                                </ListItem>
-                              )}
-                              {features.extensionsByType && Object.entries(features.extensionsByType).map(([extensionType, count]) => {
-                                // Convert extension point names to user-friendly labels
-                                const getExtensionLabel = (type: string) => {
-                                  switch (type) {
-                                    case 'host-table-columns':
-                                      return 'Host Table Column';
-                                    case 'host-details-tabs':
-                                      return 'Host Details Tab';
-                                    case 'dashboard-widgets':
-                                      return 'Dashboard Widget Extension';
-                                    default:
-                                      return type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                                  }
-                                };
-                                
-                                return (
-                                  <ListItem key={extensionType}>
-                                    <CheckCircleIcon color="var(--pf-global--success-color--100)" />{' '}
-                                    {count} {getExtensionLabel(extensionType)}{count !== 1 ? 's' : ''}
-                                  </ListItem>
-                                );
-                              })}
-                              {Object.values(features).filter(v => typeof v === 'number').every(v => v === 0) && (
-                                <ListItem>
-                                  <InfoIcon color="var(--pf-global--info-color--100)" />{' '}
-                                  No features detected
-                                </ListItem>
-                              )}
-                            </List>
-                          </CardBody>
-                        </Card>
+                              );
+                            })}
+                            {Object.values(features).filter(v => typeof v === 'number').every(v => v === 0) && (
+                              <ListItem>
+                                <InfoIcon color="var(--pf-v6-global--info-color--100)" />{' '}
+                                No features detected
+                              </ListItem>
+                            )}
+                          </List>
+                        </div>
                       </GridItem>
                     </Grid>
                   </CardBody>

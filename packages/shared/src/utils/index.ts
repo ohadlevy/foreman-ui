@@ -5,3 +5,4 @@ export * from './uuid';
 export * from './graphql';
 export * from './bulkOperationUtils';
 export * from './idGenerator';
+export * from './themeUtils';

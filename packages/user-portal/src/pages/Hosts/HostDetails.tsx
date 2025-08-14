@@ -182,7 +182,7 @@ export const HostDetails: React.FC = () => {
 
   return (
     <>
-      <PageSection variant="light">
+      <PageSection variant="secondary">
         <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
           <FlexItem>
             <Title headingLevel="h1" size="2xl">
@@ -193,10 +193,12 @@ export const HostDetails: React.FC = () => {
             <Flex spaceItems={{ default: 'spaceItemsSm' }}>
               <FlexItem>{getStatusLabel()}</FlexItem>
               <FlexItem>
-                <Dropdown
-                  isOpen={isActionDropdownOpen}
-                  onSelect={() => setIsActionDropdownOpen(false)}
-                  onOpenChange={(isOpen: boolean) => setIsActionDropdownOpen(isOpen)}
+                <div style={{ position: 'relative' }} className="host-actions-dropdown">
+                  <Dropdown
+                    isOpen={isActionDropdownOpen}
+                    onSelect={() => setIsActionDropdownOpen(false)}
+                    onOpenChange={(isOpen: boolean) => setIsActionDropdownOpen(isOpen)}
+                    shouldFocusToggleOnSelect
                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
                     <MenuToggle
                       ref={toggleRef}
@@ -210,6 +212,7 @@ export const HostDetails: React.FC = () => {
                 >
                   {actionDropdownItems}
                 </Dropdown>
+                </div>
               </FlexItem>
             </Flex>
           </FlexItem>

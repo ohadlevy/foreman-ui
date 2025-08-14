@@ -31,6 +31,7 @@ vi.mock('@foreman/shared', () => ({
     </form>
   )),
   FOREMAN_BRANDING: {
+    logoPath: '/assets/foreman-logo.svg',
     colors: {
       primary: '#005c7e',
       primaryGradientStart: '#0072a0',

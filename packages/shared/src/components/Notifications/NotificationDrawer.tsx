@@ -12,7 +12,6 @@ import {
   NotificationDrawerBody,
   EmptyState,
   EmptyStateVariant,
-  EmptyStateIcon,
   EmptyStateBody,
   Button,
   Spinner,
@@ -102,8 +101,11 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ children
             )}
 
             {!isLoading && !error && !hasNotifications && (
-              <EmptyState variant={EmptyStateVariant.sm}>
-                <EmptyStateIcon icon={BellIcon} />
+              <EmptyState 
+                variant={EmptyStateVariant.sm}
+                titleText="No notifications"
+                icon={BellIcon}
+              >
                 <EmptyStateBody>
                   No notifications to display.
                 </EmptyStateBody>

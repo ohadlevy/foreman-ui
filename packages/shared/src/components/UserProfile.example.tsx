@@ -14,7 +14,7 @@ import { UserProfile } from './UserProfile';
 export const UserProfilePage: React.FC = () => {
   return (
     <Page>
-      <PageSection variant={PageSectionVariants.light}>
+      <PageSection variant={PageSectionVariants.default}>
         <Breadcrumb>
           <BreadcrumbItem to="/">Home</BreadcrumbItem>
           <BreadcrumbItem to="/profile" isActive>Profile</BreadcrumbItem>

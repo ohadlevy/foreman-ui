@@ -151,13 +151,13 @@ export class PluginLoader {
       <div style={{ textAlign: 'center', padding: '20px' }}>
         <h3>🚀 Demo Plugin Widget</h3>
         <p>This widget was loaded by the plugin system!</p>
-        <div style={{ fontSize: '1.2rem', color: '#06c' }}>Plugin framework is working!</div>
+        <div style={{ fontSize: '1.2rem', color: 'var(--pf-v6-global--primary-color--100)' }}>Plugin framework is working!</div>
       </div>
     );
 
     // Demo host table column component
     const DemoHostColumn: React.FC<HostTableColumnProps> = ({ host }) => (
-      <div style={{ color: '#06c', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <div style={{ color: 'var(--pf-v6-global--primary-color--100)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
         <CubesIcon />
         <span>Demo-{host?.id || 'N/A'}</span>
       </div>
@@ -234,7 +234,7 @@ export class PluginLoader {
     const StatusWidget = () => (
       <div style={{ textAlign: 'center', padding: '20px' }}>
         <h3>📊 System Monitoring</h3>
-        <div style={{ fontSize: '1.5rem', color: '#28a745', margin: '10px 0' }}>
+        <div style={{ fontSize: '1.5rem', color: 'var(--pf-v6-global--success-color--100)', margin: '10px 0' }}>
           🟢 All Systems Operational
         </div>
         <p>This is another plugin widget!</p>
@@ -246,7 +246,7 @@ export class PluginLoader {
       // Simulate health status based on host data
       const isHealthy = host?.enabled && !host?.build;
       const status = isHealthy ? 'Healthy' : host?.build ? 'Building' : 'Unhealthy';
-      const color = isHealthy ? '#28a745' : host?.build ? '#ffc107' : '#dc3545';
+      const color = isHealthy ? 'var(--pf-v6-global--success-color--100)' : host?.build ? 'var(--pf-v6-global--warning-color--100)' : 'var(--pf-v6-global--danger-color--100)';
       const Icon = isHealthy ? CheckCircleIcon : host?.build ? ExclamationTriangleIcon : TimesCircleIcon;
 
       return (
