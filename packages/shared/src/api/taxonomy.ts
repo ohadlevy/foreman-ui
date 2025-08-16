@@ -88,10 +88,12 @@ export class OrganizationsAPI {
     }
 
     // Fallback to REST API
+    return this.getRestData(params);
+  }
+
+  async getRestData(params?: TaxonomyQueryParams): Promise<TaxonomyApiResponse<EnhancedOrganization[]>> {
     const searchParams = {
       per_page: 100,
-      include_hosts_count: true,
-      include_users_count: true,
       ...params
     };
     
@@ -99,12 +101,7 @@ export class OrganizationsAPI {
   }
 
   async get(id: number): Promise<EnhancedOrganization> {
-    return this.client.get<EnhancedOrganization>(`${API_ENDPOINTS.ORGANIZATIONS}/${id}`, {
-      params: {
-        include_hosts_count: true,
-        include_users_count: true
-      }
-    });
+    return this.client.get<EnhancedOrganization>(`${API_ENDPOINTS.ORGANIZATIONS}/${id}`);
   }
 
   async create(data: OrganizationCreateData): Promise<EnhancedOrganization> {
@@ -193,10 +190,12 @@ export class LocationsAPI {
     }
 
     // Fallback to REST API
+    return this.getRestData(params);
+  }
+
+  async getRestData(params?: TaxonomyQueryParams): Promise<TaxonomyApiResponse<EnhancedLocation[]>> {
     const searchParams = {
       per_page: 100,
-      include_hosts_count: true,
-      include_users_count: true,
       ...params
     };
     
@@ -204,12 +203,7 @@ export class LocationsAPI {
   }
 
   async get(id: number): Promise<EnhancedLocation> {
-    return this.client.get<EnhancedLocation>(`${API_ENDPOINTS.LOCATIONS}/${id}`, {
-      params: {
-        include_hosts_count: true,
-        include_users_count: true
-      }
-    });
+    return this.client.get<EnhancedLocation>(`${API_ENDPOINTS.LOCATIONS}/${id}`);
   }
 
   async create(data: LocationCreateData): Promise<EnhancedLocation> {
@@ -333,9 +327,16 @@ export class TaxonomyAPI {
     }
 
     // Fallback to REST API with parallel requests
+    return this.getRestDataCombined(params);
+  }
+
+  private async getRestDataCombined(params?: TaxonomyQueryParams): Promise<{
+    organizations: TaxonomyApiResponse<EnhancedOrganization[]>;
+    locations: TaxonomyApiResponse<EnhancedLocation[]>;
+  }> {
     const [organizations, locations] = await Promise.all([
-      this.organizations.list(params),
-      this.locations.list(params)
+      this.organizations.getRestData(params),
+      this.locations.getRestData(params)
     ]);
 
     return { organizations, locations };

@@ -127,6 +127,10 @@ export class UsersAPI {
     }
 
     // REST API fallback
+    return this.getCurrentRest();
+  }
+
+  async getCurrentRest(): Promise<User> {
     const userResponse = await this.client.get<User>('/current_user');
     return {
       id: userResponse.id,
