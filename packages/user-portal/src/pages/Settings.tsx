@@ -22,7 +22,7 @@ import {
 import { useUserSettingsStore, ThemeMode, SUPPORTED_LANGUAGES } from '../stores/userSettingsStore';
 
 export const Settings: React.FC = () => {
-  const { getCurrentUserSettings, setTheme, setLanguage, updateUserSettings, currentUserId } = useUserSettingsStore();
+  const { getCurrentUserSettings, setTheme, setLanguage, setEnableGraphQL, updateUserSettings, currentUserId } = useUserSettingsStore();
   const currentSettings = getCurrentUserSettings();
   const [isLanguageSelectOpen, setIsLanguageSelectOpen] = React.useState(false);
 
@@ -47,6 +47,10 @@ export const Settings: React.FC = () => {
         },
       });
     }
+  };
+
+  const handleGraphQLChange = (checked: boolean) => {
+    setEnableGraphQL(checked);
   };
 
   const selectedLanguage = SUPPORTED_LANGUAGES.find(lang => lang.code === currentSettings.language);
@@ -173,6 +177,37 @@ export const Settings: React.FC = () => {
                         isChecked={currentSettings.notificationPreferences?.sound ?? false}
                         onChange={(_, checked) => handleNotificationChange('sound', checked)}
                       />
+                    </div>
+                  </FormGroup>
+                </Form>
+              </CardBody>
+            </Card>
+          </GridItem>
+
+          <GridItem xl={6} lg={8} md={12}>
+            <Card>
+              <CardTitle>Advanced</CardTitle>
+              <CardBody>
+                <Form>
+                  <FormGroup
+                    label="API Settings"
+                    fieldId="api-options"
+                  >
+                    <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--pf-v5-global--Color--200)' }}>
+                      Advanced settings for API communication and data loading.
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <Switch
+                        id="enable-graphql"
+                        label="Enable GraphQL API"
+                        labelOff="GraphQL API disabled"
+                        isChecked={currentSettings.enableGraphQL ?? true}
+                        onChange={(_, checked) => handleGraphQLChange(checked)}
+                      />
+                      <div style={{ fontSize: '0.875rem', color: 'var(--pf-v5-global--Color--200)', marginTop: '-0.5rem' }}>
+                        Use GraphQL for faster data loading. When disabled, the application will use REST API only. 
+                        A page refresh may be needed to see all changes take effect.
+                      </div>
                     </div>
                   </FormGroup>
                 </Form>

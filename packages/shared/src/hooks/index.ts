@@ -27,3 +27,4 @@ export {
 } from './useTaxonomyQueries';
 export { useTaxonomy, useOrganizationManagement, useLocationManagement } from './useTaxonomy';
 export { useGlobalState, useCurrentUser, useGlobalTaxonomies } from './useGlobalState';
+export { useGraphQLConfig, setGlobalGraphQLEnabled, isGraphQLEnabled, initializeGraphQLConfig } from './useGraphQLConfig';

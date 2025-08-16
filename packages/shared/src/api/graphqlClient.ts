@@ -1,4 +1,5 @@
 import { ForemanAPIClient, createForemanClient } from './client';
+import { isGraphQLEnabled } from '../hooks/useGraphQLConfig';
 
 /**
  * GraphQL error structure from Foreman GraphQL API
@@ -51,6 +52,12 @@ export class GraphQLClient {
     query: string,
     variables?: GraphQLVariables
   ): Promise<GraphQLResponse<T>> {
+    // Check if GraphQL is globally enabled
+    if (!isGraphQLEnabled()) {
+      console.debug('GraphQL is disabled in user settings, skipping GraphQL query');
+      throw new Error('GraphQL disabled by user setting');
+    }
+
     try {
       // Prepare request body
       const body: { query: string; variables?: GraphQLVariables } = { query };

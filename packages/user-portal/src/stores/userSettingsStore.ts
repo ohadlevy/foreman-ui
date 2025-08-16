@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { i18next } from '../i18n';
+import { setGlobalGraphQLEnabled } from '@foreman/shared';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -51,6 +52,7 @@ interface UserSettings {
     email: boolean;
     sound: boolean;
   };
+  enableGraphQL?: boolean;
 }
 
 interface UserSettingsState {
@@ -64,6 +66,7 @@ interface UserSettingsState {
   toggleTheme: () => void;
   setLanguage: (language: string) => void;
   updateDashboardLayout: (layout: DashboardWidgetLayout[]) => void;
+  setEnableGraphQL: (enabled: boolean) => void;
   getCurrentUserSettings: () => UserSettings;
   getEffectiveTheme: () => 'light' | 'dark';
 }
@@ -71,6 +74,7 @@ interface UserSettingsState {
 const defaultUserSettings: UserSettings = {
   theme: 'system',
   language: 'en',
+  enableGraphQL: true, // Default to enabled for backward compatibility
   notificationPreferences: {
     desktop: true,
     email: true,
@@ -99,6 +103,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           const cleanDefaultSettings = {
             theme: defaultUserSettings.theme,
             language: defaultUserSettings.language,
+            enableGraphQL: defaultUserSettings.enableGraphQL,
             notificationPreferences: {
               desktop: defaultUserSettings.notificationPreferences!.desktop,
               email: defaultUserSettings.notificationPreferences!.email,
@@ -114,10 +119,14 @@ export const useUserSettingsStore = create<UserSettingsState>()(
           });
         }
         
-        // Apply current theme
+        // Apply current theme and sync GraphQL setting
         const userSettings = state.userSettings[userId] || defaultUserSettings;
         const effectiveTheme = userSettings.theme === 'system' ? getSystemPreference() : userSettings.theme;
         applyThemeToDocument(effectiveTheme);
+        
+        // Sync GraphQL setting with global configuration
+        const graphqlEnabled = userSettings.enableGraphQL ?? true;
+        setGlobalGraphQLEnabled(graphqlEnabled);
       },
       
       updateUserSettings: (userId: string, settings: Partial<UserSettings>) => {
@@ -128,6 +137,7 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         if (settings.language) cleanSettings.language = settings.language;
         if (settings.timeZone) cleanSettings.timeZone = settings.timeZone;
         if (settings.dashboardLayout) cleanSettings.dashboardLayout = [...settings.dashboardLayout];
+        if (typeof settings.enableGraphQL === 'boolean') cleanSettings.enableGraphQL = settings.enableGraphQL;
         if (settings.notificationPreferences) {
           cleanSettings.notificationPreferences = {
             desktop: Boolean(settings.notificationPreferences.desktop),
@@ -197,6 +207,15 @@ export const useUserSettingsStore = create<UserSettingsState>()(
         const { currentUserId } = get();
         if (currentUserId) {
           get().updateUserSettings(currentUserId, { dashboardLayout: layout });
+        }
+      },
+      
+      setEnableGraphQL: (enabled: boolean) => {
+        const { currentUserId } = get();
+        if (currentUserId) {
+          get().updateUserSettings(currentUserId, { enableGraphQL: enabled });
+          // Sync with the global GraphQL configuration
+          setGlobalGraphQLEnabled(enabled);
         }
       },
       
