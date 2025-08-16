@@ -63,10 +63,19 @@ const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
         const apiClient = createDefaultClient();
         const globalStateAPI = createGlobalStateAPI(apiClient);
         
-        // Use React Query to fetch and cache the global state data
+        // Use React Query to fetch and cache the global state data with fallback
         const globalState = await queryClient.fetchQuery({
           queryKey: ['globalState'],
-          queryFn: () => globalStateAPI.getGlobalState(),
+          queryFn: async () => {
+            try {
+              // Try GraphQL first
+              return await globalStateAPI.getGlobalState();
+            } catch (error) {
+              console.warn('AuthProvider: GraphQL failed, using REST fallback:', error);
+              // Use REST fallback if GraphQL fails
+              return await globalStateAPI.getGlobalStateFallback();
+            }
+          },
           staleTime: 5 * 60 * 1000, // 5 minutes
           cacheTime: 10 * 60 * 1000, // 10 minutes
         });
