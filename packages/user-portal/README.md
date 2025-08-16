@@ -7,7 +7,7 @@ A modern React-based self-service portal for Foreman users to manage their infra
 - **Dashboard**: Overview of user's hosts and quick actions
 - **Host Management**: Create, view, edit, and manage personal hosts
 - **Profile Management**: Update user profile and change password
-- **Modern UI**: Built with PatternFly v5 for consistent enterprise UX
+- **Modern UI**: Built with PatternFly v6 for consistent enterprise UX
 - **Responsive Design**: Works on desktop and mobile devices
 
 ## Getting Started

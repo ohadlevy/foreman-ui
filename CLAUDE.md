@@ -12,7 +12,7 @@ This is a **modern React UI replacement** for Foreman's existing Ruby on Rails w
 4. **Improved UX**: Focus on ease of use, great onboarding, and modern UI patterns
 
 ### Context: Foreman Ecosystem
-- **Current State**: Rails-based UI with jQuery, some React components, PatternFly v4/v5 migration
+- **Current State**: Rails-based UI with jQuery, some React components, PatternFly v5
 - **Plugin Ecosystem**: 50+ plugins extending functionality (Ansible, Puppet, Remote Execution, etc.)
 - **User Base**: Infrastructure teams managing physical/virtual servers, provisioning, configuration management
 - **Goal**: Complete frontend modernization while maintaining plugin compatibility
@@ -157,7 +157,7 @@ foreman-ui/
 
 **Technology Stack:**
 - React 18 + TypeScript
-- PatternFly v5 (Red Hat's design system - same as current Foreman)
+- PatternFly v6 (Red Hat's design system with enhanced theming)
 - React Query + Zustand for state management
 - Vite for build tooling with plugin support
 - Vitest + React Testing Library
@@ -226,6 +226,19 @@ yarn generate-types     # Generate TS types from Foreman OpenAPI spec
 yarn test:watch         # Tests in watch mode
 yarn test:coverage      # Coverage reports
 yarn test:ui            # Interactive test UI
+```
+
+## Theme and Styling
+
+### Project-Specific Theme Files
+- `packages/user-portal/src/styles/theme-fixes.css` - Fixes for PatternFly v6 theme compatibility issues
+- Component-specific CSS modules for isolated styling
+
+### Theme Utilities
+```typescript
+// SSR-safe theme detection
+import { getSystemTheme } from '@foreman/shared';
+const systemTheme = getSystemTheme(); // 'dark' | 'light'
 ```
 
 ## User Experience Philosophy
