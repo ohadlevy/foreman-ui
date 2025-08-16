@@ -47,27 +47,71 @@ export class ForemanAPIClient {
   }
 
 
+  /**
+   * Retrieves the username from the persisted auth store
+   * @returns username string or null if not found
+   */
+  private getUsernameFromStorage(): string | null {
+    try {
+      const authData = localStorage.getItem('foreman-auth');
+      if (!authData) {
+        return null;
+      }
+      
+      const parsedAuth = JSON.parse(authData);
+      return parsedAuth.state?.user?.login || null;
+    } catch (error) {
+      console.warn('Failed to retrieve username from auth store:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Creates Basic auth header for Personal Access Token
+   * @param token - The PAT token
+   * @returns Basic auth header value or null if username not available
+   */
+  private createPATAuthHeader(token: string): string | null {
+    const username = this.getUsernameFromStorage();
+    
+    if (!username) {
+      console.warn('Username not available for PAT authentication. Ensure user is properly logged in.');
+      return null;
+    }
+    
+    return `Basic ${btoa(`${username}:${token}`)}`;
+  }
+
   private setupInterceptors() {
     // Request interceptor for authentication and token handling
     this.client.interceptors.request.use(
       (config) => {
-        // Add Bearer token if available (for Personal Access Tokens)
-        // Or Basic token if it's base64-encoded credentials
+        // Add authentication header if token is available
         if (this.token) {
+          let authHeader: string | null = null;
+          
           // Check if this is a base64-encoded username:password (from login)
-          // or a proper Personal Access Token
+          // or a Personal Access Token that needs username:token format
           try {
             const decoded = atob(this.token);
             if (decoded.includes(':')) {
-              // This is base64-encoded username:password - use Basic auth
-              config.headers.Authorization = `Basic ${this.token}`;
+              // This is base64-encoded username:password - use as-is
+              authHeader = `Basic ${this.token}`;
             } else {
-              // This is a Personal Access Token - use Bearer auth
-              config.headers.Authorization = `Bearer ${this.token}`;
+              // This is a Personal Access Token - need username:token format
+              authHeader = this.createPATAuthHeader(this.token);
             }
           } catch {
-            // If atob fails, assume it's a Personal Access Token
-            config.headers.Authorization = `Bearer ${this.token}`;
+            // If atob fails, this is a raw Personal Access Token
+            authHeader = this.createPATAuthHeader(this.token);
+          }
+          
+          if (authHeader) {
+            config.headers.Authorization = authHeader;
+          } else {
+            // Fallback: use token as-is (may fail but provides debugging info)
+            config.headers.Authorization = `Basic ${this.token}`;
+            console.warn('Using fallback authentication - this may fail if username is required');
           }
         }
 
