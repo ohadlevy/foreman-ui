@@ -87,8 +87,16 @@ export class ForemanAPIClient {
           // Check if this is a login/auth verification request
           const url = error.config?.url || '';
           const isAuthRequest = url.includes('/current_user') || url.includes('/login');
+          const isNotificationRequest = url.includes('/notification_recipients');
+          
 
-          if (isAuthRequest) {
+          if (isNotificationRequest) {
+            // This is a notification authentication failure - don't trigger global logout
+            // Log the failure for debugging but let the notification system handle it gracefully
+            console.warn('Notification authentication failed - likely expired session cookies interfering with PAT auth. Continuing with main app authentication.');
+            // Don't clear token or redirect - just let the notification hook handle the error
+            return Promise.reject(error);
+          } else if (isAuthRequest) {
             // This is an authentication failure - clear token and redirect to login
             this.clearToken();
             if (!this.isLoggingOut && window.location.pathname !== '/login') {

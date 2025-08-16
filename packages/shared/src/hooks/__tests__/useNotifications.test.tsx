@@ -136,17 +136,35 @@ describe('useNotifications', () => {
 
   it('handles API errors gracefully', async () => {
     const errorMessage = 'Failed to fetch notifications';
-    mockNotificationAPI.getNotifications.mockRejectedValue(new Error(errorMessage));
+    const networkError = new Error(errorMessage);
+    mockNotificationAPI.getNotifications.mockRejectedValue(networkError);
 
-    const { result } = renderHook(() => useNotifications(), {
+    renderHook(() => useNotifications(), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => {
-      expect(result.current.error).toBeTruthy();
+      expect(mockSetError).toHaveBeenCalledWith(errorMessage);
     });
 
-    expect(mockSetError).toHaveBeenCalledWith(errorMessage);
+    expect(mockSetLoading).toHaveBeenCalledWith(false);
+  });
+
+  it('handles 401 errors gracefully without throwing', async () => {
+    const authError = {
+      response: { status: 401 }
+    };
+    mockNotificationAPI.getNotifications.mockRejectedValue(authError);
+
+    renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(mockSetError).toHaveBeenCalledWith('Notifications temporarily unavailable');
+    });
+
+    expect(mockSetNotifications).toHaveBeenCalledWith([]);
     expect(mockSetLoading).toHaveBeenCalledWith(false);
   });
 });
