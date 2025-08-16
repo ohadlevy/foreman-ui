@@ -330,7 +330,7 @@ export class TaxonomyAPI {
     return this.getRestDataCombined(params);
   }
 
-  private async getRestDataCombined(params?: TaxonomyQueryParams): Promise<{
+  async getRestDataCombined(params?: TaxonomyQueryParams): Promise<{
     organizations: TaxonomyApiResponse<EnhancedOrganization[]>;
     locations: TaxonomyApiResponse<EnhancedLocation[]>;
   }> {
