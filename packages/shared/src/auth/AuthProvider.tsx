@@ -71,7 +71,8 @@ const AuthContent: React.FC<Omit<AuthProviderProps, 'queryClient'>> = ({
               // Try GraphQL first
               return await globalStateAPI.getGlobalState();
             } catch (error) {
-              console.warn('AuthProvider: GraphQL failed, using REST fallback:', error);
+              const sanitizedErrorMsg = error instanceof Error ? error.message : String(error);
+              console.warn('AuthProvider: GraphQL failed, using REST fallback:', sanitizedErrorMsg);
               // Use REST fallback if GraphQL fails
               return await globalStateAPI.getGlobalStateFallback();
             }
