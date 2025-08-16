@@ -104,7 +104,7 @@ foreman-ui/
 ## Technology Stack
 
 - **React 18** with TypeScript
-- **PatternFly v5** for UI components
+- **PatternFly v6** for UI components
 - **React Query + Zustand** for state management
 - **React Router v6** for routing
 - **Vite** for build tooling
