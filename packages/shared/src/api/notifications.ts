@@ -30,6 +30,10 @@ export class NotificationAPI {
 
   /**
    * Fetch all notifications for the current user
+   * 
+   * Note: This endpoint has known authentication issues where expired session cookies
+   * can interfere with PAT authentication, causing 401 errors even with valid tokens.
+   * The useNotifications hook handles these failures gracefully.
    */
   async getNotifications(): Promise<NotificationResponse> {
     const response = await this.client.get<NotificationResponse>('/notification_recipients');

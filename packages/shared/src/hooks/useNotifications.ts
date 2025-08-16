@@ -4,9 +4,19 @@ import { notificationAPI } from '../api/notifications';
 import { useNotificationStore } from '../stores/notificationStore';
 import { useAuth } from '../auth/useAuth';
 import { useWindowFocus } from './useWindowFocus';
+import { clearForemanSessionCookies } from '../auth/constants';
 
 const NOTIFICATIONS_QUERY_KEY = ['notifications'];
 const POLLING_INTERVAL = 30000; // 30 seconds
+const MIN_REFETCH_INTERVAL = 10000; // Minimum 10 seconds between window focus refetches
+
+/**
+ * Utility function to check if an error is a 401 authentication error
+ */
+const is401Error = (error: unknown): boolean => {
+  const axiosError = error as { response?: { status?: number } };
+  return axiosError?.response?.status === 401;
+};
 
 export const useNotifications = () => {
   const { isAuthenticated } = useAuth();
@@ -16,7 +26,9 @@ export const useNotifications = () => {
     setLoading,
     setError,
     setLastPolled,
-    notifications
+    notifications,
+    error: storeError,
+    lastPolled
   } = useNotificationStore();
 
   const notificationsQuery = useQuery({
@@ -30,7 +42,20 @@ export const useNotifications = () => {
         setLastPolled(Date.now());
         setError(null);
         return notifications;
-      } catch (error) {
+      } catch (error: unknown) {
+        // Handle 401 errors gracefully - likely session/PAT auth conflict
+        if (is401Error(error)) {
+          console.warn('Notification authentication failed - clearing session cookies to prevent future conflicts');
+          // Clear session cookies that might be interfering with PAT authentication
+          clearForemanSessionCookies();
+          // Set a user-friendly error message instead of throwing
+          setError('Notifications temporarily unavailable');
+          // Return empty notifications instead of throwing to prevent cascade failures
+          setNotifications([]);
+          return [];
+        }
+        
+        // For other errors, handle normally
         const errorMessage = error instanceof Error ? error.message : 'Failed to fetch notifications';
         setError(errorMessage);
         throw error;
@@ -41,14 +66,33 @@ export const useNotifications = () => {
     enabled: isAuthenticated,
     refetchInterval: isWindowFocused ? POLLING_INTERVAL : false,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: (_query) => {
+      // Throttle window focus refetches to prevent excessive requests
+      if (!lastPolled) return true; // First time, allow refetch
+      const timeSinceLastPoll = Date.now() - lastPolled;
+      const shouldRefetch = timeSinceLastPoll >= MIN_REFETCH_INTERVAL;
+      
+      // Prevent excessive refetches by enforcing minimum interval between requests
+      
+      return shouldRefetch;
+    },
     staleTime: 10000, // 10 seconds
+    // Allow retries for notifications but with different logic than global default
+    retry: (failureCount, error: unknown) => {
+      // Don't retry 401 errors - they indicate auth conflict that won't resolve
+      if (is401Error(error)) {
+        return false;
+      }
+      // For other errors, try up to 2 times with exponential backoff
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 
   return {
     notifications,
     isLoading: notificationsQuery.isLoading,
-    error: notificationsQuery.error,
+    error: storeError || notificationsQuery.error,
     refetch: notificationsQuery.refetch,
   };
 };
