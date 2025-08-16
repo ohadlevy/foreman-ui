@@ -93,9 +93,7 @@ describe('OrganizationsAPI', () => {
       expect(mockApiClient.getPaginated).toHaveBeenCalledWith(
         '/organizations',
         {
-          per_page: 100,
-          include_hosts_count: true,
-          include_users_count: true
+          per_page: 100
         }
       );
       expect(result).toEqual(mockApiResponse);
@@ -110,8 +108,6 @@ describe('OrganizationsAPI', () => {
         '/organizations',
         {
           per_page: 50,
-          include_hosts_count: true,
-          include_users_count: true,
           page: 2,
           search: 'test'
         }
@@ -125,10 +121,7 @@ describe('OrganizationsAPI', () => {
 
       const result = await organizationsApi.get(1);
 
-      expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/organizations/1',
-        { params: { include_hosts_count: true, include_users_count: true } }
-      );
+      expect(mockApiClient.get).toHaveBeenCalledWith('/organizations/1');
       expect(result).toEqual(mockOrganizations[0]);
     });
   });
@@ -193,8 +186,6 @@ describe('OrganizationsAPI', () => {
         '/organizations',
         {
           per_page: 100,
-          include_hosts_count: true,
-          include_users_count: true,
           page: 1,
           search: 'test query'
         }
@@ -257,9 +248,7 @@ describe('LocationsAPI', () => {
       expect(mockApiClient.getPaginated).toHaveBeenCalledWith(
         '/locations',
         {
-          per_page: 100,
-          include_hosts_count: true,
-          include_users_count: true
+          per_page: 100
         }
       );
       expect(result).toEqual(mockLocationResponse);
@@ -272,10 +261,7 @@ describe('LocationsAPI', () => {
 
       const result = await locationsApi.get(1);
 
-      expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/locations/1',
-        { params: { include_hosts_count: true, include_users_count: true } }
-      );
+      expect(mockApiClient.get).toHaveBeenCalledWith('/locations/1');
       expect(result).toEqual(mockLocations[0]);
     });
   });
