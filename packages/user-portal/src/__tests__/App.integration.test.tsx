@@ -66,6 +66,7 @@ vi.mock('@foreman/shared', () => {
       </form>
     )),
     getSystemTheme: vi.fn().mockReturnValue('light'),
+    setGlobalGraphQLEnabled: vi.fn(),
   };
 });
 
