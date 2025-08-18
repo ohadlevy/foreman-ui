@@ -16,21 +16,3 @@ export const GET_DASHBOARD_HOST_STATS = `
     }
   }
 `;
-
-// If we want to optimize further, we could add a dedicated stats query
-export const GET_HOST_COUNTS = `
-  query GetHostCounts(
-    $organizationId: ID
-    $locationId: ID
-  ) {
-    hostStats(
-      organizationId: $organizationId
-      locationId: $locationId
-    ) {
-      total
-      enabled
-      building
-      disabled
-    }
-  }
-`;

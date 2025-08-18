@@ -170,8 +170,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Hostgroup',
         confirmationMessage: 'Select a new hostgroup for the selected hosts.',
-        disabled: !hasSelectedItems || bulkTargetsLoading || hostGroups.length === 0,
-        disabledReason: !hasSelectedItems ? 'No items selected' : bulkTargetsLoading ? 'Loading hostgroups...' : 'No hostgroups available',
+        disabled: bulkTargetsLoading || hostGroups.length === 0,
+        disabledReason: bulkTargetsLoading ? 'Loading hostgroups...' : 'No hostgroups available',
         permissions: ['edit_hosts'],
         action: createValidatedAction('hostgroup_id', 'number', 'update_hostgroup'),
         parameters: getHostgroupParameters(),
@@ -185,8 +185,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Owner',
         confirmationMessage: 'Assign a new owner to the selected hosts.',
-        disabled: !hasSelectedItems || bulkTargetsLoading || users.length === 0,
-        disabledReason: !hasSelectedItems ? 'No items selected' : bulkTargetsLoading ? 'Loading users...' : 'No users available',
+        disabled: bulkTargetsLoading || users.length === 0,
+        disabledReason: bulkTargetsLoading ? 'Loading users...' : 'No users available',
         permissions: ['edit_hosts'],
         action: createValidatedAction('owner_id', 'number', 'update_owner', { owner_type: 'User' }),
         parameters: getOwnerParameters(),
@@ -199,8 +199,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Organization',
         confirmationMessage: 'Move the selected hosts to a different organization.',
-        disabled: !hasSelectedItems || bulkTargetsLoading || organizations.length === 0,
-        disabledReason: !hasSelectedItems ? 'No items selected' : bulkTargetsLoading ? 'Loading organizations...' : 'No organizations available',
+        disabled: bulkTargetsLoading || organizations.length === 0,
+        disabledReason: bulkTargetsLoading ? 'Loading organizations...' : 'No organizations available',
         permissions: ['edit_hosts'],
         action: createValidatedAction('organization_id', 'number', 'update_organization'),
         parameters: getOrganizationParameters(),
@@ -213,8 +213,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Location',
         confirmationMessage: 'Move the selected hosts to a different location.',
-        disabled: !hasSelectedItems || bulkTargetsLoading || locations.length === 0,
-        disabledReason: !hasSelectedItems ? 'No items selected' : bulkTargetsLoading ? 'Loading locations...' : 'No locations available',
+        disabled: bulkTargetsLoading || locations.length === 0,
+        disabledReason: bulkTargetsLoading ? 'Loading locations...' : 'No locations available',
         permissions: ['edit_hosts'],
         action: createValidatedAction('location_id', 'number', 'update_location'),
         parameters: getLocationParameters(),
@@ -228,8 +228,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         confirmationTitle: 'Rebuild Hosts',
         confirmationMessage: 'This will mark the selected hosts for rebuild on next boot.',
         destructive: false,
-        disabled: !hasSelectedItems,
-        disabledReason: !hasSelectedItems ? 'No items selected' : undefined,
+        disabled: false,
+        disabledReason: undefined,
         permissions: ['build_hosts'],
         action: async (selectedItemIds: number[]) => {
           return executeBulkOperation('build', selectedItemIds);
@@ -245,8 +245,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         confirmationTitle: 'Disassociate Compute Resources',
         confirmationMessage: 'This will disassociate compute resources from the selected hosts.',
         destructive: true,
-        disabled: !hasSelectedItems,
-        disabledReason: !hasSelectedItems ? 'No items selected' : undefined,
+        disabled: false,
+        disabledReason: undefined,
         permissions: ['edit_hosts'],
         action: async (selectedItemIds: number[]) => {
           return executeBulkOperation('disown', selectedItemIds);
@@ -261,8 +261,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         confirmationTitle: 'Delete Hosts',
         confirmationMessage: 'This action cannot be undone. The selected hosts will be permanently deleted from Foreman.',
         destructive: true,
-        disabled: !hasSelectedItems,
-        disabledReason: !hasSelectedItems ? 'No items selected' : undefined,
+        disabled: false,
+        disabledReason: undefined,
         permissions: ['destroy_hosts'],
         action: async (selectedItemIds: number[]) => {
           return executeBulkOperation('destroy', selectedItemIds);
@@ -292,7 +292,6 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
     users,
     organizations,
     locations,
-    hasSelectedItems,
   ]);
 
   const contextValue = useMemo(() => ({
