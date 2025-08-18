@@ -1,4 +1,6 @@
 export * from './useHosts';
+export * from './useHostsGraphQL';
+export * from './useDashboardStats';
 export * from './useUsers';
 export * from './useApi';
 export * from './usePermissions';

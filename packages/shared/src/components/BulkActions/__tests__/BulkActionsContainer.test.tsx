@@ -62,6 +62,43 @@ vi.mock('../../../hooks/useUsers', () => ({
   })),
 }));
 
+vi.mock('../../../hooks/useHostsGraphQL', () => ({
+  useBulkOperationTargets: vi.fn(() => ({
+    data: {
+      hostgroups: {
+        edges: [
+          { node: { id: '1', name: 'web-servers', title: 'Web Servers' } },
+          { node: { id: '2', name: 'db-servers', title: 'Database Servers' } },
+        ],
+      },
+      users: {
+        edges: [
+          { node: { id: '1', login: 'admin', firstname: 'Admin', lastname: 'User' } },
+          { node: { id: '2', login: 'user1', firstname: 'Test', lastname: 'User' } },
+        ],
+      },
+      organizations: {
+        edges: [
+          { node: { id: '1', name: 'test-org' } },
+        ],
+      },
+      locations: {
+        edges: [
+          { node: { id: '1', name: 'test-location' } },
+        ],
+      },
+      usergroups: {
+        edges: [
+          { node: { id: '1', name: 'test-group' } },
+        ],
+      },
+    },
+    isLoading: false,
+    error: null,
+    isError: false,
+  })),
+}));
+
 vi.mock('../../../hooks/useApi', () => ({
   useApi: vi.fn(() => ({
     user: { id: 1, login: 'admin' },
@@ -130,6 +167,7 @@ const createWrapper = () => {
       <BulkActionsProvider
         enabledActions={['update_hostgroup', 'build', 'destroy']}
         userPermissions={['edit_hosts', 'build_hosts', 'destroy_hosts']}
+        hasSelectedItems={true}
       >
         {children}
       </BulkActionsProvider>
