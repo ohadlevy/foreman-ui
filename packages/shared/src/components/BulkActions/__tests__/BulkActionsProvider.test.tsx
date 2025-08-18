@@ -28,7 +28,7 @@ vi.mock('../../../hooks/useBulkOperations', () => ({
   })),
 }));
 
-// Removed obsolete REST API mocks - now using GraphQL via useBulkOperationTargets
+// Mock GraphQL hook for bulk operation targets (with REST fallback in actual implementation)
 
 vi.mock('../../../hooks/useHostsGraphQL', () => ({
   useBulkOperationTargets: vi.fn(() => ({
@@ -192,7 +192,7 @@ describe('BulkActionsProvider', () => {
       wrapper: createWrapper({ 
         enabledActions: ['update_hostgroup', 'destroy'],
         userPermissions: ['edit_hosts'], // Missing 'destroy_hosts'
-        hasSelectedItems: true
+        hasSelectedItems: true // Need items selected to test permission logic
       })
     });
 
@@ -205,8 +205,7 @@ describe('BulkActionsProvider', () => {
   it('should configure hostgroup parameters correctly', async () => {
     render(<TestComponent />, { 
       wrapper: createWrapper({ 
-        enabledActions: ['update_hostgroup'],
-        hasSelectedItems: true
+        enabledActions: ['update_hostgroup']
       })
     });
 
