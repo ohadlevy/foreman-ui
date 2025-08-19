@@ -6,6 +6,10 @@ import { createDefaultClient } from '../api/client';
 import { GET_HOSTS_LIST, GET_BULK_OPERATION_TARGETS } from '../graphql/hostsList';
 import { Host, HostSearchParams } from '../types';
 
+interface ExtendedHostSearchParams extends HostSearchParams {
+  afterCursor?: string;
+}
+
 interface GraphQLHostsResponse {
   hosts: {
     totalCount: number;
@@ -57,7 +61,7 @@ const convertGraphQLToHost = (gqlHost: GraphQLHost): Host => {
     managed: true, // Default assumption for GraphQL hosts
     enabled: gqlHost.enabled,
     created_at: gqlHost.createdAt,
-    updated_at: gqlHost.updatedAt,
+    updated_at: gqlHost.updatedAt ?? gqlHost.createdAt,
     last_report: gqlHost.lastReport,
     capabilities: [], // Default empty array
     
@@ -70,7 +74,7 @@ const convertGraphQLToHost = (gqlHost: GraphQLHost): Host => {
   };
 };
 
-export const useHostsGraphQL = (params?: HostSearchParams) => {
+export const useHostsGraphQL = (params?: ExtendedHostSearchParams) => {
   const { hasPermission } = useAuth();
   const { context } = useTaxonomyStore();
 
@@ -87,9 +91,10 @@ export const useHostsGraphQL = (params?: HostSearchParams) => {
       const graphqlClient = createGraphQLClient(client);
       
       const response = await graphqlClient.query<GraphQLHostsResponse>(GET_HOSTS_LIST, {
-        first: params?.per_page || 20,
-        after: params?.page && params.page > 1 ? btoa(`cursor:${(params.page - 1) * (params?.per_page || 20)}`) : null,
-        search: params?.search || null,
+        first: params?.per_page ?? 20,
+        // Accept server-provided cursor from params - don't synthesize cursors
+        after: params?.afterCursor ?? null,
+        search: params?.search ?? null,
       });
       
       if (graphqlClient.hasErrors(response)) {
@@ -113,6 +118,10 @@ export const useHostsGraphQL = (params?: HostSearchParams) => {
           order: 'ASC'
         },
         results: hosts,
+        // Expose GraphQL pagination info for proper cursor-based pagination
+        pageInfo: hostsData?.pageInfo,
+        nextCursor: hostsData?.pageInfo?.endCursor,
+        hasNextPage: hostsData?.pageInfo?.hasNextPage,
       };
     },
     keepPreviousData: true,

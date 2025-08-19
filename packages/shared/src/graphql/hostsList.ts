@@ -59,10 +59,15 @@ export const GET_HOSTS_LIST = `
   }
 `;
 
-// For bulk operations, we need to fetch target data (only supported fields)
+// For bulk operations, we need to fetch target data with reasonable limits
 export const GET_BULK_OPERATION_TARGETS = `
-  query GetBulkOperationTargets {
-    hostgroups {
+  query GetBulkOperationTargets(
+    $hostgroupsFirst: Int = 100
+    $usersFirst: Int = 100
+    $organizationsFirst: Int = 50
+    $locationsFirst: Int = 50
+  ) {
+    hostgroups(first: $hostgroupsFirst) {
       edges {
         node {
           id
@@ -70,24 +75,36 @@ export const GET_BULK_OPERATION_TARGETS = `
           title
         }
       }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
-    organizations {
+    organizations(first: $organizationsFirst) {
       edges {
         node {
           id
           name
         }
       }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
-    locations {
+    locations(first: $locationsFirst) {
       edges {
         node {
           id
           name
         }
       }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
-    users {
+    users(first: $usersFirst) {
       edges {
         node {
           id
@@ -96,13 +113,9 @@ export const GET_BULK_OPERATION_TARGETS = `
           lastname
         }
       }
-    }
-    usergroups {
-      edges {
-        node {
-          id
-          name
-        }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }

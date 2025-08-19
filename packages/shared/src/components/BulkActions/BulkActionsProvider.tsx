@@ -78,6 +78,7 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
   // Only load bulk operation targets when there are selected items AND when any target-requiring action is enabled
   const targetRequiringActions = ['update_hostgroup', 'update_owner', 'update_organization', 'update_location'];
   const shouldLoadTargets = hasSelectedItems && enabledActions.some(a => targetRequiringActions.includes(a));
+  // Note: Limited to first 100 hostgroups/users, 50 orgs/locations for performance
   const { data: bulkTargets, isLoading: bulkTargetsLoading } = useBulkOperationTargets(shouldLoadTargets);
   
   // Extract data from the single GraphQL query with proper typing
