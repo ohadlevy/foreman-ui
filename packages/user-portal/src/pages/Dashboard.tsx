@@ -16,20 +16,19 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from '@patternfly/react-icons';
-import { useHosts, usePermissions, useAuth } from '@foreman/shared';
+import { usePermissions, useAuth, useDashboardHostStats } from '@foreman/shared';
 import { useNavigate } from 'react-router-dom';
 import { DraggableDashboard } from '../components';
 
 export const Dashboard: React.FC = () => {
-  const { data: hostsData, isLoading: hostsLoading } = useHosts();
+  const { data: hostStats, isLoading: hostsLoading } = useDashboardHostStats();
   const { user } = useAuth();
   const { canCreateHosts, canViewHosts } = usePermissions();
   const navigate = useNavigate();
 
-
-  const totalHosts = hostsData?.total || 0;
-  const runningHosts = hostsData?.results?.filter(host => host.enabled)?.length || 0;
-  const buildingHosts = hostsData?.results?.filter(host => host.build)?.length || 0;
+  const totalHosts = hostStats?.total || 0;
+  const runningHosts = hostStats?.enabled || 0;
+  const buildingHosts = hostStats?.building || 0;
 
   // Check user permissions to determine available actions
 

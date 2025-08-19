@@ -28,27 +28,38 @@ vi.mock('../../../hooks/useBulkOperations', () => ({
   })),
 }));
 
-vi.mock('../../../hooks/useHostGroups', () => ({
-  useHostGroups: vi.fn(() => ({
-    data: {
-      results: [
-        { id: 1, name: 'web-servers', title: 'Web Servers' },
-        { id: 2, name: 'db-servers', title: 'Database Servers' },
-      ],
-    },
-    isLoading: false,
-    error: null,
-    isError: false,
-  })),
-}));
+// Mock GraphQL hook for bulk operation targets (with REST fallback in actual implementation)
 
-vi.mock('../../../hooks/useUsers', () => ({
-  useUsers: vi.fn(() => ({
+vi.mock('../../../hooks/useHostsGraphQL', () => ({
+  useBulkOperationTargets: vi.fn(() => ({
     data: {
-      results: [
-        { id: 1, login: 'admin', name: 'Administrator' },
-        { id: 2, login: 'user1', name: 'User One' },
-      ],
+      hostgroups: {
+        edges: [
+          { node: { id: '1', name: 'web-servers', title: 'Web Servers' } },
+          { node: { id: '2', name: 'db-servers', title: 'Database Servers' } },
+        ],
+      },
+      users: {
+        edges: [
+          { node: { id: '1', login: 'admin', firstname: 'Admin', lastname: 'User' } },
+          { node: { id: '2', login: 'user1', firstname: 'Test', lastname: 'User' } },
+        ],
+      },
+      organizations: {
+        edges: [
+          { node: { id: '1', name: 'test-org' } },
+        ],
+      },
+      locations: {
+        edges: [
+          { node: { id: '1', name: 'test-location' } },
+        ],
+      },
+      usergroups: {
+        edges: [
+          { node: { id: '1', name: 'test-group' } },
+        ],
+      },
     },
     isLoading: false,
     error: null,
@@ -180,7 +191,8 @@ describe('BulkActionsProvider', () => {
     render(<TestComponent />, { 
       wrapper: createWrapper({ 
         enabledActions: ['update_hostgroup', 'destroy'],
-        userPermissions: ['edit_hosts'] // Missing 'destroy_hosts'
+        userPermissions: ['edit_hosts'], // Missing 'destroy_hosts'
+        hasSelectedItems: true // Need items selected to test permission logic
       })
     });
 
@@ -192,7 +204,9 @@ describe('BulkActionsProvider', () => {
 
   it('should configure hostgroup parameters correctly', async () => {
     render(<TestComponent />, { 
-      wrapper: createWrapper({ enabledActions: ['update_hostgroup'] })
+      wrapper: createWrapper({ 
+        enabledActions: ['update_hostgroup']
+      })
     });
 
     await waitFor(() => {
@@ -228,5 +242,39 @@ describe('BulkActionsProvider', () => {
     // Both should be present as destructive actions
     expect(screen.getByTestId('action-destroy-label')).toHaveTextContent('Delete Hosts');
     expect(screen.getByTestId('action-disown-label')).toHaveTextContent('Disassociate Compute Resources');
+  });
+
+  it('should not load bulk targets when no target-requiring actions are enabled', async () => {
+    render(<TestComponent />, { 
+      wrapper: createWrapper({ 
+        enabledActions: ['build', 'destroy'], // No target-requiring actions
+        hasSelectedItems: true 
+      })
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('actions-count')).toHaveTextContent('2');
+    });
+
+    // Actions should be present but targets shouldn't be loaded
+    expect(screen.getByTestId('action-build')).toBeInTheDocument();
+    expect(screen.getByTestId('action-destroy')).toBeInTheDocument();
+  });
+
+  it('should not load bulk targets when hasSelectedItems is false', async () => {
+    render(<TestComponent />, { 
+      wrapper: createWrapper({ 
+        enabledActions: ['update_hostgroup', 'build'], 
+        hasSelectedItems: false // No items selected
+      })
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('actions-count')).toHaveTextContent('2');
+    });
+
+    // Actions should be present but targets shouldn't be loaded when no items selected
+    expect(screen.getByTestId('action-update_hostgroup')).toBeInTheDocument();
+    expect(screen.getByTestId('action-build')).toBeInTheDocument();
   });
 });

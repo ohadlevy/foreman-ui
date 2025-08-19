@@ -299,7 +299,7 @@ export const HostsList: React.FC = () => {
   }, [search, isLoading, data, addActivity]);
 
   // Get hosts data early for hooks
-  const hosts = data?.results || [];
+  const hosts = (data?.results || []) as Host[];
   const total = data?.total || 0;
 
   // Fetch all host IDs for select all pages functionality (only when needed)
@@ -461,6 +461,7 @@ export const HostsList: React.FC = () => {
         'disown'
       ]}
       userPermissions={userPermissions}
+      hasSelectedItems={selectedCount > 0}
     >
       <PageSection variant="secondary">
         <Title headingLevel="h1" size="2xl">

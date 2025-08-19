@@ -1,11 +1,49 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import { BulkAction, HostGroup } from '../../types';
+import { BulkAction } from '../../types';
 import { useBulkOperations } from '../../hooks/useBulkOperations';
-import { useHostGroups } from '../../hooks/useHostGroups';
-import { useUsers } from '../../hooks/useUsers';
-import { useOrganizations, useLocations } from '../../hooks/useTaxonomyQueries';
-import { useApi } from '../../hooks/useApi';
+import { useBulkOperationTargets } from '../../hooks/useHostsGraphQL';
 import { validateParameter } from '../../utils/bulkOperationUtils';
+
+interface BulkOperationTargets {
+  hostgroups?: {
+    edges: Array<{
+      node: {
+        id: string;
+        name: string;
+        title?: string;
+      };
+    }>;
+  };
+  users?: {
+    edges: Array<{
+      node: {
+        id: string;
+        login: string;
+        firstname?: string;
+        lastname?: string;
+        name?: string;
+      };
+    }>;
+  };
+  organizations?: {
+    edges: Array<{
+      node: {
+        id: string;
+        name: string;
+        title?: string;
+      };
+    }>;
+  };
+  locations?: {
+    edges: Array<{
+      node: {
+        id: string;
+        name: string;
+        title?: string;
+      };
+    }>;
+  };
+}
 
 interface BulkActionsContextType {
   actions: BulkAction[];
@@ -18,6 +56,7 @@ interface BulkActionsProviderProps {
   children: React.ReactNode;
   enabledActions?: string[];
   userPermissions?: string[];
+  hasSelectedItems?: boolean;
 }
 
 export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
@@ -32,22 +71,22 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
     'disown'
   ],
   userPermissions = [],
+  hasSelectedItems = false,
 }) => {
   const { executeBulkOperation } = useBulkOperations();
-  const { data: hostGroupsResponse, isLoading: hostGroupsLoading } = useHostGroups();
-  const { data: usersResponse, isLoading: usersLoading } = useUsers();
-  const { taxonomyApi } = useApi();
   
-  // Fetch organizations using proper taxonomy hook
-  const { data: organizationsResponse, isLoading: organizationsLoading } = useOrganizations(taxonomyApi);
+  // Only load bulk operation targets when there are selected items AND when any target-requiring action is enabled
+  const targetRequiringActions = ['update_hostgroup', 'update_owner', 'update_organization', 'update_location'];
+  const shouldLoadTargets = hasSelectedItems && enabledActions.some(a => targetRequiringActions.includes(a));
+  // Note: Limited to first 100 hostgroups/users, 50 orgs/locations for performance
+  const { data: bulkTargets, isLoading: bulkTargetsLoading } = useBulkOperationTargets(shouldLoadTargets);
   
-  // Fetch locations using proper taxonomy hook
-  const { data: locationsResponse, isLoading: locationsLoading } = useLocations(taxonomyApi);
-  
-  const hostGroups = hostGroupsResponse?.results || [];
-  const users = usersResponse?.results || [];
-  const organizations = organizationsResponse?.results || [];
-  const locations = locationsResponse?.results || [];
+  // Extract data from the single GraphQL query with proper typing
+  const typedBulkTargets = bulkTargets as BulkOperationTargets | undefined;
+  const hostGroups = typedBulkTargets?.hostgroups?.edges?.map((edge) => edge.node) || [];
+  const users = typedBulkTargets?.users?.edges?.map((edge) => edge.node) || [];
+  const organizations = typedBulkTargets?.organizations?.edges?.map((edge) => edge.node) || [];
+  const locations = typedBulkTargets?.locations?.edges?.map((edge) => edge.node) || [];
 
   // Helper function to generate hostgroup parameters for improved readability
   const getHostgroupParameters = () => [
@@ -56,8 +95,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
       label: 'Hostgroup',
       type: 'select' as const,
       required: true,
-      options: hostGroups.map((hg: HostGroup) => ({
-        value: hg.id,
+      options: hostGroups.map((hg) => ({
+        value: parseInt(hg.id, 10),
         label: hg.title || hg.name,
       })),
       placeholder: 'Select a hostgroup...',
@@ -71,9 +110,9 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
       label: 'Owner (User)',
       type: 'select' as const,
       required: true,
-      options: users.map((user: { id: number; name?: string; login: string }) => ({
-        value: user.id,
-        label: user.name || user.login,
+      options: users.map((user) => ({
+        value: parseInt(user.id, 10),
+        label: user.name || [user.firstname, user.lastname].filter(Boolean).join(' ') || user.login,
       })),
       placeholder: 'Select a user...',
     },
@@ -86,8 +125,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
       label: 'Organization',
       type: 'select' as const,
       required: true,
-      options: organizations.map((org: { id: number; name: string; title?: string }) => ({
-        value: org.id,
+      options: organizations.map((org) => ({
+        value: parseInt(org.id, 10),
         label: org.title || org.name,
       })),
       placeholder: 'Select an organization...',
@@ -101,13 +140,14 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
       label: 'Location',
       type: 'select' as const,
       required: true,
-      options: locations.map((loc: { id: number; name: string; title?: string }) => ({
-        value: loc.id,
+      options: locations.map((loc) => ({
+        value: parseInt(loc.id, 10),
         label: loc.title || loc.name,
       })),
       placeholder: 'Select a location...',
     },
   ];
+
 
   // Helper function for parameter validation and bulk operation execution
   const createValidatedAction = (
@@ -131,8 +171,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Hostgroup',
         confirmationMessage: 'Select a new hostgroup for the selected hosts.',
-        disabled: hostGroupsLoading || hostGroups.length === 0,
-        disabledReason: hostGroupsLoading ? 'Loading hostgroups...' : 'No hostgroups available',
+        disabled: bulkTargetsLoading || hostGroups.length === 0,
+        disabledReason: bulkTargetsLoading ? 'Loading hostgroups...' : 'No hostgroups available',
         permissions: ['edit_hosts'],
         action: createValidatedAction('hostgroup_id', 'number', 'update_hostgroup'),
         parameters: getHostgroupParameters(),
@@ -146,8 +186,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Owner',
         confirmationMessage: 'Assign a new owner to the selected hosts.',
-        disabled: usersLoading || users.length === 0,
-        disabledReason: usersLoading ? 'Loading users...' : 'No users available',
+        disabled: bulkTargetsLoading || users.length === 0,
+        disabledReason: bulkTargetsLoading ? 'Loading users...' : 'No users available',
         permissions: ['edit_hosts'],
         action: createValidatedAction('owner_id', 'number', 'update_owner', { owner_type: 'User' }),
         parameters: getOwnerParameters(),
@@ -160,8 +200,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Organization',
         confirmationMessage: 'Move the selected hosts to a different organization.',
-        disabled: organizationsLoading || organizations.length === 0,
-        disabledReason: organizationsLoading ? 'Loading organizations...' : 'No organizations available',
+        disabled: bulkTargetsLoading || organizations.length === 0,
+        disabledReason: bulkTargetsLoading ? 'Loading organizations...' : 'No organizations available',
         permissions: ['edit_hosts'],
         action: createValidatedAction('organization_id', 'number', 'update_organization'),
         parameters: getOrganizationParameters(),
@@ -174,8 +214,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         requiresConfirmation: true,
         confirmationTitle: 'Change Location',
         confirmationMessage: 'Move the selected hosts to a different location.',
-        disabled: locationsLoading || locations.length === 0,
-        disabledReason: locationsLoading ? 'Loading locations...' : 'No locations available',
+        disabled: bulkTargetsLoading || locations.length === 0,
+        disabledReason: bulkTargetsLoading ? 'Loading locations...' : 'No locations available',
         permissions: ['edit_hosts'],
         action: createValidatedAction('location_id', 'number', 'update_location'),
         parameters: getLocationParameters(),
@@ -189,6 +229,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         confirmationTitle: 'Rebuild Hosts',
         confirmationMessage: 'This will mark the selected hosts for rebuild on next boot.',
         destructive: false,
+        disabled: false,
+        disabledReason: undefined,
         permissions: ['build_hosts'],
         action: async (selectedItemIds: number[]) => {
           return executeBulkOperation('build', selectedItemIds);
@@ -204,6 +246,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         confirmationTitle: 'Disassociate Compute Resources',
         confirmationMessage: 'This will disassociate compute resources from the selected hosts.',
         destructive: true,
+        disabled: false,
+        disabledReason: undefined,
         permissions: ['edit_hosts'],
         action: async (selectedItemIds: number[]) => {
           return executeBulkOperation('disown', selectedItemIds);
@@ -218,6 +262,8 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
         confirmationTitle: 'Delete Hosts',
         confirmationMessage: 'This action cannot be undone. The selected hosts will be permanently deleted from Foreman.',
         destructive: true,
+        disabled: false,
+        disabledReason: undefined,
         permissions: ['destroy_hosts'],
         action: async (selectedItemIds: number[]) => {
           return executeBulkOperation('destroy', selectedItemIds);
@@ -243,19 +289,16 @@ export const BulkActionsProvider: React.FC<BulkActionsProviderProps> = ({
     userPermissions,
     executeBulkOperation,
     hostGroups,
-    hostGroupsLoading,
+    bulkTargetsLoading,
     users,
-    usersLoading,
     organizations,
-    organizationsLoading,
     locations,
-    locationsLoading,
   ]);
 
   const contextValue = useMemo(() => ({
     actions,
-    isLoading: hostGroupsLoading || usersLoading || organizationsLoading || locationsLoading,
-  }), [actions, hostGroupsLoading, usersLoading, organizationsLoading, locationsLoading]);
+    isLoading: bulkTargetsLoading,
+  }), [actions, bulkTargetsLoading]);
 
   return (
     <BulkActionsContext.Provider value={contextValue}>
