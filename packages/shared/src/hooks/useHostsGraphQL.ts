@@ -25,41 +25,24 @@ interface GraphQLHost {
   id: string;
   name: string;
   ip?: string;
-  mac?: string;
   build: boolean;
-  managed: boolean;
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
   lastReport?: string;
-  globalStatus?: string;
-  operatingSystem?: {
-    id: string;
+  operatingsystem?: {
     name: string;
   };
   hostgroup?: {
-    id: string;
-    name: string;
-  };
-  environment?: {
-    id: string;
     name: string;
   };
   organization?: {
-    id: string;
     name: string;
   };
   location?: {
-    id: string;
     name: string;
   };
   owner?: {
-    id: string;
-    name: string;
-    type: string;
-  };
-  domain?: {
-    id: string;
     name: string;
   };
 }
@@ -70,37 +53,20 @@ const convertGraphQLToHost = (gqlHost: GraphQLHost): Host => {
     id: parseInt(gqlHost.id, 10),
     name: gqlHost.name,
     ip: gqlHost.ip,
-    mac: gqlHost.mac,
     build: gqlHost.build,
-    managed: gqlHost.managed,
+    managed: true, // Default assumption for GraphQL hosts
     enabled: gqlHost.enabled,
     created_at: gqlHost.createdAt,
     updated_at: gqlHost.updatedAt,
     last_report: gqlHost.lastReport,
     capabilities: [], // Default empty array
     
-    // Convert related entities
-    operatingsystem_id: gqlHost.operatingSystem ? parseInt(gqlHost.operatingSystem.id, 10) : undefined,
-    operatingsystem_name: gqlHost.operatingSystem?.name,
-    
-    hostgroup_id: gqlHost.hostgroup ? parseInt(gqlHost.hostgroup.id, 10) : undefined,
+    // Convert related entities (only names available from GraphQL)
+    operatingsystem_name: gqlHost.operatingsystem?.name,
     hostgroup_name: gqlHost.hostgroup?.name,
-    
-    environment_id: gqlHost.environment ? parseInt(gqlHost.environment.id, 10) : undefined,
-    environment_name: gqlHost.environment?.name,
-    
-    organization_id: gqlHost.organization ? parseInt(gqlHost.organization.id, 10) : undefined,
     organization_name: gqlHost.organization?.name,
-    
-    location_id: gqlHost.location ? parseInt(gqlHost.location.id, 10) : undefined,
     location_name: gqlHost.location?.name,
-    
-    owner_id: gqlHost.owner ? parseInt(gqlHost.owner.id, 10) : undefined,
     owner_name: gqlHost.owner?.name,
-    owner_type: gqlHost.owner?.type,
-    
-    domain_id: gqlHost.domain ? parseInt(gqlHost.domain.id, 10) : undefined,
-    domain_name: gqlHost.domain?.name,
   };
 };
 
