@@ -59,16 +59,31 @@ export const useDashboardHostStats = () => {
       } catch (error) {
         console.warn('GraphQL dashboard stats failed, falling back to REST API:', error);
         
-        // Fallback to REST API - fetch all hosts and calculate stats
-        const enhancedParams = {
+        // Fallback to REST API - use search queries to get counts efficiently
+        const taxonomyParams = {
           ...(context.organization?.id && { organization_id: context.organization.id }),
           ...(context.location?.id && { location_id: context.location.id }),
         };
         
-        const hostsData = await hosts.list(enhancedParams);
-        const total = hostsData.total || 0;
-        const enabled = hostsData.results?.filter(host => host.enabled)?.length || 0;
-        const building = hostsData.results?.filter(host => host.build)?.length || 0;
+        // Get total count (use small per_page to minimize data transfer)
+        const totalData = await hosts.list({ ...taxonomyParams, per_page: 1 });
+        const total = totalData.total || 0;
+        
+        // Get enabled count using search
+        const enabledData = await hosts.list({ 
+          ...taxonomyParams, 
+          search: 'status.enabled = true',
+          per_page: 1 
+        });
+        const enabled = enabledData.total || 0;
+        
+        // Get building count using search  
+        const buildingData = await hosts.list({ 
+          ...taxonomyParams, 
+          search: 'build = true',
+          per_page: 1 
+        });
+        const building = buildingData.total || 0;
         
         return {
           total,
